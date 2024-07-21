@@ -1,0 +1,6 @@
+@Lyvads.API.Presentation_HostAddress = http://localhost:5131
+
+GET {{Lyvads.API.Presentation_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
