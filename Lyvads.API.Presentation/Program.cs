@@ -1,5 +1,7 @@
 using Lyvads.API.Extensions;
 using Lyvads.API.Presentation.Middlewares;
+using Lyvads.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +28,14 @@ var webSocketOptions = new WebSocketOptions()
     KeepAliveInterval = TimeSpan.FromMinutes(2),
     ReceiveBufferSize = 4 * 1024
 };
+
+using (var servicescope = app.Services.CreateScope())
+{
+    var services = servicescope.ServiceProvider;
+    var _context = services.GetRequiredService<AppDbContext>();
+
+    _context.Database.Migrate();
+}
 
 app.UseWebSockets(webSocketOptions);
 //app.UseMiddleware<WebSocketMiddleware>();
