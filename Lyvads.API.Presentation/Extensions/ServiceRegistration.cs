@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Lyvads.Application.Utilities;
+using Twilio.Clients;
 
 namespace Lyvads.API.Extensions;
 
@@ -81,13 +82,20 @@ public static class ServiceRegistration
         services.AddScoped<IUserInteractionService, UserInteractionService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IWaitlistService, WaitlistService>();
+        services.AddScoped<IVerificationService, VerificationService>();
+        services.AddScoped<IProfileService, ProfileService>();
+
         services.AddScoped<WebSocketHandler>();
         services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddHttpClient<ITwilioRestClient, TwilioClient>();
 
         // Register Repositories
         services.AddScoped<IRepository, Repository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRegularUserRepository, RegularUserRepository>();
+        services.AddScoped<ICreatorRepository, CreatorRepository>();
+        services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
 }

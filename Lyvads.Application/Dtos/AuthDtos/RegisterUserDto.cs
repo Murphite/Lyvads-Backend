@@ -7,7 +7,7 @@ public class RegisterUserDto
     [Required] public string FullName { get; init; }
     [Required] public string Username { get; init; }
     [Required] public string PhoneNumber { get; init; }
-    [Required][EmailAddress] public string Email { get; init; }
+    [EmailAddress] public string Email { get; init; }
 
     [Required(ErrorMessage = "New password is required")]
     [DataType(DataType.Password)]

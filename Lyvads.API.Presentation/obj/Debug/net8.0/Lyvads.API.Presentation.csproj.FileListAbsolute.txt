@@ -126,6 +126,7 @@ C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.csproj.CoreCompileInputs.cache
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.sourcelink.json
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\staticwebassets\msbuild.Lyvads.API.Presentation.Microsoft.AspNetCore.StaticWebAssets.props
@@ -140,3 +141,13 @@ C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.pdb
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.genruntimeconfig.cache
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\ref\Lyvads.API.Presentation.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Twilio.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.AspNetCore.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.Extensions.Hosting.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.Extensions.Logging.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.Formatting.Compact.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.Settings.Configuration.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.Sinks.Console.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.Sinks.Debug.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.Sinks.File.dll

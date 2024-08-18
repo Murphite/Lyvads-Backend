@@ -21,6 +21,12 @@ public class JwtService : IJwtService
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(_config.GetSection("JWT:Key").Value);
 
+        // Ensure the key is at least 32 bytes long
+        if (key.Length < 32)
+        {
+            throw new ArgumentOutOfRangeException("JWT:Key", "The key size must be at least 256 bits (32 bytes).");
+        }
+
         var claimList = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id),

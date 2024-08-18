@@ -18,8 +18,6 @@ public class Result<TValue> : Result where TValue : class
         return Success(value);
     }
 
-    // return Result.Success(data);
-    // return data;
     public static implicit operator TValue(Result<TValue> result)
     {
         if (result.IsSuccess) return result.Data;
@@ -59,22 +57,15 @@ public class Result
         return new Result(true, Error.None, message);
     }
 
-    // return Result.Success();
-
     public static Result<TValue> Success<TValue>(TValue value) where TValue : class
     {
         return new Result<TValue>(value, true, Error.None);
     }
 
-    // return Result.Success(data)
-
     public static Result Failure(IEnumerable<Error> errors, string message = "")
     {
         return new Result(false, errors, message);
     }
-
-    // return new Result(false, errors)
-    // return Result.Failure(errors)
 
     public static Result<TValue> Failure<TValue>(IEnumerable<Error> errors) where TValue : class
     {
@@ -85,4 +76,6 @@ public class Result
     {
         return Failure(errors);
     }
+
+    
 }

@@ -9,6 +9,11 @@ using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Constants;
 using Lyvads.Application.Dtos.AuthDtos;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography.X509Certificates;
+using static Lyvads.Application.Implementions.AuthService;
+using Microsoft.EntityFrameworkCore;
+using Lyvads.Infrastructure.Repositories;
+using Lyvads.Application.Dtos.CreatorDtos;
 
 namespace Lyvads.Application.Implementions;
 
@@ -18,188 +23,293 @@ public class AuthService : IAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IRepository _repository;
     private readonly IEmailService _emailService;
+    private readonly IVerificationService _verificationService;
     private readonly IConfiguration _configuration;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AuthService> _logger;
+    private readonly IAdminRepository _adminRepository;
+    private readonly IRegularUserRepository _regularUserRepository;
+    private readonly ICreatorRepository _creatorRepository;
 
     public AuthService(UserManager<ApplicationUser> userManager, IRepository repository, IJwtService jwtService,
-        IEmailService emailService, IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<AuthService> logger)
+        IEmailService emailService, IVerificationService verificationService, IConfiguration configuration, IUnitOfWork unitOfWork, 
+        ILogger<AuthService> logger, IAdminRepository adminRepository, IRegularUserRepository regularUserRepository, ICreatorRepository creatorRepository)
     {
         _userManager = userManager;
         _repository = repository;
         _jwtService = jwtService;
         _emailService = emailService;
+        _verificationService = verificationService;
         _configuration = configuration;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _adminRepository = adminRepository;
+        _regularUserRepository = regularUserRepository;
+        _creatorRepository = creatorRepository;
     }
 
-    public async Task<Result> RegisterUser(RegisterUserDto registerUserDto)
+    public async Task<Result<RegistrationResponseDto>> InitiateRegistration(string email)
     {
-        _logger.LogInformation($"******* Inside the RegisterUser Method ********");
+        _logger.LogInformation("******* Inside the InitiateRegistration Method ********");
 
-        // Ensure email is unique
-        var emailExist = await _userManager.FindByEmailAsync(registerUserDto.Email);
+        var emailExist = await _userManager.FindByEmailAsync(email);
         if (emailExist != null)
             return new Error[] { new("Registration.Error", "Email already exists") };
-
-        // Split the full name
-        var names = registerUserDto.FullName.Split(' ');
-        var firstName = names[0];
-        var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
 
         // Generate a 5-digit verification code
         var verificationCode = GenerateVerificationCode();
 
-        var user = new ApplicationUser
-        {
-            Username = registerUserDto.Email,
-            Email = registerUserDto.Email,
-            FirstName = firstName,
-            LastName = lastName,
-            VerificationCode = verificationCode,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
-        };
-
-        // Ensure password and confirm password match
-        if (registerUserDto.Password != registerUserDto.ConfirmPassword)
-            return new Error[] { new("Registration.Error", "Passwords do not match") };
-
-        var result = await _userManager.CreateAsync(user, registerUserDto.Password);
-        if (!result.Succeeded)
-            return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
-
         // Send email with verification code
         var emailBody = $"Your verification code is {verificationCode}";
-        var emailResult = await _emailService.SendEmailAsync(user.Email, "Email Verification", emailBody);
+        var emailResult = await _emailService.SendEmailAsync(email, "Email Verification", emailBody);
         if (!emailResult)
             return new Error[] { new("Registration.Error", "Error sending verification email") };
 
-        // Call method to verify email with the received code
-        var verifyResult = await VerifyEmail(user.Email, verificationCode);
-        if (!verifyResult.IsSuccess)
-            return verifyResult.Errors.ToArray();
+        // Store the verification code and email in a temporary storage
+        await _verificationService.SaveVerificationCode(email, verificationCode);
 
-        result = await _userManager.AddToRoleAsync(user, RolesConstant.RegularUser);
-        if (!result.Succeeded)
-            return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
+        // Set the email in EmailContext for future use
+        EmailContext.VerifiedEmail = email;
 
-
-        return Result.Success("Registration successful. Verification is pending until the confirmation of account.");
-    }
-
-    public async Task<Result> RegisterCreator(RegisterCreatorDto registerCreatorDto)
-    {
-        _logger.LogInformation($"******* Inside the RegisterCreator Method ********");
-
-        var emailExist = await _userManager.FindByEmailAsync(registerCreatorDto.Email);
-        if (emailExist != null)
-            return new Error[] { new("Registration.Error", "Email already exists") };
-
-        // Split the full name
-        var names = registerCreatorDto.FullName.Split(' ');
-        var firstName = names[0];
-        var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
-
-        // Generate a 5-digit verification code
-        var verificationCode = GenerateVerificationCode();
-
-        var user = new Creator
+        // Create the response DTO
+        var registrationResponse = new RegistrationResponseDto
         {
-            Username = registerCreatorDto.Username,
-            Email = registerCreatorDto.Email,
-            UserName = registerCreatorDto.Email,
-            FirstName = firstName,
-            LastName = lastName,
-            PhoneNumber = registerCreatorDto.PhoneNumber,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            VerificationCode = verificationCode,
+            Email = email,
+            VerificationCode = verificationCode
         };
 
-        // Ensure password and confirm password match
-        if (registerCreatorDto.Password != registerCreatorDto.ConfirmPassword)
-            return new Error[] { new("Registration.Error", "Passwords do not match") };
-
-        var result = await _userManager.CreateAsync(user, registerCreatorDto.Password);
-        if (!result.Succeeded)
-            return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
-
-        // Send email with verification code
-        var emailBody = $"Your verification code is {verificationCode}";
-        var emailResult = await _emailService.SendEmailAsync(user.Email, "Email Verification", emailBody);
-        if (!emailResult)
-            return new Error[] { new("Registration.Error", "Error sending verification email") };
-
-        // Call method to verify email with the received code
-        var verifyResult = await VerifyEmail(user.Email, verificationCode);
-        if (!verifyResult.IsSuccess)
-            return verifyResult.Errors.ToArray();
-
-        result = await _userManager.AddToRoleAsync(user, RolesConstant.Creator);
-        if (!result.Succeeded)
-            return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
-
-
-        return Result.Success("Registration successful. Verification is pending until the confirmation of account.");
+        return Result<RegistrationResponseDto>.Success(registrationResponse);
     }
 
-    public async Task<Result> RegisterAdmin(RegisterAdminDto registerAdminDto)
+    public async Task<Result<EmailVerificationResponseDto>> VerifyEmail(string verificationCode)
     {
-        _logger.LogInformation($"******* Inside the RegisterAdmin Method ********");
+        _logger.LogInformation($"******* Inside the VerifyEmail Method ********");
 
-        var emailExist = await _userManager.FindByEmailAsync(registerAdminDto.Email);
+        // Retrieve the stored email using the verification code
+        var email = await _verificationService.GetEmailByVerificationCode(verificationCode);
+        if (email == null)
+            return new Error[] { new("Verification.Error", "Invalid verification code") };
 
-        if (emailExist != null)
-            return new Error[] { new("Registration.Error", "email already exist") };
+        var isCodeValid = await _verificationService.ValidateVerificationCode(email, verificationCode);
+        if (!isCodeValid)
+            return new Error[] { new("Verification.Error", "Invalid verification code") };
+
+        // Mark email as verified
+        await _verificationService.MarkEmailAsVerified(email);
+
+        // Create the response DTO
+        var verificationResponse = new EmailVerificationResponseDto
+        {
+            Email = email,
+            IsVerified = true,
+            Message = "Email verified. Proceed with registration."
+        };
+
+        return Result<EmailVerificationResponseDto>.Success(verificationResponse);
+    }
+
+    public async Task<Result<RegisterUserResponseDto>> RegisterAdmin(RegisterAdminDto registerAdminDto)
+    {
+        _logger.LogInformation("******* Inside the RegisterAdmin Method ********");
+
+        // Retrieve the verified email from the context
+        var verifiedEmail = EmailContext.VerifiedEmail;
+        if (string.IsNullOrEmpty(verifiedEmail))
+            return new Error[] { new("Verification.Error", "Email not verified") };
+
+        // Ensure password and confirm password match
+        if (registerAdminDto.Password != registerAdminDto.ConfirmPassword)
+            return new Error[] { new("Registration.Error", "Passwords do not match") };
 
         // Split the full name
         var names = registerAdminDto.FullName.Split(' ');
         var firstName = names[0];
         var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
 
-        // Generate a 5-digit verification code
-        var verificationCode = GenerateVerificationCode();
-
-        var user = new Admin
+        // Create ApplicationUser
+        var applicationUser = new ApplicationUser
         {
             FirstName = firstName,
             LastName = lastName,
-            UserName = registerAdminDto.Email,
-            Email = registerAdminDto.Email,
+            UserName = verifiedEmail,
+            Username = registerAdminDto.Username,
+            Email = verifiedEmail,
             PhoneNumber = registerAdminDto.PhoneNumber,
-            Username = registerAdminDto.Email,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
-            VerificationCode = verificationCode,
+            WalletId = GenerateWalletId(),
+            PublicId = Guid.NewGuid().ToString(),
         };
 
-        // Ensure password and confirm password match
-        if (registerAdminDto.Password != registerAdminDto.ConfirmPassword)
+        // Create Admin entity and associate the ApplicationUser
+        var admin = new Admin
+        {
+            UserId = applicationUser.Id,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            ApplicationUser = applicationUser,
+        };
+
+        var result = await _userManager.CreateAsync(applicationUser, registerAdminDto.Password);
+        if (!result.Succeeded)
+            return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
+
+        result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.Admin);
+        if (!result.Succeeded)
+            return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
+
+        // Assuming you have a repository or context to save the Admin entity
+        await _adminRepository.AddAsync(admin);
+
+        // Mark email as verified
+        await _verificationService.MarkEmailAsVerified(verifiedEmail);
+
+        // Clear the email from the context after successful registration
+        EmailContext.VerifiedEmail = null;
+
+        var registerUserResponse = new RegisterUserResponseDto
+        {
+            UserId = applicationUser.Id,
+            Username = applicationUser.Username,
+            Email = applicationUser.Email,
+            Role = RolesConstant.RegularUser,  // Include the role here
+            Message = "Registration successful. Verification is pending until the confirmation of account."
+        };
+
+        return Result<RegisterUserResponseDto>.Success(registerUserResponse);
+    }
+
+    public async Task<Result<RegisterUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto)
+    {
+        _logger.LogInformation("******* Inside the RegisterUser Method ********");
+
+        var verifiedEmail = EmailContext.VerifiedEmail;
+        if (string.IsNullOrEmpty(verifiedEmail))
+            return new Error[] { new("Verification.Error", "Email not verified") };
+
+        if (registerUserDto.Password != registerUserDto.ConfirmPassword)
             return new Error[] { new("Registration.Error", "Passwords do not match") };
 
-        var result = await _userManager.CreateAsync(user, registerAdminDto.Password);
+        var names = registerUserDto.FullName.Split(' ');
+        var firstName = names[0];
+        var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
+
+        var applicationUser = new ApplicationUser
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            UserName = verifiedEmail,
+            Username = registerUserDto.Username,
+            Email = verifiedEmail,
+            PhoneNumber = registerUserDto.PhoneNumber,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            WalletId = GenerateWalletId(),
+            PublicId = Guid.NewGuid().ToString(),
+        };
+
+        var regularUser = new RegularUser
+        {
+            UserId = applicationUser.Id,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            ApplicationUser = applicationUser,
+        };
+
+        var result = await _userManager.CreateAsync(applicationUser, registerUserDto.Password);
         if (!result.Succeeded)
             return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
-        // Send email with verification code
-        var emailBody = $"Your verification code is {verificationCode}";
-        var emailResult = await _emailService.SendEmailAsync(user.Email, "Email Verification", emailBody);
-        if (!emailResult)
-            return new Error[] { new("Registration.Error", "Error sending verification email") };
+        var roleResult = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.RegularUser);
+        if (!roleResult.Succeeded)
+            return roleResult.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
-        // Call method to verify email with the received code
-        var verifyResult = await VerifyEmail(user.Email, verificationCode);
-        if (!verifyResult.IsSuccess)
-            return verifyResult.Errors.ToArray();
+        await _regularUserRepository.AddAsync(regularUser);
+        await _verificationService.MarkEmailAsVerified(verifiedEmail);
+        EmailContext.VerifiedEmail = null;
 
-        result = await _userManager.AddToRoleAsync(user, RolesConstant.RegularUser);
+        // Create the response DTO including the role
+        var registerUserResponse = new RegisterUserResponseDto
+        {
+            UserId = applicationUser.Id,
+            Username = applicationUser.Username,
+            Email = applicationUser.Email,
+            Role = RolesConstant.RegularUser,
+            Message = "Registration successful. Verification is pending until the confirmation of account."
+        };
+
+        return Result<RegisterUserResponseDto>.Success(registerUserResponse);
+    }
+
+    public async Task<Result<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto)
+    {
+        _logger.LogInformation("******* Inside the RegisterAdmin Method ********");
+
+        // Retrieve the verified email from the context
+        var verifiedEmail = EmailContext.VerifiedEmail;
+        if (string.IsNullOrEmpty(verifiedEmail))
+            return new Error[] { new("Verification.Error", "Email not verified") };
+
+        // Ensure password and confirm password match
+        if (registerCreatorDto.Password != registerCreatorDto.ConfirmPassword)
+            return new Error[] { new("Registration.Error", "Passwords do not match") };
+
+        // Split the full name
+        var names = registerCreatorDto.FullName.Split(' ');
+        var firstName = names[0];
+        var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
+
+        // Create ApplicationUser
+        var applicationUser = new ApplicationUser
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            UserName = verifiedEmail,
+            Username = registerCreatorDto.Username,
+            Email = verifiedEmail,
+            PhoneNumber = registerCreatorDto.PhoneNumber,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            WalletId = GenerateWalletId(),
+            PublicId = Guid.NewGuid().ToString(),
+        };
+
+        // Create Creator entity and associate the ApplicationUser
+        var creator = new Creator
+        {
+            UserId = applicationUser.Id,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            ApplicationUser = applicationUser,
+        };
+
+        var result = await _userManager.CreateAsync(applicationUser, registerCreatorDto.Password);
         if (!result.Succeeded)
             return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
+        result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.Creator);
+        if (!result.Succeeded)
+            return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
-        return Result.Success("Registration successful. Verification is pending until the confirmation of account.");
+        // Assuming you have a repository or context to save the Admin entity
+        await _creatorRepository.AddAsync(creator);
+
+        // Mark email as verified
+        await _verificationService.MarkEmailAsVerified(verifiedEmail);
+
+        // Clear the email from the context after successful registration
+        EmailContext.VerifiedEmail = null;
+
+        var registerUserResponse = new RegisterUserResponseDto
+        {
+            UserId = applicationUser.Id,
+            Username = applicationUser.Username,
+            Email = applicationUser.Email,
+            Role = RolesConstant.RegularUser,  // Include the role here
+            Message = "Registration successful. Verification is pending until the confirmation of account."
+        };
+
+        return Result<RegisterUserResponseDto>.Success(registerUserResponse);
     }
 
     public async Task<Result<LoginResponseDto>> Login(LoginUserDto loginUserDto)
@@ -218,8 +328,10 @@ public class AuthService : IAuthService
 
         var roles = await _userManager.GetRolesAsync(user);
         var token = _jwtService.GenerateToken(user, roles);
+        var email = user.Email;
+        var fullName = user.FullName;
 
-        return new LoginResponseDto(token);
+        return new LoginResponseDto(token, fullName, roles, email);
     }
 
     public async Task<Result> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
@@ -236,7 +348,7 @@ public class AuthService : IAuthService
         if (!resetPasswordResult.Succeeded)
             return resetPasswordResult.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
-        return Result.Success();
+        return Result.Success("Password reset successfully.");
     }
 
     public async Task<Result> ForgotPassword(ResetPasswordDto resetPasswordDto)
@@ -312,8 +424,13 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
             return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
-        return Result.Success();
+        return Result.Success("Password changed successfully.");
     }
+
+
+    
+
+
 
     public async Task<Result> ConfirmRegistration(string userId)
     {
@@ -340,29 +457,16 @@ public class AuthService : IAuthService
 
         return Result.Success();
     }
+    
 
 
-    // Backend method to verify email with the received code
-    public async Task<Result> VerifyEmail(string email, string verificationCode)
+
+
+
+
+    public static class EmailContext
     {
-        _logger.LogInformation($"******* Inside the VerifyEmail Method ********");
-
-        // Find the user by email
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
-            return new Error[] { new("Verification.Error", "User not found") };
-
-        // Verify the entered verification code
-        if (user.VerificationCode != verificationCode)
-            return new Error[] { new("Verification.Error", "Invalid verification code") };
-
-        // Clear the verification code after successful verification
-        user.VerificationCode = null;
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-            return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
-
-        return Result.Success();
+        public static string VerifiedEmail { get; set; }
     }
 
     private string GenerateVerificationCode()
@@ -371,4 +475,10 @@ public class AuthService : IAuthService
         var random = new Random();
         return random.Next(10000, 99999).ToString();
     }
+
+    public string GenerateWalletId()
+    {
+        return Guid.NewGuid().ToString();
+    }
+
 }

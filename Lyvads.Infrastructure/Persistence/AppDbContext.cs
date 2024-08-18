@@ -25,6 +25,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Like> Likes { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<ExclusiveDeal> ExclusiveDeals { get; set; }
+    public DbSet<VerificationRecord> VerificationRecords { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -53,7 +54,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Creator>()
             .HasMany(c => c.Posts)
             .WithOne(p => p.Creator)
-            .HasForeignKey(p => p.Id)
+            .HasForeignKey(p => p.CreatorId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Post>()
@@ -125,6 +126,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         .WithOne(w => w.ApplicationUser)
         .HasForeignKey<Wallet>(w => w.ApplicationUserId);
 
-        
+        modelBuilder.Entity<ApplicationUser>()
+        .Property(u => u.WalletId)
+        .HasDefaultValue(Guid.NewGuid().ToString());
+
+
     }
 }

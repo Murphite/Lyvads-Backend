@@ -47,6 +47,13 @@ public class WaitlistService : IWaitlistService
         await _repository.Add(entry);
         await _unitOfWork.SaveChangesAsync();
 
+        // Send confirmation email
+        var emailSubject = "Welcome to the Waitlist!";
+        var emailBody = "<p>Thank you for joining our waitlist. We will notify you when Lyvads goes live.</p>";
+        var emailResult = await _emailService.SendEmailAsync(email, emailSubject, emailBody);
+        if (!emailResult)
+            return new Error[] { new("Waitlist.Error", "User added to waitlist but failed to send confirmation email") };
+
         return Result.Success("User added to waitlist successfully");
     }
 

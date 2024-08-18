@@ -7,9 +7,13 @@ using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Enums;
 using Lyvads.API.Presentation.Dtos;
+using Microsoft.AspNetCore.Authorization;
+using Lyvads.Application.Dtos.RegularUserDtos;
+using Lyvads.Application.Implementions;
 
 namespace Lyvads.API.Presentation.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CreatorController : ControllerBase
@@ -25,6 +29,26 @@ public class CreatorController : ControllerBase
         _logger = logger;
     }
 
+    
+
+    [HttpPut("UpdateProfile")]
+    public async Task<IActionResult> UpdateCreatorSetUpRates([FromBody] UpdateCreatorProfileDto dto)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound("User not found.");
+
+        // Call the service to update the creator profile
+        var result = await _creatorService.UpdateCreatorSetUpRatesAsync(dto, user.Id);
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Errors);
+
+        // Return the updated profile data
+        return Ok(ResponseDto<CreatorProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
+    }    
+
     [HttpPost("CreatePost")]
     public async Task<IActionResult> CreatePost([FromBody] PostDto postDto)
     {
@@ -34,10 +58,44 @@ public class CreatorController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post Successfully Added"));
     }
 
-    [HttpPost("comment")]
+    [HttpPut("UpdatePost")]
+    public async Task<IActionResult> UpdatePost([FromBody] UpdatePostDto postDto)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        // Call the service to update the post
+        var result = await _creatorService.UpdatePostAsync(postDto, user.Id);
+
+        if (result.IsFailure)
+            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+
+        return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post successfully updated."));
+    }
+
+    [HttpDelete("DeletePost/{postId}")]
+    public async Task<IActionResult> DeletePost(int postId)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        // Call the service to delete the post
+        var result = await _creatorService.DeletePostAsync(postId, user.Id);
+
+        if (result.IsFailure)
+            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+
+        return Ok(ResponseDto<object>.Success(null, "Post successfully deleted."));
+    }
+
+    [HttpPost("Comment")]
     public async Task<IActionResult> CommentOnPost(string postId, string content)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -46,22 +104,35 @@ public class CreatorController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment added successfully."));
     }
 
-    [HttpPost("like")]
+    [HttpPost("LikeComment")]
     public async Task<IActionResult> LikeComment(string commentId)
     {
         var user = await _userManager.GetUserAsync(User);
         var result = await _creatorService.LikeCommentAsync(commentId, user.Id);
+        
+        if (result.IsFailure)
+            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+
+        return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
+    }
+
+    [HttpPost("LikePost")]
+    public async Task<IActionResult> LikePost(string postId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        var result = await _creatorService.LikePostAsync(postId, user.Id);
 
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
     }
 
-    [HttpPost("handle-request")]
+
+    [HttpPost("Handle-Request")]
     public async Task<IActionResult> HandleRequest(string requestId, RequestStatus status)
     {
         var result = await _creatorService.HandleRequestAsync(requestId, status);
@@ -69,10 +140,11 @@ public class CreatorController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<RequestResponseDto>.Success(result.Data, "Request handled successfully."));
     }
 
-    [HttpPost("send-video")]
+
+    [HttpPost("Send-Video")]
     public async Task<IActionResult> SendVideoToUser(string requestId, string videoUrl)
     {
         var result = await _creatorService.SendVideoToUserAsync(requestId, videoUrl);
@@ -80,10 +152,11 @@ public class CreatorController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<VideoResponseDto>.Success(result.Data, "Video sent successfully."));
     }
 
-    [HttpGet("wallet")]
+
+    [HttpGet("Wallet")]
     public async Task<IActionResult> ViewWalletBalance()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -92,10 +165,11 @@ public class CreatorController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<WalletBalanceDto>.Success(result.Data, "Wallet balance retrieved successfully."));
     }
 
-    [HttpPost("withdraw")]
+
+    [HttpPost("Withdraw")]
     public async Task<IActionResult> WithdrawToBankAccount([FromBody] WithdrawRequestDto request)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -107,7 +181,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<object>.Success());
     }
 
-    [HttpGet("notifications")]
+    [HttpGet("Notifications")]
     public async Task<IActionResult> GetNotifications()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -116,10 +190,11 @@ public class CreatorController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<IEnumerable<NotificationResponseDto>>.Success(result.Data, "Notifications retrieved successfully."));
     }
 
-    [HttpGet("posts")]
+
+    [HttpGet("Posts")]
     public async Task<IActionResult> GetPostsByCreator()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -128,6 +203,8 @@ public class CreatorController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<IEnumerable<PostResponseDto>>.Success(result.Data, "Posts retrieved successfully."));
     }
+
+
 }

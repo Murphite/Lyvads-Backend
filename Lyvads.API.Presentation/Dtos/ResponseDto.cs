@@ -1,24 +1,23 @@
-﻿
-using Lyvads.Application.Dtos;
+﻿using Lyvads.Application.Dtos;
 using System.Net;
 
 namespace Lyvads.API.Presentation.Dtos;
 
 public class ResponseDto<T>
 {
-    public ResponseDto(T? data, string message, bool isSuccessful, int statusStatusCode, IEnumerable<Error> errors)
+    public ResponseDto(T? data, string message, bool isSuccessful, int statusCode, IEnumerable<Error> errors)
     {
         IsSuccessful = isSuccessful;
-        StatusCode = statusStatusCode;
+        StatusCode = statusCode;
         Message = message;
         Data = data;
-        Errors = errors;
+        Errors = errors ?? Array.Empty<Error>(); // Ensure errors are never null
     }
 
-    public bool IsSuccessful { get; private set; }
-    public int StatusCode { get; private set; }
-    public string Message { get; private set; }
-    public T? Data { get; private set; }
+    public bool IsSuccessful { get; set; }
+    public int? StatusCode { get; set; }
+    public string? Message { get; set; }
+    public T? Data { get; set; }
     public IEnumerable<Error> Errors { get; private set; }
 
     public static ResponseDto<T> Failure(IEnumerable<Error> errors, int statusCode = (int)HttpStatusCode.BadRequest)

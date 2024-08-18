@@ -14,3 +14,12 @@ public class PostDto
     public string Location { get; set; }
     public PostVisibility Visibility { get; set; }
 }
+
+
+public class UpdatePostDto
+{
+    public int PostId { get; set; }
+    public string Caption { get; set; }
+    public string Location { get; set; }
+    public PostVisibility? Visibility { get; set; }
+}

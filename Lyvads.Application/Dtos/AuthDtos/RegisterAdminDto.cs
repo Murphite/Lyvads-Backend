@@ -7,7 +7,7 @@ public class RegisterAdminDto
     [Required] public string FullName { get; init; } = default!;
     [Required] public string PhoneNumber { get; init; } = default!;
     [Required] public string Username { get; init; } = default!;
-    [Required][EmailAddress] public string Email { get; init; } = default!;
+    [EmailAddress] public string Email { get; init; }
 
     [Required(ErrorMessage = "New password is required")]
     [DataType(DataType.Password)]

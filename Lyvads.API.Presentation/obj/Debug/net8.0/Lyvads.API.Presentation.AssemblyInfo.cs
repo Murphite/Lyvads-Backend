@@ -11,10 +11,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("cb7bab31-ca6a-4f74-8a9b-12a60d8d863f")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lyvads.API.Presentation")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5724f32081bce904a0f9a11cd14994926c3b92a6")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lyvads.API.Presentation")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lyvads.API.Presentation")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

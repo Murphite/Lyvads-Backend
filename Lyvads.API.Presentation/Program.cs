@@ -2,6 +2,7 @@ using Lyvads.API.Extensions;
 using Lyvads.API.Presentation.Middlewares;
 using Lyvads.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbServices(builder.Configuration);
 builder.Services.AddServices(builder.Configuration);
 builder.Services.AddSwaggerGen();
+builder.Logging.AddSerilog();
+builder.Host.UseSerilog((context, configuration) => configuration.ReadFrom.Configuration(context.Configuration));
 
 var app = builder.Build();
 

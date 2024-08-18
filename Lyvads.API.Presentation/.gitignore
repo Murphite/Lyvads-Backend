@@ -41,6 +41,7 @@ $RECYCLE.BIN/
 # Exclude Visual Studio folder
 .vs/
 
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

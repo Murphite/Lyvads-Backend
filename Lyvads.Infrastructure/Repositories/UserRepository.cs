@@ -31,6 +31,20 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<Like> GetLikeAsync(string userId, string contentId)
+    {
+        return await _context.Likes
+            .FirstOrDefaultAsync(l => l.UserId == userId && l.ContentId == contentId);
+    }
+
+    public async Task RemoveLikeAsync(Like like)
+    {
+        _context.Likes.Remove(like);
+        await _context.SaveChangesAsync();
+    }
+
+
+
     public async Task UpdateWalletBalanceAsync(string userId, decimal amount)
     {
         var user = await _context.Users.FindAsync(userId);
@@ -41,4 +55,6 @@ public class UserRepository : IUserRepository
             await _context.SaveChangesAsync();
         }
     }
+
+
 }

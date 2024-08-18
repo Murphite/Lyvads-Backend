@@ -1,6 +1,4 @@
-﻿
-
-using Lyvads.Domain.Enums;
+﻿using Lyvads.Domain.Enums;
 
 namespace Lyvads.Domain.Entities;
 

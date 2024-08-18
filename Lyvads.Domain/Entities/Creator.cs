@@ -1,21 +1,30 @@
 ﻿
+
+using Lyvads.Domain.Enums;
+
 namespace Lyvads.Domain.Entities;
 
-public class Creator : ApplicationUser
+public class Creator : Entity, IAuditable
 {
+    public string UserId { get; set; }
     public ICollection<Content> Contents { get; set; } = new List<Content>();
     public ICollection<Deal> Deals { get; set; } = new List<Deal>();
     public ICollection<Post> Posts { get; set; } = new List<Post>();
 
     // Social Media Handles
-    public string? FacebookHandle { get; set; }
-    public string? InstagramHandle { get; set; }
-    public string? TwitterHandle { get; set; }
-    public string? TikTokHandle { get; set; }
+    public string? SimpleAdvert { get; set; }
+    public string? WearBrand { get; set; }
+    public string? SongAdvert { get; set; }
+    public RequestType? Request { get; set; }
 
     // Exclusive Deal Properties
     public bool HasExclusiveDeal { get; set; }
     public ICollection<ExclusiveDeal> ExclusiveDeals { get; set; } = new List<ExclusiveDeal>();
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    //navigation property   
+    public ApplicationUser ApplicationUser { get; set; }
 }
 
 public class ExclusiveDeal : Entity

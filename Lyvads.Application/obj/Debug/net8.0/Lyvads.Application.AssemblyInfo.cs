@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lyvads.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5724f32081bce904a0f9a11cd14994926c3b92a6")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lyvads.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lyvads.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

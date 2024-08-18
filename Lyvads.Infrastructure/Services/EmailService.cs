@@ -1,5 +1,6 @@
 ﻿using Lyvads.Domain.Interfaces;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 
@@ -25,17 +26,42 @@ public class EmailService : IEmailService
         email.Sender = MailboxAddress.Parse(senderEmail);
         email.To.Add(MailboxAddress.Parse(recipientEmail));
         email.Subject = subject;
-        var builder = new BodyBuilder();
-        builder.HtmlBody = body;
+        var builder = new BodyBuilder
+        {
+            HtmlBody = body
+        };
         email.Body = builder.ToMessageBody();
 
         using var smtp = new SmtpClient();
         smtp.CheckCertificateRevocation = true;
-        await smtp.ConnectAsync(host, port, true);
-        await smtp.AuthenticateAsync(senderEmail, appPassword);
-        await smtp.SendAsync(email);
-        await smtp.DisconnectAsync(true);
 
-        return true;
+        try
+        {
+            if (port == 465)
+            {
+                await smtp.ConnectAsync(host, port, SecureSocketOptions.SslOnConnect);
+            }
+            else if (port == 587)
+            {
+                await smtp.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+            }
+            else
+            {
+                await smtp.ConnectAsync(host, port, SecureSocketOptions.Auto);
+            }
+
+            await smtp.AuthenticateAsync(senderEmail, appPassword);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Log the detailed error
+            Console.WriteLine($"Error sending email: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            throw;
+        }
     }
 }
