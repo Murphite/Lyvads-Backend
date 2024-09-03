@@ -11,7 +11,6 @@ using Microsoft.OpenApi.Models;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Lyvads.Application.Utilities;
-using Twilio.Clients;
 
 namespace Lyvads.API.Extensions;
 
@@ -88,7 +87,6 @@ public static class ServiceRegistration
         services.AddScoped<WebSocketHandler>();
         services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
         services.AddScoped<IEmailService, EmailService>();
-        services.AddHttpClient<ITwilioRestClient, TwilioClient>();
 
         // Register Repositories
         services.AddScoped<IRepository, Repository>();

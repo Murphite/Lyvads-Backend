@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+
+using Lyvads.Domain.Enums;
 
 namespace Lyvads.Domain.Entities;
 
@@ -23,9 +21,9 @@ public class CollaborationRequest : Entity, IAuditable
     public Creator Creator { get; set; } 
 }
 
-public enum RequestStatus
-{
-    Pending,    // The request is made and awaiting action
-    Completed,  // The request has been fulfilled
-    Disputed    // The request is disputed by the user
-}
+//public enum RequestStatus
+//{
+//    Pending,    // The request is made and awaiting action
+//    Completed,  // The request has been fulfilled
+//    Disputed    // The request is disputed by the user
+//}

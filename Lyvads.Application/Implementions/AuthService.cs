@@ -305,7 +305,7 @@ public class AuthService : IAuthService
             UserId = applicationUser.Id,
             Username = applicationUser.Username,
             Email = applicationUser.Email,
-            Role = RolesConstant.RegularUser,  // Include the role here
+            Role = RolesConstant.Creator,
             Message = "Registration successful. Verification is pending until the confirmation of account."
         };
 
@@ -425,10 +425,7 @@ public class AuthService : IAuthService
             return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
         return Result.Success("Password changed successfully.");
-    }
-
-
-    
+    }    
 
 
 

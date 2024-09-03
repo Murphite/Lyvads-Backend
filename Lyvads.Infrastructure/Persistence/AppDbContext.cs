@@ -17,6 +17,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RegularUser> RegularUsers { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<Transfer> Transfers { get; set; }
+    public DbSet<Withdrawal> Withdrawals { get; set; }
     public DbSet<Request> Requests { get; set; }
     public DbSet<Deal> Deals { get; set; }
     public DbSet<Content> Contents { get; set; }
@@ -26,6 +28,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<ExclusiveDeal> ExclusiveDeals { get; set; }
     public DbSet<VerificationRecord> VerificationRecords { get; set; }
+    public DbSet<CollaborationRequest> CollaborationRequests { get; set; }
+    public DbSet<BankAccount> BankAccounts { get; set; }
+
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
