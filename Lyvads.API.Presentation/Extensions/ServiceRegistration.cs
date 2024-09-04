@@ -91,17 +91,22 @@ public static class ServiceRegistration
         services.AddScoped<IWaitlistService, WaitlistService>();
         services.AddScoped<IVerificationService, VerificationService>();
         services.AddScoped<IProfileService, ProfileService>();
-
+        services.AddScoped<IWalletService, WalletService>();
         services.AddScoped<WebSocketHandler>();
         services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IRegularUserService, RegularUserService>();
 
         // Register Repositories
         services.AddScoped<IRepository, Repository>();
+        services.AddScoped<IAdminRepository, AdminRepository>();
+        services.AddScoped<IBankAccountRepository, BankAccountRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRegularUserRepository, RegularUserRepository>();
         services.AddScoped<ICreatorRepository, CreatorRepository>();
+        services.AddScoped<IWalletRepository, WalletRepository>();
         services.AddScoped<IAdminRepository, AdminRepository>();
+        services.AddScoped<IRequestRepository, RequestRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
 }
