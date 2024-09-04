@@ -35,7 +35,7 @@ namespace Lyvads.Application.Implementions
                 .Where(r => r.Code == code && !r.IsVerified)
                 .SingleOrDefaultAsync();
 
-            return record?.Email;
+            return record?.Email ?? string.Empty;
         }
 
         public async Task<bool> ValidateVerificationCode(string email, string code)
@@ -78,7 +78,7 @@ namespace Lyvads.Application.Implementions
                 .OrderByDescending(r => r.VerifiedAt)
                 .FirstOrDefaultAsync();
 
-            return record?.Email;
+            return record?.Email ?? string.Empty;
         }
     }
 }

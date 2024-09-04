@@ -9,8 +9,9 @@ public static class ModelStateExtensions
     {
         var errors = modelState
             .Where(e => e.Value?.ValidationState == ModelValidationState.Invalid)
-            .SelectMany(e => e.Value?.Errors, (key, error) => new Error(key.Key, error.ErrorMessage));
+            .SelectMany(e => e.Value?.Errors ?? new ModelErrorCollection(), (key, error) => new Error(key.Key, error.ErrorMessage));
 
         return errors;
     }
+
 }

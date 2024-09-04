@@ -19,7 +19,14 @@ public class JwtService : IJwtService
     public string GenerateToken(ApplicationUser user, IList<string> roles)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_config.GetSection("JWT:Key").Value);
+        var keyString = _config.GetSection("JWT:Key").Value;
+
+        if (string.IsNullOrEmpty(keyString))
+        {
+            throw new ArgumentNullException("JWT:Key", "The JWT key configuration is missing or empty.");
+        }
+
+        var key = Encoding.UTF8.GetBytes(keyString);
 
         // Ensure the key is at least 32 bytes long
         if (key.Length < 32)
@@ -28,12 +35,12 @@ public class JwtService : IJwtService
         }
 
         var claimList = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(JwtRegisteredClaimNames.Sub, user.Id),
-            new(JwtRegisteredClaimNames.Name, $"{user.FullName}"),
-            new(JwtRegisteredClaimNames.Email, user.Email!)
-        };
+    {
+        new(ClaimTypes.NameIdentifier, user.Id),
+        new(JwtRegisteredClaimNames.Sub, user.Id),
+        new(JwtRegisteredClaimNames.Name, $"{user.FullName}"),
+        new(JwtRegisteredClaimNames.Email, user.Email!)
+    };
         claimList.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
 

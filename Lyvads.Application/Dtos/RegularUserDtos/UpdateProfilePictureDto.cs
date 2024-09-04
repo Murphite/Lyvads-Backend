@@ -15,5 +15,5 @@ public class UpdateProfilePicResponseDto
 public class UpdateEmailResponseDto
 {
     public string Email { get; set; } = default!;
-    public string VerificationCode { get; set; }
+    public string? VerificationCode { get; set; }
 }

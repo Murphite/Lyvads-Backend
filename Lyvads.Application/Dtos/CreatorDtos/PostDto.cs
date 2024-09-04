@@ -9,17 +9,16 @@ namespace Lyvads.Application.Dtos.CreatorDtos;
 
 public class PostDto
 {
-    public string Caption { get; set; }
-    public string MediaUrl { get; set; }
-    public string Location { get; set; }
+    public string Caption { get; set; } = string.Empty;
+    public string MediaUrl { get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
     public PostVisibility Visibility { get; set; }
 }
-
 
 public class UpdatePostDto
 {
     public int PostId { get; set; }
-    public string Caption { get; set; }
-    public string Location { get; set; }
+    public string Caption { get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
     public PostVisibility? Visibility { get; set; }
 }

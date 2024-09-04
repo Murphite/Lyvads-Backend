@@ -10,8 +10,8 @@ public class Like : Entity
     public string? ContentId { get; set; } = default!;
     public string? LikedBy { get; set; } = default!;
 
-    public Post Post { get; set; }
-    public ApplicationUser User { get; set; }
-    public Content Content { get; set; }
+    public Post? Post { get; set; }
+    public ApplicationUser? User { get; set; }
+    public Content? Content { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }

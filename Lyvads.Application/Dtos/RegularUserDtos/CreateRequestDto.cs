@@ -15,9 +15,11 @@ public class CreateRequestDto
     public PaymentMethod PaymentMethod { get; set; }
 }
 
-public enum PaymentMethod
+public class PaymentDTO
 {
-    Wallet,
-    Online,
-    ATMCard
+    public string? ProductName { get; set; }
+    public int Amount { get; set; }
+    public string? ReturnUrl { get; set; }
+    public PaymentMethod? Method { get; set; } // Card, Wallet, Online
+    public string? UserId { get; set; }
 }

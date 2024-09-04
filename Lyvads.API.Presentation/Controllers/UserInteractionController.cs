@@ -67,7 +67,7 @@ public class UserInteractionController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success(null, "Comment deleted successfully."));
+        return Ok(ResponseDto<object>.Success("Comment deleted successfully."));
     }
 
     [HttpPost("Like")]
@@ -84,12 +84,24 @@ public class UserInteractionController : ControllerBase
     [HttpPost("Unlike")]
     public async Task<IActionResult> UnlikeContent([FromBody] UnlikeDto unlikeDto)
     {
+        _logger.LogInformation("******* Verifying Email Update ********");
+
+        if (string.IsNullOrEmpty(unlikeDto.UserId))
+        {
+            return BadRequest("User ID cannot be null or empty");
+        }
+
+        if (string.IsNullOrEmpty(unlikeDto.ContentId))
+        {
+            return BadRequest("Content ID cannot be null or empty");
+        }
+
         var result = await _userInteractionService.UnlikeContentAsync(unlikeDto.UserId, unlikeDto.ContentId);
 
         if (!result.IsSuccess)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success(null, "Content unliked successfully."));
+        return Ok(ResponseDto<object>.Success("Content unliked successfully."));
     }
 
     [HttpPost("FundWallet")]
@@ -117,6 +129,20 @@ public class UserInteractionController : ControllerBase
         return Ok(ResponseDto<object>.Success());
     }
 
+    [HttpPost("MakeRequest")]
+    public async Task<IActionResult> MakeRequest([FromQuery] string creatorId, [FromBody] CreateRequestDto createRequestDto)
+    {
+        if (createRequestDto == null || string.IsNullOrEmpty(creatorId))
+            return BadRequest("Invalid request data");
+
+        createRequestDto.CreatorId = creatorId;
+        var result = await _userInteractionService.MakeRequestAsync(createRequestDto);
+
+        if (!result.IsSuccess)
+            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+
+        return Ok(ResponseDto<MakeRequestResponseDto>.Success());
+    }
 
 
 
@@ -125,9 +151,7 @@ public class UserInteractionController : ControllerBase
 
     public class UnlikeDto
     {
-        public string UserId { get; set; }
-        public string ContentId { get; set; }
+        public string? UserId { get; set; }
+        public string? ContentId { get; set; }
     }
-
-
 }

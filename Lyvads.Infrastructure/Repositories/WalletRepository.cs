@@ -24,15 +24,32 @@ public class WalletRepository : IWalletRepository
         if (string.IsNullOrEmpty(userId))
             throw new ArgumentNullException(nameof(userId), "User ID cannot be null or empty.");
 
-        return await _context.Wallets
-                             .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
+        var wallet = await _context.Wallets
+                                   .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
+
+        if (wallet == null)
+        {
+            throw new Exception("Wallet not found");
+        }
+
+        return wallet;
     }
+
 
     public async Task SaveTransferDetailsAsync(string userId, decimal amount, string transferReference)
     {
+        // Retrieve the user based on userId
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            // Handle the case where the user is not found
+            throw new ArgumentException("User not found", nameof(userId));
+        }
+
         var transfer = new Transfer
         {
             UserId = userId,
+            User = user, // Set the required User property
             Amount = amount,
             TransferReference = transferReference,
             Status = "Pending",
@@ -43,11 +60,20 @@ public class WalletRepository : IWalletRepository
         await _context.SaveChangesAsync();
     }
 
+
     public async Task<Transfer> GetTransferDetailsAsync(string transferReference)
     {
-        return await _context.Transfers
-            .FirstOrDefaultAsync(t => t.TransferReference == transferReference);
+        var transfer = await _context.Transfers
+                                     .FirstOrDefaultAsync(t => t.TransferReference == transferReference);
+
+        if (transfer == null)
+        {
+            throw new Exception("Transfer not found");
+        }
+
+        return transfer;
     }
+
 
     public async Task UpdateTransferStatusAsync(Transfer transfer)
     {
@@ -113,14 +139,6 @@ public class WalletRepository : IWalletRepository
         await _context.Wallets.AddAsync(wallet);
         await _context.SaveChangesAsync();
     }
-
-    //public async Task UpdateWalletAsync(Wallet wallet)
-    //{
-    //    _context.Wallets.Update(wallet);
-
-    //    // Save the changes to the database
-    //    await _context.SaveChangesAsync();
-    //}
 
     public async Task<bool> UpdateWalletAsync(Wallet wallet)
     {

@@ -14,4 +14,5 @@ public interface IUserInteractionService
     Task<Result> UnlikeContentAsync(string userId, string contentId);
     Task<Result> FundWalletAsync(string userId, decimal amount);
     Task<Result> CreateRequestAsync(CreateRequestDto createRequestDto);
+    Task<Result> MakeRequestAsync(CreateRequestDto createRequestDto);
 }

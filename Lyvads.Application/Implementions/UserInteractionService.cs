@@ -7,6 +7,10 @@ using Lyvads.Infrastructure.Repositories;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Lyvads.Domain.Enums;
+using Stripe.Checkout;
 
 namespace Lyvads.Application.Implementions;
 
@@ -19,29 +23,146 @@ public class UserInteractionService : IUserInteractionService
     private readonly IPaymentGatewayService _paymentGatewayService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IWalletService _walletService;
+    private readonly IRequestRepository _requestRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IConfiguration _configuration;
 
-
-    public UserInteractionService(IUserRepository userRepository, IRepository repository,
+    public UserInteractionService(IUserRepository userRepository, 
+        IConfiguration configuration,
+        IRepository repository,
         ILogger<UserInteractionService> logger,
-        ICreatorRepository creatorRepository, IPaymentGatewayService paymentGatewayService,
-        UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork)
+        ICreatorRepository creatorRepository, 
+        IPaymentGatewayService paymentGatewayService,
+        UserManager<ApplicationUser> userManager,
+        IUnitOfWork unitOfWork,
+        IWalletService walletService,
+        IRequestRepository requestRepository,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userRepository = userRepository;
+        _configuration = configuration;
         _repository = repository;
         _logger = logger;
         _creatorRepository = creatorRepository;
         _paymentGatewayService = paymentGatewayService;
         _userManager = userManager;
         _unitOfWork = unitOfWork;
-
+        _walletService = walletService;
+        _requestRepository = requestRepository;
+        _httpContextAccessor = httpContextAccessor;
     }
+
+    public async Task<Result> MakeRequestAsync(CreateRequestDto createRequestDto)
+    {
+        try
+        {
+            // Retrieve the current logged-in user from the authentication context
+            var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+
+            if (user == null)
+                return new Error[] { new("User.Error", "User not found") };
+
+            // Check if the user is a regular user (non-creator, non-admin)
+            var isRegularUser = await _userManager.IsInRoleAsync(user, "RegularUser");
+            if (!isRegularUser)
+                return new Error[] { new("RegularUser.Error", "Regular User not found") };
+
+            // Retrieve the creator
+            var creator = await _creatorRepository.GetCreatorByIdAsync(createRequestDto.CreatorId);
+            if (creator == null)
+                return new Error[] { new("Creator.Error", "Creator not found") };
+
+            string? domain = _configuration.GetValue<string>("Lyvads_Client_URL");
+
+            if (string.IsNullOrEmpty(domain))
+            {
+                // Handle the case where the domain is null or empty
+                _logger.LogError("Client URL is not configured.");
+                return new Error[] { new("Configuration.Error", "Client URL is not configured.") };
+            }
+
+            Session session;
+
+            if (createRequestDto.PaymentMethod == PaymentMethod.ATMCard)
+            {
+                var paymentDto = new PaymentDTO
+                {
+                    Amount = (int)(createRequestDto.Amount * 100), // Convert to cents
+                    ProductName = "Request Payment", // You might want to adjust this
+                    ReturnUrl = "/return-url" // Adjust this as needed
+                };
+                session = await _paymentGatewayService.CreateCardPaymentSessionAsync(paymentDto, domain);
+            }
+            else if (createRequestDto.PaymentMethod == PaymentMethod.Wallet)
+            {
+                var walletBalance = await _walletService.GetBalanceAsync(user.Id);
+
+                if (walletBalance < createRequestDto.Amount)
+                    return new Error[] { new("WalletBalance.Error", "Insufficient wallet balance.") };
+
+                var result = await _walletService.DeductBalanceAsync(user.Id, createRequestDto.Amount);
+                if (result)
+                {
+                    // Create and save the request
+                    var request = new Request
+                    {
+                        Type = createRequestDto.Type,
+                        Script = createRequestDto.Script,
+                        CreatorId = createRequestDto.CreatorId,
+                        UserId = user.Id,
+                        RequestType = createRequestDto.RequestType,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        UpdatedAt = DateTimeOffset.UtcNow,
+                        PaymentMethod = PaymentMethod.Wallet
+                    };
+
+                    var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
+                    if (requestResultIsSuccess)
+                    {
+                        return Result.Success("Wallet payment successful and request created");
+                    }
+                    return new Error[] { new("CreateRequest.Error", "Failed to create request after wallet payment.") };
+                }
+                return new Error[] { new("WalletPayment.Error", "Failed to process wallet payment.") };
+            }
+            else if (createRequestDto.PaymentMethod == PaymentMethod.Online)
+            {
+                var paymentDto = new PaymentDTO
+                {
+                    Amount = (int)(createRequestDto.Amount * 100), // Convert to cents
+                    ProductName = "Request Payment", // Adjust this as needed
+                    ReturnUrl = "/return-url" // Adjust this as needed
+                };
+                session = await _paymentGatewayService.CreateOnlinePaymentSessionAsync(paymentDto, domain);
+            }
+            else
+            {
+                return new Error[] { new("Payment.Error", "Unsupported payment method.") };
+            }
+
+            if (session == null)
+            {
+                return new Error[] { new("Session.Error", "Failed to create payment session.") };
+            }
+
+            return Result.Success(session.Id);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error occurred while making request.");
+
+            return new Error[] { new("Exception.Error", e.Message) };
+        }
+    }
+
 
     public async Task<Result> AddCommentAsync(string userId, string content)
     {
         var user = await _userRepository.GetUserByIdAsync(userId);
         if (user == null)
             return new Error[] { new("Comment.Error", "User not found") };
-        
+
 
         var comment = new Comment
         {
@@ -222,7 +343,7 @@ public class UserInteractionService : IUserInteractionService
         }
         else if (createRequestDto.PaymentMethod == PaymentMethod.Online)
         {
-            var paymentResult = await _paymentGatewayService.ProcessPaymentAsync(createRequestDto.Amount, "usd", createRequestDto.Source, "Video request payment");
+            var paymentResult = await _paymentGatewayService.ProcessPaymentAsync(createRequestDto.Amount, "usd", createRequestDto.Source ?? string.Empty, "Video request payment");
             if (!paymentResult.IsSuccess)
                 return paymentResult; // Propagate payment errors
         }
@@ -234,6 +355,6 @@ public class UserInteractionService : IUserInteractionService
         return Result.Success();
     }
 
-
+    
 
 }

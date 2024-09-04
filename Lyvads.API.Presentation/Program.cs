@@ -26,11 +26,11 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-var webSocketOptions = new WebSocketOptions()
-{
-    KeepAliveInterval = TimeSpan.FromMinutes(2),
-    ReceiveBufferSize = 4 * 1024
-};
+//var webSocketOptions = new WebSocketOptions()
+//{
+//    KeepAliveInterval = TimeSpan.FromMinutes(2),
+//    ReceiveBufferSize = 4 * 1024
+//};
 
 using (var servicescope = app.Services.CreateScope())
 {
@@ -40,7 +40,7 @@ using (var servicescope = app.Services.CreateScope())
     _context.Database.Migrate();
 }
 
-app.UseWebSockets(webSocketOptions);
+//app.UseWebSockets(webSocketOptions);
 //app.UseMiddleware<WebSocketMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("AllowAllOrigins");

@@ -8,7 +8,7 @@ public class ApplicationUser : IdentityUser, IAuditable
 {
     public string FirstName { get; set; } = default!;
     public string LastName { get; set; } = default!;
-    public string PhoneNumber { get; set; }
+    public new string? PhoneNumber { get; set; }
     public string? Username { get; set; }
     public string? ImageUrl { get; set; }
     public string? Occupation { get; set; }

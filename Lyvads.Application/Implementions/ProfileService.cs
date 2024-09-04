@@ -217,7 +217,7 @@ public class ProfileService : IProfileService
             return new Error[] { new("User.Error", "User Not Found") };
 
         // Update user's phone number
-        user.PhoneNumber = dto.PhoneNumber;
+        user.PhoneNumber = dto.PhoneNumber ?? string.Empty;
 
         // Save the updates to the database
         _repository.Update(user);
@@ -244,12 +244,12 @@ public class ProfileService : IProfileService
 
     public class UpdatePhoneNumberResponseDto
     {
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
     }
 
     public class UpdatePhoneNumberDto
     {
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
     }
 
     private string GenerateVerificationCode()
@@ -261,12 +261,12 @@ public class ProfileService : IProfileService
 
     public class UpdateLocationDto
     {
-        public string Country { get; set; }
+        public string? Country { get; set; }
     }
 
     public class UpdateLocationResponseDto
     {
-        public string Country { get; set; }
+        public string? Country { get; set; }
     }
 
 

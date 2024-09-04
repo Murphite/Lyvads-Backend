@@ -2,21 +2,29 @@
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Lyvads.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<UserRepository> _logger;
 
-    public UserRepository(AppDbContext context)
+    public UserRepository(AppDbContext context, ILogger<UserRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<ApplicationUser> GetUserByIdAsync(string userId)
     {
-        return await _context.Users.FindAsync(userId);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+        return user;
     }
 
     public async Task AddCommentAsync(Comment comment)
@@ -33,9 +41,17 @@ public class UserRepository : IUserRepository
 
     public async Task<Like> GetLikeAsync(string userId, string contentId)
     {
-        return await _context.Likes
+        var like = await _context.Likes
             .FirstOrDefaultAsync(l => l.UserId == userId && l.ContentId == contentId);
+
+        if (like == null)
+        {
+            throw new Exception("Like not found");
+        }
+
+        return like;
     }
+
 
     public async Task RemoveLikeAsync(Like like)
     {

@@ -67,7 +67,7 @@ public class WaitlistService : IWaitlistService
         foreach (var entry in waitlistEntries)
         {
             var emailBody = "Our app is now live! Thank you for waiting.";
-            var emailResult = await _emailService.SendEmailAsync(entry.Email, "App Launch Notification", emailBody);
+            var emailResult = await _emailService.SendEmailAsync(entry.Email ?? string.Empty, "App Launch Notification", emailBody);
 
             if (!emailResult)
                 return new Error[] { new("Notification.Error", $"Failed to send email to {entry.Email}") };

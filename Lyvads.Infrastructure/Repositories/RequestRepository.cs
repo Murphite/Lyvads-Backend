@@ -1,37 +1,34 @@
 ﻿using Lyvads.Infrastructure.Persistence;
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace Lyvads.Infrastructure.Repositories;
 
 public class RequestRepository : IRequestRepository
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<RequestRepository> _logger;
 
-    public RequestRepository(AppDbContext context)
+    public RequestRepository(AppDbContext context, ILogger<RequestRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
     public async Task<(bool IsSuccess, string ErrorMessage)> CreateRequestAsync(Request request)
     {
         try
         {
-            // Add the request to the database context
             await _context.Requests.AddAsync(request);
-
-            // Save changes asynchronously
             await _context.SaveChangesAsync();
 
-            // Return a success result
-            return (true, null);
+            return (true, string.Empty);
         }
         catch (Exception ex)
         {
-            // Log the exception if needed
-            // _logger.LogError(ex, "Error creating request");
+            _logger.LogError(ex, "Error creating request");
 
-            // Return a failure result with the exception message
-            return (false, ex.Message);
+            return (false, ex.Message ?? string.Empty);
         }
     }
 

@@ -5,7 +5,7 @@ namespace Lyvads.Domain.Entities;
 
 public class Transaction : Entity
 {
-    public string WalletId { get; set; }
+    public string? WalletId { get; set; }
     public Wallet Wallet { get; set; } = default!;
     public TransactionType Type { get; set; }
     public decimal Amount { get; set; }

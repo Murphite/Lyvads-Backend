@@ -2,20 +2,27 @@
 using Lyvads.Application.Dtos;
 using Lyvads.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Stripe.Checkout;
+using Lyvads.Application.Dtos.RegularUserDtos;
 
 namespace Lyvads.Application.Implementions;
 
 public class PaymentGatewayService : IPaymentGatewayService
 {
-    private readonly string _stripeSecretKey;
     private readonly StripeClient _stripeClient;
+    private readonly string _stripeSecretKey;
+    private readonly IConfiguration _configuration;
 
     public PaymentGatewayService(IConfiguration configuration)
     {
-        _stripeSecretKey = configuration["Stripe:SecretKey"];
-        StripeConfiguration.ApiKey = _stripeSecretKey;
+        _stripeSecretKey = configuration["Stripe:SecretKey"] ?? throw new ArgumentNullException(nameof(_stripeSecretKey));
+        StripeConfiguration.ApiKey = _stripeSecretKey ?? throw new ArgumentNullException(nameof(StripeConfiguration.ApiKey));
 
+        // Initialize _stripeClient using the _stripeSecretKey
+        _stripeClient = new StripeClient(_stripeSecretKey);
+        _configuration = configuration;
     }
+
 
     public async Task<Result> Withdraw(string stripeAccountId, decimal amount, string currency)
     {
@@ -46,6 +53,11 @@ public class PaymentGatewayService : IPaymentGatewayService
     {
         try
         {
+            if (string.IsNullOrEmpty(source))
+            {
+                throw new ArgumentException("Source cannot be null or empty", nameof(source));
+            }
+
             var options = new ChargeCreateOptions
             {
                 Amount = (long)(amount * 100), // Amount in cents
@@ -67,5 +79,41 @@ public class PaymentGatewayService : IPaymentGatewayService
             // Log exception
             return Result.Failure(new Error[] { new("Payment.Error", ex.Message) });
         }
+    }
+
+    public async Task<Session> CreateCardPaymentSessionAsync(PaymentDTO payment, string domain)
+    {
+        var options = new SessionCreateOptions
+        {
+            PaymentMethodTypes = new List<string> { "card" },
+            LineItems = new List<SessionLineItemOptions>
+            {
+                new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = payment.Amount * 100, 
+                        Currency = "usd",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = payment.ProductName
+                        }
+                    },
+                    Quantity = 1
+                }
+            },
+            Mode = "payment",
+            SuccessUrl = domain + "/success-payment?session_id={{CHECKOUT_SESSION_ID}}",
+            CancelUrl = domain + payment.ReturnUrl
+        };
+
+        var service = new SessionService();
+        return await service.CreateAsync(options);
+    }
+
+    public async Task<Session> CreateOnlinePaymentSessionAsync(PaymentDTO payment, string domain)
+    {
+        // This method could handle other online payments, using the same Stripe logic as for cards
+        return await CreateCardPaymentSessionAsync(payment, domain);
     }
 }

@@ -165,7 +165,7 @@ public class AuthService : IAuthService
         await _verificationService.MarkEmailAsVerified(verifiedEmail);
 
         // Clear the email from the context after successful registration
-        EmailContext.VerifiedEmail = null;
+        EmailContext.VerifiedEmail = string.Empty;
 
         var registerUserResponse = new RegisterUserResponseDto
         {
@@ -226,7 +226,7 @@ public class AuthService : IAuthService
 
         await _regularUserRepository.AddAsync(regularUser);
         await _verificationService.MarkEmailAsVerified(verifiedEmail);
-        EmailContext.VerifiedEmail = null;
+        EmailContext.VerifiedEmail = string.Empty;
 
         // Create the response DTO including the role
         var registerUserResponse = new RegisterUserResponseDto
@@ -298,7 +298,7 @@ public class AuthService : IAuthService
         await _verificationService.MarkEmailAsVerified(verifiedEmail);
 
         // Clear the email from the context after successful registration
-        EmailContext.VerifiedEmail = null;
+        EmailContext.VerifiedEmail = string.Empty;
 
         var registerUserResponse = new RegisterUserResponseDto
         {
@@ -328,8 +328,8 @@ public class AuthService : IAuthService
 
         var roles = await _userManager.GetRolesAsync(user);
         var token = _jwtService.GenerateToken(user, roles);
-        var email = user.Email;
-        var fullName = user.FullName;
+        var email = user.Email ?? string.Empty;
+        var fullName = user.FullName ?? string.Empty;
 
         return new LoginResponseDto(token, fullName, roles, email);
     }
@@ -448,7 +448,7 @@ public class AuthService : IAuthService
 
         // Send confirmation email to user
         var confirmationBody = "Your account has been verified and confirmed by admins.";
-        var confirmationEmailResult = await _emailService.SendEmailAsync(user.Email, "Account Confirmation", confirmationBody);
+        var confirmationEmailResult = await _emailService.SendEmailAsync(user.Email ?? string.Empty, "Account Confirmation", confirmationBody);
         if (!confirmationEmailResult)
             return new Error[] { new("Verification.Error", "Error sending confirmation email") };
 
@@ -463,7 +463,7 @@ public class AuthService : IAuthService
 
     public static class EmailContext
     {
-        public static string VerifiedEmail { get; set; }
+        public static string VerifiedEmail { get; set; } = string.Empty;
     }
 
     private string GenerateVerificationCode()

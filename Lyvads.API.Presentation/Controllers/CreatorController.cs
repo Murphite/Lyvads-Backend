@@ -53,6 +53,10 @@ public class CreatorController : ControllerBase
     public async Task<IActionResult> CreatePost([FromBody] PostDto postDto)
     {
         var user = await _userManager.GetUserAsync(User);
+        // Check if the user is null before proceeding
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+
         var result = await _creatorService.CreatePostAsync(postDto, user.Id);
 
         if (result.IsFailure)
@@ -92,13 +96,17 @@ public class CreatorController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success(null, "Post successfully deleted."));
+        return Ok(ResponseDto<object>.Success("Post successfully deleted."));
     }
 
     [HttpPost("Comment")]
     public async Task<IActionResult> CommentOnPost(string postId, string content)
     {
         var user = await _userManager.GetUserAsync(User);
+        // Check if the user is null before proceeding
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+
         var result = await _creatorService.CommentOnPostAsync(postId, user.Id, content);
 
         if (result.IsFailure)
@@ -111,6 +119,8 @@ public class CreatorController : ControllerBase
     public async Task<IActionResult> LikeComment(string commentId)
     {
         var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.LikeCommentAsync(commentId, user.Id);
         
         if (result.IsFailure)
@@ -123,6 +133,8 @@ public class CreatorController : ControllerBase
     public async Task<IActionResult> LikePost(string postId)
     {
         var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.LikePostAsync(postId, user.Id);
 
         if (result.IsFailure)
@@ -160,6 +172,8 @@ public class CreatorController : ControllerBase
     public async Task<IActionResult> ViewWalletBalance()
     {
         var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.ViewWalletBalanceAsync(user.Id);
 
         if (result.IsFailure)
@@ -173,6 +187,8 @@ public class CreatorController : ControllerBase
     public async Task<IActionResult> WithdrawToBankAccount([FromBody] WithdrawRequestDto request)
     {
         var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.WithdrawToBankAccountAsync(user.Id, request.Amount, request.Currency);
 
         if (result.IsFailure)
@@ -185,6 +201,8 @@ public class CreatorController : ControllerBase
     public async Task<IActionResult> GetNotifications()
     {
         var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.GetNotificationsAsync(user.Id);
 
         if (result.IsFailure)
@@ -198,6 +216,8 @@ public class CreatorController : ControllerBase
     public async Task<IActionResult> GetPostsByCreator()
     {
         var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.GetPostsByCreatorAsync(user.Id);
 
         if (result.IsFailure)

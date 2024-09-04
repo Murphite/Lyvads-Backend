@@ -52,7 +52,15 @@ public static class ServiceRegistration
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         }).AddJwtBearer(options =>
         {
-            var key = Encoding.UTF8.GetBytes(configuration.GetSection("JWT:Key").Value);
+            //var key = Encoding.UTF8.GetBytes(configuration.GetSection("JWT:Key").Value);
+            var jwtKey = configuration.GetSection("JWT:Key").Value;
+
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new ArgumentNullException(nameof(jwtKey), "JWT key is missing in the configuration.");
+            }
+
+            var key = Encoding.UTF8.GetBytes(jwtKey);
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = false,

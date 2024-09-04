@@ -4,10 +4,10 @@ namespace Lyvads.Application.Dtos.AuthDtos;
 
 public class RegisterAdminDto
 {
-    [Required] public string FullName { get; init; } = default!;
-    [Required] public string PhoneNumber { get; init; } = default!;
-    [Required] public string Username { get; init; } = default!;
-    [EmailAddress] public string Email { get; init; }
+    public required string FullName { get; init; } = default!;
+    public required string PhoneNumber { get; init; } = default!;
+    public required string Username { get; init; } = default!;
+    [EmailAddress] public required string Email { get; init; }
 
     [Required(ErrorMessage = "New password is required")]
     [DataType(DataType.Password)]

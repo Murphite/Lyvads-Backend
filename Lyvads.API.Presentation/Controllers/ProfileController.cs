@@ -68,6 +68,16 @@ public class ProfileController : ControllerBase
     {
         _logger.LogInformation("******* Initiating Email Update ********");
 
+        if (string.IsNullOrEmpty(dto.UserId))
+        {
+            return BadRequest("User ID cannot be null or empty");
+        }
+
+        if (string.IsNullOrEmpty(dto.NewEmail))
+        {
+            return BadRequest("New Email cannot be null or empty");
+        }
+
         var result = await _profileService.InitiateEmailUpdateAsync(dto.UserId, dto.NewEmail);
 
         if (result.IsFailure)
@@ -81,13 +91,26 @@ public class ProfileController : ControllerBase
     {
         _logger.LogInformation("******* Verifying Email Update ********");
 
+        if (string.IsNullOrEmpty(dto.UserId))
+        {
+            return BadRequest("User ID cannot be null or empty");
+        }
+
+        if (string.IsNullOrEmpty(dto.VerificationCode))
+        {
+            return BadRequest("Verification Code cannot be null or empty");
+        }
+
         var result = await _profileService.VerifyEmailUpdateAsync(dto.UserId, dto.VerificationCode);
 
         if (result.IsFailure)
+        {
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        }
 
         return Ok(ResponseDto<EmailVerificationResponseDto>.Success(result.Data, result.Message));
     }
+
 
     [HttpPut("UpdateLocation")]
     public async Task<IActionResult> UpdateLocation([FromBody] UpdateLocationDto dto)
@@ -129,16 +152,16 @@ public class ProfileController : ControllerBase
 
     public class EmailUpdateVerificationDto
     {
-        public string UserId { get; set; } 
-        public string VerificationCode { get; set; } 
+        public string? UserId { get; set; } 
+        public string? VerificationCode { get; set; } 
     }
 
 
 
     public class UpdateEmailDto
     {
-        public string UserId { get; set; }
-        public string NewEmail { get; set; }  
+        public string? UserId { get; set; }
+        public string? NewEmail { get; set; }  
     }
 
 }

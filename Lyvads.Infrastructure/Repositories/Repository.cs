@@ -24,9 +24,9 @@ public class Repository : IRepository
         return _context.Set<TEntity>();
     }
 
-    public async Task<TEntity?> GetById<TEntity>(string id) where TEntity : class
+    public async Task<TEntity> GetById<TEntity>(string id) where TEntity : class
     {
-        return await _context.Set<TEntity>().FindAsync(id) ?? null;
+        return await _context.Set<TEntity>().FindAsync(id) ?? throw new InvalidOperationException("Entity not found.");
     }
 
     public void Remove<TEntity>(TEntity entity) where TEntity : class

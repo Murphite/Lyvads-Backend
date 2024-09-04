@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Domain.Interfaces;
 using static Lyvads.Application.Implementions.AuthService;
+using System.Reflection;
 
 namespace Lyvads.Application.Implementions;
 
@@ -81,7 +82,7 @@ public class CreatorService : ICreatorService
         {
             PostId = post.Id,
             CreatorId = creator.Id,
-            CreatorName = creator.ApplicationUser.FullName,
+            CreatorName = creator.ApplicationUser?.FullName,
             Caption = post.Caption,
             MediaUrl = post.MediaUrl,
             Location = post.Location,
@@ -138,7 +139,7 @@ public class CreatorService : ICreatorService
         {
             PostId = post.Id,
             CreatorId = creator.Id,
-            CreatorName = creator.ApplicationUser.FullName,
+            CreatorName = creator.ApplicationUser?.FullName,
             Caption = post.Caption,
             MediaUrl = post.MediaUrl, // MediaUrl remains unchanged
             Location = post.Location,
@@ -335,6 +336,12 @@ public class CreatorService : ICreatorService
             return Result.Failure<RequestResponseDto>(new List<Error> { new Error("Request.Error", "Request not found") });
         }
 
+        if (string.IsNullOrEmpty(request.UserId))
+        {
+            _logger.LogWarning("User ID for request ID: {RequestId} is null or empty.", requestId);
+            return Result.Failure<RequestResponseDto>(new List<Error> { new Error("User.Error", "User ID is missing") });
+        }
+
         // Check if the user exists
         var user = await _repository.GetById<ApplicationUser>(request.UserId);
         if (user == null)
@@ -374,6 +381,13 @@ public class CreatorService : ICreatorService
             return new Error[] { new("Post.Error", "Request not found.") };
         }
 
+        // Check if the user ID is not null or empty
+        if (string.IsNullOrEmpty(request.UserId))
+        {
+            _logger.LogWarning("User ID for request with ID: {RequestId} is null or empty.", requestId);
+            return new Error[] { new("User.Error", "User ID is missing.") };
+        }
+
         // Check if the user exists
         var user = await _repository.GetById<ApplicationUser>(request.UserId);
         if (user == null)
@@ -411,6 +425,13 @@ public class CreatorService : ICreatorService
 
         }
 
+        // Check if the user ID is not null or empty
+        if (string.IsNullOrEmpty(creator.UserId))
+        {
+            _logger.LogWarning("User ID for creator with ID: {CreatorId} is null or empty.", creatorId);
+            return new Error[] { new("User.Error", "User ID is missing.") };
+        }
+
         // Check if the associated user exists
         var user = await _repository.GetById<ApplicationUser>(creator.UserId);
         if (user == null)
@@ -445,6 +466,18 @@ public class CreatorService : ICreatorService
 
         // Use the navigation property to get the associated ApplicationUser
         var user = creator.ApplicationUser;
+        if (user == null)
+        {
+            _logger.LogWarning("ApplicationUser for Creator with ID: {CreatorId} not found.", creatorId);
+            return new Error[] { new("User.Error", "Associated User not Found") };
+        }
+
+        if (string.IsNullOrEmpty(user.StripeAccountId))
+        {
+            _logger.LogWarning("StripeAccountId for User with ID: {UserId} is null or empty.", user.Id);
+            return new Error[] { new("Payment.Error", "User's Stripe Account ID is not set") };
+        }
+
 
         // Perform the withdrawal using the payment gateway service
         var result = await _paymentGatewayService.Withdraw(user.StripeAccountId, amount, currency);
@@ -516,7 +549,7 @@ public class CreatorService : ICreatorService
         {
             PostId = p.Id,
             CreatorId = p.CreatorId,
-            CreatorName = p.Creator.ApplicationUser.FullName,
+            CreatorName = p.Creator?.ApplicationUser?.FullName ?? "Unknown",
             Caption = p.Caption,
             MediaUrl = p.MediaUrl,
             Location = p.Location,

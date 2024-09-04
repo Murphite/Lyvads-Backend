@@ -145,7 +145,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(emailHolder.Email))
         {
             // Handle the case where the email has not been verified or set
-            return BadRequest();
+            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email not verified or set") }));
         }
 
         // Create a RegisterUserDto from the CompleteRegistrationDto
@@ -250,31 +250,31 @@ public class AuthController : ControllerBase
 
     public class EmailHolder
     {
-        public string Email { get; set; }
+        public string? Email { get; set; }
     }
     public class EmailVerificationDto
     {
-        public string VerificationCode { get; set; }
+        public required string VerificationCode { get; set; }
     }
 
     public class InitiateRegistrationDto
     {
-        public string Email { get; set; }
+        public required string Email { get; set; }
     }
 
     public class CompleteRegistrationDto
     {
-        [Required] public string FullName { get; init; }
-        [Required] public string Username { get; init; }
-        [Required] public string PhoneNumber { get; init; }
+        [Required] public required string FullName { get; init; }
+        [Required] public required string Username { get; init; }
+        [Required] public required string PhoneNumber { get; init; }
 
         [Required(ErrorMessage = "New password is required")]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public required string Password { get; set; }
 
         [Required(ErrorMessage = "Confirm password is required")]
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Password and confirm password do not match")]
-        public string ConfirmPassword { get; set; }
+        public required string ConfirmPassword { get; set; }
     }
 }

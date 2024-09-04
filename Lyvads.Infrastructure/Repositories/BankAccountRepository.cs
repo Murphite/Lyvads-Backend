@@ -16,7 +16,15 @@ public class BankAccountRepository : IBankAccountRepository
 
     public async Task<BankAccount> GetBankAccountByUserIdAsync(string userId)
     {
-        return await _context.BankAccounts
+        var bankAccount = await _context.BankAccounts
             .FirstOrDefaultAsync(b => b.UserId == userId);
+
+        if (bankAccount == null)
+        {
+            throw new InvalidOperationException($"No bank account found for user with ID {userId}");
+        }
+
+        return bankAccount;
     }
+
 }
