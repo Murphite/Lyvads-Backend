@@ -150,3 +150,16 @@ C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.pdb
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.genruntimeconfig.cache
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\ref\Lyvads.API.Presentation.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\AWSSDK.Core.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\AWSSDK.SecurityToken.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\DnsClient.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\MongoDB.Bson.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\MongoDB.Driver.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\MongoDB.Driver.Core.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\MongoDB.Libmongocrypt.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\SharpCompress.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Snappier.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\ZstdSharp.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\runtimes\linux\native\libmongocrypt.so
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\runtimes\osx\native\libmongocrypt.dylib
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\runtimes\win\native\mongocrypt.dll
