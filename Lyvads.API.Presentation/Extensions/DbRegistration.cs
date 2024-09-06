@@ -9,7 +9,7 @@ public static class DbRegistration
 {
     public static void AddDbServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), optionsBuilder =>
+        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("MongoDbConnection"), optionsBuilder =>
         {
             optionsBuilder.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name);
         }));
