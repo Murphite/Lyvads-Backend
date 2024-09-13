@@ -1,9 +1,3 @@
-C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.csproj.AssemblyReference.cache
-C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.AssemblyInfoInputs.cache
-C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.AssemblyInfo.cs
-C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.csproj.CoreCompileInputs.cache
-C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.sourcelink.json
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\bin\Debug\net8.0\Lyvads.Application.deps.json
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\bin\Debug\net8.0\Lyvads.Application.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\bin\Debug\net8.0\Lyvads.Application.pdb
@@ -11,6 +5,12 @@ C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\bin\Debug
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\bin\Debug\net8.0\Lyvads.Infrastructure.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\bin\Debug\net8.0\Lyvads.Infrastructure.pdb
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\bin\Debug\net8.0\Lyvads.Domain.pdb
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.csproj.AssemblyReference.cache
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.AssemblyInfoInputs.cache
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.AssemblyInfo.cs
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.csproj.CoreCompileInputs.cache
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.sourcelink.json
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.A.09ECD264.Up2Date
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\Lyvads.Application.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Application\obj\Debug\net8.0\refint\Lyvads.Application.dll

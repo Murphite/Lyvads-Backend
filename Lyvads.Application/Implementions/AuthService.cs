@@ -30,10 +30,12 @@ public class AuthService : IAuthService
     private readonly IAdminRepository _adminRepository;
     private readonly IRegularUserRepository _regularUserRepository;
     private readonly ICreatorRepository _creatorRepository;
+    private readonly ISuperAdminRepository _superAdminRepository;
 
     public AuthService(UserManager<ApplicationUser> userManager, IRepository repository, IJwtService jwtService,
         IEmailService emailService, IVerificationService verificationService, IConfiguration configuration, IUnitOfWork unitOfWork, 
-        ILogger<AuthService> logger, IAdminRepository adminRepository, IRegularUserRepository regularUserRepository, ICreatorRepository creatorRepository)
+        ILogger<AuthService> logger, IAdminRepository adminRepository, IRegularUserRepository regularUserRepository,
+        ICreatorRepository creatorRepository, ISuperAdminRepository superAdminRepository)
     {
         _userManager = userManager;
         _repository = repository;
@@ -46,6 +48,7 @@ public class AuthService : IAuthService
         _adminRepository = adminRepository;
         _regularUserRepository = regularUserRepository;
         _creatorRepository = creatorRepository;
+        _superAdminRepository = superAdminRepository;
     }
 
     public async Task<Result<RegistrationResponseDto>> InitiateRegistration(string email)
@@ -108,9 +111,9 @@ public class AuthService : IAuthService
         return Result<EmailVerificationResponseDto>.Success(verificationResponse);
     }
 
-    public async Task<Result<RegisterUserResponseDto>> RegisterAdmin(RegisterAdminDto registerAdminDto)
+    public async Task<Result<RegisterUserResponseDto>> RegisterSuperAdmin(RegisterSuperAdminDto registerSuperAdminDto)
     {
-        _logger.LogInformation("******* Inside the RegisterAdmin Method ********");
+        _logger.LogInformation("******* Inside the RegisterSuperAdmin Method ********");
 
         // Retrieve the verified email from the context
         var verifiedEmail = EmailContext.VerifiedEmail;
@@ -118,11 +121,11 @@ public class AuthService : IAuthService
             return new Error[] { new("Verification.Error", "Email not verified") };
 
         // Ensure password and confirm password match
-        if (registerAdminDto.Password != registerAdminDto.ConfirmPassword)
+        if (registerSuperAdminDto.Password != registerSuperAdminDto.ConfirmPassword)
             return new Error[] { new("Registration.Error", "Passwords do not match") };
 
         // Split the full name
-        var names = registerAdminDto.FullName.Split(' ');
+        var names = registerSuperAdminDto.FullName.Split(' ');
         var firstName = names[0];
         var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
 
@@ -132,17 +135,17 @@ public class AuthService : IAuthService
             FirstName = firstName,
             LastName = lastName,
             UserName = verifiedEmail,
-            Username = registerAdminDto.Username,
+            AppUserName = registerSuperAdminDto.AppUserName,
             Email = verifiedEmail,
-            PhoneNumber = registerAdminDto.PhoneNumber,
+            PhoneNumber = registerSuperAdminDto.PhoneNumber,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
-            WalletId = GenerateWalletId(),
+            //WalletId = GenerateWalletId(),
             PublicId = Guid.NewGuid().ToString(),
         };
 
-        // Create Admin entity and associate the ApplicationUser
-        var admin = new Admin
+        // Create SuperAdmin entity and associate the ApplicationUser
+        var superAdmin = new SuperAdmin
         {
             UserId = applicationUser.Id,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -150,16 +153,16 @@ public class AuthService : IAuthService
             ApplicationUser = applicationUser,
         };
 
-        var result = await _userManager.CreateAsync(applicationUser, registerAdminDto.Password);
+        var result = await _userManager.CreateAsync(applicationUser, registerSuperAdminDto.Password);
         if (!result.Succeeded)
             return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
-        result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.Admin);
+        result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.SuperAdmin);
         if (!result.Succeeded)
             return result.Errors.Select(error => new Error(error.Code, error.Description)).ToArray();
 
-        // Assuming you have a repository or context to save the Admin entity
-        await _adminRepository.AddAsync(admin);
+        // Assuming you have a repository or context to save the SuperAdmin entity
+        await _superAdminRepository.AddAsync(superAdmin);
 
         // Mark email as verified
         await _verificationService.MarkEmailAsVerified(verifiedEmail);
@@ -170,10 +173,10 @@ public class AuthService : IAuthService
         var registerUserResponse = new RegisterUserResponseDto
         {
             UserId = applicationUser.Id,
-            Username = applicationUser.Username,
+            AppUserName = applicationUser.AppUserName,
             Email = applicationUser.Email,
-            Role = RolesConstant.RegularUser,  // Include the role here
-            Message = "Registration successful. Verification is pending until the confirmation of account."
+            Role = RolesConstant.SuperAdmin,
+            Message = "Registration successful."
         };
 
         return Result<RegisterUserResponseDto>.Success(registerUserResponse);
@@ -199,7 +202,7 @@ public class AuthService : IAuthService
             FirstName = firstName,
             LastName = lastName,
             UserName = verifiedEmail,
-            Username = registerUserDto.Username,
+            AppUserName = registerUserDto.AppUserName,
             Email = verifiedEmail,
             PhoneNumber = registerUserDto.PhoneNumber,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -232,7 +235,7 @@ public class AuthService : IAuthService
         var registerUserResponse = new RegisterUserResponseDto
         {
             UserId = applicationUser.Id,
-            Username = applicationUser.Username,
+            AppUserName = applicationUser.AppUserName,
             Email = applicationUser.Email,
             Role = RolesConstant.RegularUser,
             Message = "Registration successful. Verification is pending until the confirmation of account."
@@ -265,7 +268,7 @@ public class AuthService : IAuthService
             FirstName = firstName,
             LastName = lastName,
             UserName = verifiedEmail,
-            Username = registerCreatorDto.Username,
+            AppUserName = registerCreatorDto.AppUserName,
             Email = verifiedEmail,
             PhoneNumber = registerCreatorDto.PhoneNumber,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -303,7 +306,7 @@ public class AuthService : IAuthService
         var registerUserResponse = new RegisterUserResponseDto
         {
             UserId = applicationUser.Id,
-            Username = applicationUser.Username,
+            AppUserName = applicationUser.AppUserName,
             Email = applicationUser.Email,
             Role = RolesConstant.Creator,
             Message = "Registration successful. Verification is pending until the confirmation of account."

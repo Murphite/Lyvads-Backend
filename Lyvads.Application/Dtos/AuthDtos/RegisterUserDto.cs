@@ -5,7 +5,7 @@ namespace Lyvads.Application.Dtos.AuthDtos;
 public class RegisterUserDto
 {
     [Required] public required string FullName { get; init; }
-    [Required] public required string Username { get; init; }
+    [Required] public required string AppUserName { get; init; }
     [Required] public required string PhoneNumber { get; init; }
     [EmailAddress] public required string Email { get; init; }
 

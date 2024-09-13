@@ -98,6 +98,8 @@ public static class ServiceRegistration
         services.AddScoped<IRegularUserService, RegularUserService>();
 
         // Register Repositories
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IRepository, Repository>();
         services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IBankAccountRepository, BankAccountRepository>();
@@ -108,5 +110,6 @@ public static class ServiceRegistration
         services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IRequestRepository, RequestRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
     }
 }

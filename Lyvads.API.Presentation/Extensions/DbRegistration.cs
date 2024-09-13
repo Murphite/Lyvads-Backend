@@ -9,10 +9,12 @@ public static class DbRegistration
 {
     public static void AddDbServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("MongoDbConnection"), optionsBuilder =>
-        {
-            optionsBuilder.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name);
-        }));
+        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+            sqlOptions => sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name)));
+            //optionsBuilder =>
+            //{
+            //    optionsBuilder.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name);
+            //}));
 
         services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();

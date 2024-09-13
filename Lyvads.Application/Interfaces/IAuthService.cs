@@ -10,7 +10,8 @@ public interface IAuthService
     Task<Result<EmailVerificationResponseDto>> VerifyEmail(string verificationCode);
     Task<Result<RegisterUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto);
     Task<Result<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto);
-    Task<Result<RegisterUserResponseDto>> RegisterAdmin(RegisterAdminDto registerAdminDto);
+    //Task<Result<RegisterUserResponseDto>> RegisterAdmin(RegisterAdminDto registerAdminDto);
+    Task<Result<RegisterUserResponseDto>> RegisterSuperAdmin(RegisterSuperAdminDto registerSuperAdminDto);
     Task<Result<LoginResponseDto>> Login(LoginUserDto loginUserDto);
     Task<Result> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
     public Task<Result> ForgotPassword(ResetPasswordDto resetPasswordDto);

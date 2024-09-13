@@ -13,6 +13,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<WaitlistEntry> WaitlistEntries { get; set; }
     public DbSet<Admin> Admins { get; set; }
+    public DbSet<SuperAdmin> SuperAdmins { get; set; }
     public DbSet<Creator> Creators { get; set; }
     public DbSet<RegularUser> RegularUsers { get; set; }
     public DbSet<Wallet> Wallets { get; set; }

@@ -80,7 +80,7 @@ public class AuthController : ControllerBase
         var registerUserDto = new RegisterUserDto
         {
             FullName = dto.FullName,
-            Username = dto.Username,
+            AppUserName = dto.AppUserName,
             PhoneNumber = dto.PhoneNumber,
             Password = dto.Password,
             ConfirmPassword = dto.ConfirmPassword,
@@ -116,7 +116,7 @@ public class AuthController : ControllerBase
         var registerCreatorDto = new RegisterCreatorDto
         {
             FullName = dto.FullName,
-            Username = dto.Username,
+            AppUserName = dto.AppUserName,
             PhoneNumber = dto.PhoneNumber,
             Password = dto.Password,
             ConfirmPassword = dto.ConfirmPassword,
@@ -128,11 +128,11 @@ public class AuthController : ControllerBase
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success(result.Message));
+        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, result.Message));
     }
 
-    [HttpPost("RegisterAdmin")]
-    public async Task<IActionResult> RegisterAdmin([FromBody] CompleteRegistrationDto dto)
+    [HttpPost("RegisterSuperAdmin")]
+    public async Task<IActionResult> RegisterSuperAdmin([FromBody] CompleteRegistrationDto dto)
     {
         _logger.LogInformation($"******* Inside the RegisterUser Controller Method ********");
 
@@ -148,24 +148,25 @@ public class AuthController : ControllerBase
             return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email not verified or set") }));
         }
 
-        // Create a RegisterUserDto from the CompleteRegistrationDto
-        var registerAdminDto = new RegisterAdminDto
+        
+        var registerSuperAdminDto = new RegisterSuperAdminDto
         {
             FullName = dto.FullName,
-            Username = dto.Username,
+            AppUserName = dto.AppUserName,
             PhoneNumber = dto.PhoneNumber,
             Password = dto.Password,
             ConfirmPassword = dto.ConfirmPassword,
             Email = emailHolder.Email
         };
 
-        var result = await _authService.RegisterAdmin(registerAdminDto);
+        var result = await _authService.RegisterSuperAdmin(registerSuperAdminDto);
 
         if (result.IsFailure)
             return BadRequest(ResponseDto<object>.Failure(result.Errors));
 
-        return Ok(ResponseDto<object>.Success(result.Message));
+        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, result.Message));
     }
+
 
     [HttpPost("Login")]
     public async Task<IActionResult> Login([FromBody] LoginUserDto loginUserDto)
@@ -265,7 +266,7 @@ public class AuthController : ControllerBase
     public class CompleteRegistrationDto
     {
         [Required] public required string FullName { get; init; }
-        [Required] public required string Username { get; init; }
+        [Required] public required string AppUserName { get; init; }
         [Required] public required string PhoneNumber { get; init; }
 
         [Required(ErrorMessage = "New password is required")]
