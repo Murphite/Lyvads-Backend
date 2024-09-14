@@ -66,7 +66,7 @@ public class AdminService
         // Create Admin entity and associate the ApplicationUser
         var admin = new Admin
         {
-            UserId = applicationUser.Id,
+            ApplicationUserId = applicationUser.Id,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             ApplicationUser = applicationUser,

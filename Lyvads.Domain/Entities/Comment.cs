@@ -13,8 +13,7 @@ public class Comment : Entity, IAuditable
     public bool IsDeleted { get; set; } 
     public Post? Post { get; set; }
 
- 
-    public ApplicationUser? User { get; set; }
+    public ApplicationUser User { get; set; }
 
     // For replies
     public string? ParentCommentId { get; set; }

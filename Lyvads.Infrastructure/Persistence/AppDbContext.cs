@@ -34,18 +34,27 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
 
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Custom configurations can be added here
+        // ApplicationUser Configuration
         modelBuilder.Entity<ApplicationUser>()
             .HasMany(e => e.Notifications)
             .WithOne(e => e.User)
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<ApplicationUser>()
+            .Property(u => u.WalletBalance)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ApplicationUser>()
+            .HasOne(u => u.Wallet)
+            .WithOne(w => w.ApplicationUser)
+            .HasForeignKey<Wallet>(w => w.ApplicationUserId);
+
+        // Creator Configuration
         modelBuilder.Entity<Creator>()
             .HasMany(c => c.Contents)
             .WithOne(c => c.Creator)
@@ -55,7 +64,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Creator>()
             .HasMany(c => c.Deals)
             .WithOne(d => d.Creator)
-            .HasForeignKey(d => d.Id)
+            .HasForeignKey(d => d.CreatorId) // Corrected foreign key
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Creator>()
@@ -64,6 +73,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(p => p.CreatorId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Post Configuration
         modelBuilder.Entity<Post>()
             .HasMany(p => p.Comments)
             .WithOne(c => c.Post)
@@ -76,12 +86,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(l => l.PostId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Wallet>()
-            .HasMany(w => w.Transactions)
-            .WithOne(t => t.Wallet)
-            .HasForeignKey(t => t.WalletId)
-            .OnDelete(DeleteBehavior.Cascade);
-
+        // Request and Deal Configuration
         modelBuilder.Entity<Request>()
             .HasMany(r => r.Deals)
             .WithOne(d => d.Request)
@@ -99,6 +104,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(d => d.RequestId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Wallet and Transaction Configuration
+        modelBuilder.Entity<Wallet>()
+            .HasMany(w => w.Transactions)
+            .WithOne(t => t.Wallet)
+            .HasForeignKey(t => t.WalletId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Wallet>()
+            .Property(w => w.Balance)
+            .HasPrecision(18, 2);
+
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.Deal)
             .WithMany(d => d.Transactions)
@@ -112,31 +128,26 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Transaction>()
+            .Property(t => t.Amount)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Transaction>()
             .HasOne(t => t.FromWallet)
             .WithMany()
             .HasForeignKey(t => t.FromWalletId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.ToWallet)
             .WithMany()
             .HasForeignKey(t => t.ToWalletId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
+        // Exclusive Deals Configuration
         modelBuilder.Entity<ExclusiveDeal>()
             .HasOne(ed => ed.Creator)
             .WithMany(c => c.ExclusiveDeals)
             .HasForeignKey(ed => ed.CreatorId);
-
-        modelBuilder.Entity<ApplicationUser>()
-        .HasOne(u => u.Wallet)
-        .WithOne(w => w.ApplicationUser)
-        .HasForeignKey<Wallet>(w => w.ApplicationUserId);
-
-        modelBuilder.Entity<ApplicationUser>()
-        .Property(u => u.WalletId)
-        .HasDefaultValue(Guid.NewGuid().ToString());
-
-
     }
+
 }

@@ -50,7 +50,7 @@ public class CreatorService : ICreatorService
         _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
 
         // Check if the creator exists in the database by UserId
-        var creator = await _repository.FindByCondition<Creator>(c => c.UserId == userId);
+        var creator = await _repository.FindByCondition<Creator>(c => c.ApplicationUserId == userId);
         if (creator == null)
         {
             _logger.LogWarning("Creator with User ID: {UserId} not found.", userId);
@@ -113,7 +113,7 @@ public class CreatorService : ICreatorService
         }
 
         // Check if the post belongs to the creator (validate userId)
-        var creator = await _repository.FindByCondition<Creator>(c => c.Id == post.CreatorId && c.UserId == userId);
+        var creator = await _repository.FindByCondition<Creator>(c => c.Id == post.CreatorId && c.ApplicationUserId == userId);
         if (creator == null)
         {
             _logger.LogWarning("Creator with User ID: {UserId} not authorized to update this post.", userId);
@@ -170,7 +170,7 @@ public class CreatorService : ICreatorService
         }
 
         // Check if the post belongs to the creator (validate userId)
-        var creator = await _repository.FindByCondition<Creator>(c => c.Id == post.CreatorId && c.UserId == userId);
+        var creator = await _repository.FindByCondition<Creator>(c => c.Id == post.CreatorId && c.ApplicationUserId == userId);
         if (creator == null)
         {
             _logger.LogWarning("Creator with User ID: {UserId} not authorized to delete this post.", userId);
@@ -426,17 +426,17 @@ public class CreatorService : ICreatorService
         }
 
         // Check if the user ID is not null or empty
-        if (string.IsNullOrEmpty(creator.UserId))
+        if (string.IsNullOrEmpty(creator.ApplicationUserId))
         {
             _logger.LogWarning("User ID for creator with ID: {CreatorId} is null or empty.", creatorId);
             return new Error[] { new("User.Error", "User ID is missing.") };
         }
 
         // Check if the associated user exists
-        var user = await _repository.GetById<ApplicationUser>(creator.UserId);
+        var user = await _repository.GetById<ApplicationUser>(creator.ApplicationUserId);
         if (user == null)
         {
-            _logger.LogWarning("User with ID: {UserId} not found.", creator.UserId);
+            _logger.LogWarning("User with ID: {UserId} not found.", creator.ApplicationUserId);
             return new Error[] { new("User.Error", "User not found.") };
         }
 
@@ -575,7 +575,7 @@ public class CreatorService : ICreatorService
 
         // Find the creator associated with the user
         var creator = _repository.GetAll<Creator>()
-            .FirstOrDefault(x => x.UserId == user.Id);
+            .FirstOrDefault(x => x.ApplicationUserId == user.Id);
 
         if (creator == null)
             return new Error[] { new("Creator.Error", "Creator Not Found") };

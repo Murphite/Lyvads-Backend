@@ -75,7 +75,7 @@ public class RegularUserService : IRegularUserService
 
         // Find the creator associated with the user
         var creator = _repository.GetAll<Creator>()
-            .FirstOrDefault(x => x.UserId == user.Id);
+            .FirstOrDefault(x => x.ApplicationUserId == user.Id);
 
         if (creator == null)
             return new Error[] { new("creators.Error", "Creator Not Found") };
@@ -159,7 +159,7 @@ public class RegularUserService : IRegularUserService
 
         // Find the creator associated with the user
         var creator = _repository.GetAll<RegularUser>()
-            .FirstOrDefault(x => x.UserId == user.Id);
+            .FirstOrDefault(x => x.ApplicationUserId == user.Id);
 
         if (creator == null)
             return new Error[] { new("Creator.Error", "Creator Not Found") };

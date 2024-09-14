@@ -147,7 +147,7 @@ public class AuthService : IAuthService
         // Create SuperAdmin entity and associate the ApplicationUser
         var superAdmin = new SuperAdmin
         {
-            UserId = applicationUser.Id,
+            ApplicationUserId = applicationUser.Id,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             ApplicationUser = applicationUser,
@@ -213,7 +213,7 @@ public class AuthService : IAuthService
 
         var regularUser = new RegularUser
         {
-            UserId = applicationUser.Id,
+            ApplicationUserId = applicationUser.Id,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             ApplicationUser = applicationUser,
@@ -280,7 +280,7 @@ public class AuthService : IAuthService
         // Create Creator entity and associate the ApplicationUser
         var creator = new Creator
         {
-            UserId = applicationUser.Id,
+            ApplicationUserId = applicationUser.Id,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             ApplicationUser = applicationUser,

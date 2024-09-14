@@ -6,7 +6,6 @@ namespace Lyvads.Domain.Entities;
 
 public class Creator : Entity, IAuditable
 {
-    public string? UserId { get; set; }
     public ICollection<Content> Contents { get; set; } = new List<Content>();
     public ICollection<Deal> Deals { get; set; } = new List<Deal>();
     public ICollection<Post> Posts { get; set; } = new List<Post>();
@@ -24,6 +23,7 @@ public class Creator : Entity, IAuditable
     public DateTimeOffset UpdatedAt { get; set; }
 
     //navigation property   
+    public string ApplicationUserId { get; set; } = default!;
     public ApplicationUser? ApplicationUser { get; set; }
 }
 
