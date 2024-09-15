@@ -144,7 +144,7 @@ public class WalletRepository : IWalletRepository
     {
         _context.Wallets.Update(wallet);
         var result = await _context.SaveChangesAsync();
-        return result > 0; // Returns true if one or more rows were updated
+        return result > 0; 
     }
 
 }

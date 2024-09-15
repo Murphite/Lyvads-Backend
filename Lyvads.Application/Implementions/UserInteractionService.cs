@@ -166,7 +166,7 @@ public class UserInteractionService : IUserInteractionService
 
         var comment = new Comment
         {
-            UserId = userId,
+            ApplicationUserId = userId,
             Content = content,
             CreatedAt = DateTimeOffset.UtcNow
         };
@@ -187,7 +187,7 @@ public class UserInteractionService : IUserInteractionService
 
         // Check if the comment exists
         var comment = _repository.GetAll<Comment>()
-           .FirstOrDefault(x => x.UserId == user.Id);
+           .FirstOrDefault(x => x.ApplicationUserId == user.Id);
         if (comment == null)
         {
             _logger.LogWarning("Comment with ID: {CommentId} not found.", commentId);
@@ -195,7 +195,7 @@ public class UserInteractionService : IUserInteractionService
         }
 
         // Ensure that the user is the owner of the comment
-        if (comment.UserId != userId)
+        if (comment.ApplicationUserId != userId)
         {
             _logger.LogWarning("User with ID: {UserId} is not authorized to edit comment with ID: {CommentId}", userId, commentId);
             return new Error[] { new("Authorization.Error", "You are not authorized to edit this comment.") };
@@ -214,7 +214,7 @@ public class UserInteractionService : IUserInteractionService
         {
             CommentId = comment.Id,
             PostId = comment.PostId,
-            UserId = comment.UserId,
+            UserId = comment.ApplicationUserId,
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
@@ -236,7 +236,7 @@ public class UserInteractionService : IUserInteractionService
 
         // Check if the comment exists
         var comment = _repository.GetAll<Comment>()
-           .FirstOrDefault(x => x.UserId == user.Id);
+           .FirstOrDefault(x => x.ApplicationUserId == user.Id);
         if (comment == null)
         {
             _logger.LogWarning("Comment with ID: {CommentId} not found.", commentId);
@@ -244,7 +244,7 @@ public class UserInteractionService : IUserInteractionService
         }
 
         // Ensure that the user is the owner of the comment
-        if (comment.UserId != userId)
+        if (comment.ApplicationUserId != userId)
         {
             _logger.LogWarning("User with ID: {UserId} is not authorized to delete comment with ID: {CommentId}", userId, commentId);
             return new Error[] { new("Authorization.Error", "You are not authorized to delete this comment.") };

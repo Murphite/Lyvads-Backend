@@ -28,6 +28,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ApplicationUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -35,9 +36,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -140,12 +138,10 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("WalletBalance")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("WalletId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("0be678ef-2446-4c0e-8446-0e63fd017422");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -239,6 +235,9 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("CommentBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -263,18 +262,15 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("ParentCommentId");
 
                     b.HasIndex("PostId");
 
                     b.HasIndex("RegularUserId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Comments");
                 });
@@ -315,6 +311,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ApplicationUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -335,9 +332,6 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("WearBrand")
                         .HasColumnType("nvarchar(max)");
 
@@ -354,13 +348,13 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("CreatorId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("RequestId")
                         .HasColumnType("nvarchar(450)");
@@ -372,6 +366,8 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
 
                     b.HasIndex("RequestId");
 
@@ -515,9 +511,6 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserId");
@@ -574,6 +567,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ApplicationUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -581,9 +575,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -598,7 +589,10 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("DealId")
                         .HasColumnType("nvarchar(450)");
@@ -606,13 +600,15 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FromWalletId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<string>("ReceiverId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequestId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ToWalletId")
+                    b.Property<string>("SenderId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTimeOffset>("TransactionDate")
@@ -621,6 +617,9 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("WalletId")
                         .HasColumnType("nvarchar(450)");
 
@@ -628,11 +627,9 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("DealId");
 
-                    b.HasIndex("FromWalletId");
-
                     b.HasIndex("RequestId");
 
-                    b.HasIndex("ToWalletId");
+                    b.HasIndex("SenderId");
 
                     b.HasIndex("WalletId");
 
@@ -645,7 +642,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -723,7 +720,13 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
@@ -739,7 +742,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -900,7 +903,9 @@ namespace Lyvads.Infrastructure.Migrations
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ApplicationUser");
                 });
@@ -931,6 +936,10 @@ namespace Lyvads.Infrastructure.Migrations
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Comment", b =>
                 {
+                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId");
+
                     b.HasOne("Lyvads.Domain.Entities.Comment", "ParentComment")
                         .WithMany("Replies")
                         .HasForeignKey("ParentCommentId");
@@ -940,19 +949,17 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Lyvads.Domain.Entities.RegularUser", null)
+                    b.HasOne("Lyvads.Domain.Entities.RegularUser", "RegularUser")
                         .WithMany("Comments")
                         .HasForeignKey("RegularUserId");
 
-                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
+                    b.Navigation("ApplicationUser");
 
                     b.Navigation("ParentComment");
 
                     b.Navigation("Post");
 
-                    b.Navigation("User");
+                    b.Navigation("RegularUser");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Content", b =>
@@ -975,7 +982,9 @@ namespace Lyvads.Infrastructure.Migrations
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ApplicationUser");
                 });
@@ -984,9 +993,8 @@ namespace Lyvads.Infrastructure.Migrations
                 {
                     b.HasOne("Lyvads.Domain.Entities.Creator", "Creator")
                         .WithMany("Deals")
-                        .HasForeignKey("Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Lyvads.Domain.Entities.Request", "Request")
                         .WithMany("Deals")
@@ -1082,7 +1090,9 @@ namespace Lyvads.Infrastructure.Migrations
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ApplicationUser");
                 });
@@ -1091,36 +1101,27 @@ namespace Lyvads.Infrastructure.Migrations
                 {
                     b.HasOne("Lyvads.Domain.Entities.Deal", "Deal")
                         .WithMany("Transactions")
-                        .HasForeignKey("DealId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Lyvads.Domain.Entities.Wallet", "FromWallet")
-                        .WithMany()
-                        .HasForeignKey("FromWalletId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("DealId");
 
                     b.HasOne("Lyvads.Domain.Entities.Request", "Request")
                         .WithMany("Transactions")
-                        .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("RequestId");
 
-                    b.HasOne("Lyvads.Domain.Entities.Wallet", "ToWallet")
+                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "Sender")
                         .WithMany()
-                        .HasForeignKey("ToWalletId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Lyvads.Domain.Entities.Wallet", "Wallet")
                         .WithMany("Transactions")
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("WalletId");
 
                     b.Navigation("Deal");
 
-                    b.Navigation("FromWallet");
-
                     b.Navigation("Request");
 
-                    b.Navigation("ToWallet");
+                    b.Navigation("Sender");
 
                     b.Navigation("Wallet");
                 });

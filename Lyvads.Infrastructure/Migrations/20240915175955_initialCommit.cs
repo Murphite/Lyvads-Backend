@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Lyvads.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initialCommit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -44,7 +44,7 @@ namespace Lyvads.Infrastructure.Migrations
                     VerificationCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    WalletId = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "cf6ce7bc-e914-444e-b5df-f8fdb51d615b"),
+                    WalletId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     StripeAccountId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -120,10 +120,9 @@ namespace Lyvads.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -132,7 +131,8 @@ namespace Lyvads.Infrastructure.Migrations
                         name: "FK_Admins_AspNetUsers_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -247,7 +247,6 @@ namespace Lyvads.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SimpleAdvert = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     WearBrand = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SongAdvert = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -255,7 +254,7 @@ namespace Lyvads.Infrastructure.Migrations
                     HasExclusiveDeal = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -264,7 +263,8 @@ namespace Lyvads.Infrastructure.Migrations
                         name: "FK_Creators_AspNetUsers_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -294,7 +294,6 @@ namespace Lyvads.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
@@ -307,6 +306,26 @@ namespace Lyvads.Infrastructure.Migrations
                         column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SuperAdmins",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SuperAdmins", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SuperAdmins_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -338,7 +357,9 @@ namespace Lyvads.Infrastructure.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -484,21 +505,21 @@ namespace Lyvads.Infrastructure.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     PostId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     CommentBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     ParentCommentId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    RegularUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    RegularUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Comments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Comments_AspNetUsers_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Comments_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -556,14 +577,14 @@ namespace Lyvads.Infrastructure.Migrations
                     Status = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    CreatorId = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    CreatorId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Deals", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Deals_Creators_Id",
-                        column: x => x.Id,
+                        name: "FK_Deals_Creators_CreatorId",
+                        column: x => x.CreatorId,
                         principalTable: "Creators",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -620,47 +641,35 @@ namespace Lyvads.Infrastructure.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DealId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     RequestId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    FromWalletId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ToWalletId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    SenderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ReceiverId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Transactions", x => x.Id);
-
                     table.ForeignKey(
-                        name: "FK_Transactions_Wallets_WalletId",
-                        column: x => x.WalletId,
-                        principalTable: "Wallets",
+                        name: "FK_Transactions_AspNetUsers_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction); // Ensure no cascading
-
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Transactions_Deals_DealId",
                         column: x => x.DealId,
                         principalTable: "Deals",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction); // Ensure no cascading
-
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Transactions_Requests_RequestId",
                         column: x => x.RequestId,
                         principalTable: "Requests",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction); // Ensure no cascading
-
+                        principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Transactions_Wallets_FromWalletId",
-                        column: x => x.FromWalletId,
+                        name: "FK_Transactions_Wallets_WalletId",
+                        column: x => x.WalletId,
                         principalTable: "Wallets",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction); // Ensure no cascading
-
-                    table.ForeignKey(
-                        name: "FK_Transactions_Wallets_ToWalletId",
-                        column: x => x.ToWalletId,
-                        principalTable: "Wallets",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction); // Ensure no cascading
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -723,6 +732,11 @@ namespace Lyvads.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Comments_ApplicationUserId",
+                table: "Comments",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Comments_ParentCommentId",
                 table: "Comments",
                 column: "ParentCommentId");
@@ -738,11 +752,6 @@ namespace Lyvads.Infrastructure.Migrations
                 column: "RegularUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Comments_UserId",
-                table: "Comments",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Contents_RequestId",
                 table: "Contents",
                 column: "RequestId");
@@ -756,6 +765,11 @@ namespace Lyvads.Infrastructure.Migrations
                 name: "IX_Creators_ApplicationUserId",
                 table: "Creators",
                 column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Deals_CreatorId",
+                table: "Deals",
+                column: "CreatorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Deals_RequestId",
@@ -808,14 +822,14 @@ namespace Lyvads.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SuperAdmins_ApplicationUserId",
+                table: "SuperAdmins",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Transactions_DealId",
                 table: "Transactions",
                 column: "DealId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Transactions_FromWalletId",
-                table: "Transactions",
-                column: "FromWalletId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_RequestId",
@@ -823,9 +837,9 @@ namespace Lyvads.Infrastructure.Migrations
                 column: "RequestId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_ToWalletId",
+                name: "IX_Transactions_SenderId",
                 table: "Transactions",
-                column: "ToWalletId");
+                column: "SenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_WalletId",
@@ -887,6 +901,9 @@ namespace Lyvads.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "SuperAdmins");
 
             migrationBuilder.DropTable(
                 name: "Transactions");

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Lyvads.Domain.Entities;
 
@@ -15,6 +16,7 @@ public class ApplicationUser : IdentityUser, IAuditable
     public string? Bio { get; set; }
     public string? Location { get; set; }
     public string? PublicId { get; set; } = default!;
+    [Column(TypeName = "decimal(18, 2)")]
     public decimal WalletBalance { get; set; } = 0;
     public bool IsVerified { get; set; }
     public string? FullName => $"{FirstName} {LastName}";

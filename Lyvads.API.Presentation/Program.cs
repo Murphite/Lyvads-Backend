@@ -27,6 +27,21 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 var app = builder.Build();
 
+// Run database migrations automatically on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while migrating the database.");
+        throw;
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -41,19 +56,16 @@ else
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+// app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
-using (var servicescope = app.Services.CreateScope())
-{
-    var services = servicescope.ServiceProvider;
-    var _context = services.GetRequiredService<AppDbContext>();
-    _context.Database.Migrate();
-}
-
+// Custom middleware for exception handling
 app.UseMiddleware<ExceptionMiddleware>();
+
+// Enable CORS
 app.UseCors("AllowAllOrigins");
+
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -46,10 +46,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ApplicationUser>()
-            .Property(u => u.WalletBalance)
-            .HasPrecision(18, 2);
-
-        modelBuilder.Entity<ApplicationUser>()
             .HasOne(u => u.Wallet)
             .WithOne(w => w.ApplicationUser)
             .HasForeignKey<Wallet>(w => w.ApplicationUserId);
@@ -64,7 +60,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Creator>()
             .HasMany(c => c.Deals)
             .WithOne(d => d.Creator)
-            .HasForeignKey(d => d.CreatorId) // Corrected foreign key
+            .HasForeignKey(d => d.CreatorId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Creator>()
@@ -104,50 +100,40 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(d => d.RequestId)
             .OnDelete(DeleteBehavior.Cascade);
 
+       
+
         // Wallet and Transaction Configuration
-        modelBuilder.Entity<Wallet>()
-            .HasMany(w => w.Transactions)
-            .WithOne(t => t.Wallet)
-            .HasForeignKey(t => t.WalletId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Transaction has a FromWallet (origin) and a ToWallet (destination)
+        //modelBuilder.Entity<Transaction>()
+        //    .HasOne(t => t.FromWallet)
+        //    .WithMany(w => w.FromTransactions)
+        //    .HasForeignKey(t => t.FromWalletId)
+        //    .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Wallet>()
-            .Property(w => w.Balance)
-            .HasPrecision(18, 2);
+        //modelBuilder.Entity<Transaction>()
+        //    .HasOne(t => t.ToWallet)
+        //    .WithMany(w => w.ToTransactions) 
+        //    .HasForeignKey(t => t.ToWalletId)
+        //    .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Transaction>()
-            .HasOne(t => t.Deal)
-            .WithMany(d => d.Transactions)
-            .HasForeignKey(t => t.DealId)
-            .OnDelete(DeleteBehavior.SetNull);
+        // Ensure Wallet entity has distinct navigation properties for each relationship
+        //modelBuilder.Entity<Wallet>()
+        //    .HasMany(w => w.FromTransactions)
+        //    .WithOne(t => t.FromWallet)
+        //    .HasForeignKey(t => t.FromWalletId);
 
-        modelBuilder.Entity<Transaction>()
-            .HasOne(t => t.Request)
-            .WithMany(r => r.Transactions)
-            .HasForeignKey(t => t.RequestId)
-            .OnDelete(DeleteBehavior.SetNull);
+        //modelBuilder.Entity<Wallet>()
+        //    .HasMany(w => w.ToTransactions)
+        //    .WithOne(t => t.ToWallet)
+        //    .HasForeignKey(t => t.ToWalletId);
 
-        modelBuilder.Entity<Transaction>()
-            .Property(t => t.Amount)
-            .HasPrecision(18, 2);
-
-        modelBuilder.Entity<Transaction>()
-            .HasOne(t => t.FromWallet)
-            .WithMany()
-            .HasForeignKey(t => t.FromWalletId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<Transaction>()
-            .HasOne(t => t.ToWallet)
-            .WithMany()
-            .HasForeignKey(t => t.ToWalletId)
-            .OnDelete(DeleteBehavior.Restrict);
-
+       
         // Exclusive Deals Configuration
         modelBuilder.Entity<ExclusiveDeal>()
             .HasOne(ed => ed.Creator)
             .WithMany(c => c.ExclusiveDeals)
             .HasForeignKey(ed => ed.CreatorId);
+
     }
 
 }

@@ -203,7 +203,7 @@ public class CreatorService : ICreatorService
             Id = Guid.NewGuid().ToString(),
             PostId = postId,
             CommentBy = $"{user.FirstName} {user.LastName}",
-            UserId = userId,
+            ApplicationUserId = userId,
             Content = content,
             CreatedAt = DateTimeOffset.UtcNow
         };
@@ -217,7 +217,7 @@ public class CreatorService : ICreatorService
         {
             CommentId = comment.Id,
             PostId = comment.PostId,
-            UserId = comment.UserId,
+            UserId = comment.ApplicationUserId,
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,
             CommentBy = comment.CommentBy,
