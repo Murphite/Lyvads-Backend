@@ -14,8 +14,6 @@ public class Transaction : Entity , IAuditable
     public decimal Amount { get; set; }
     public DateTimeOffset TransactionDate { get; set; }
     public string? Description { get; set; }
-
-    // Optional: reference to the related deal or request, if applicable
     public string? DealId { get; set; }
     public Deal? Deal { get; set; }
 

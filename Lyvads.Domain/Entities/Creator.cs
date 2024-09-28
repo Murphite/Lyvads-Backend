@@ -1,6 +1,7 @@
 ﻿
 
 using Lyvads.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Lyvads.Domain.Entities;
 
@@ -9,6 +10,9 @@ public class Creator : Entity, IAuditable
     public ICollection<Content> Contents { get; set; } = new List<Content>();
     public ICollection<Deal> Deals { get; set; } = new List<Deal>();
     public ICollection<Post> Posts { get; set; } = new List<Post>();
+    public ICollection<Collaboration> Collaborations { get; set; } = new List<Collaboration>();
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal Price { get; set; }
 
     // Social Media Handles
     public string? SimpleAdvert { get; set; }
@@ -21,7 +25,8 @@ public class Creator : Entity, IAuditable
     public ICollection<ExclusiveDeal> ExclusiveDeals { get; set; } = new List<ExclusiveDeal>();
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
-
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal AdvertAmount { get; set; }
     //navigation property   
     public string ApplicationUserId { get; set; } = default!;
     public ApplicationUser? ApplicationUser { get; set; }

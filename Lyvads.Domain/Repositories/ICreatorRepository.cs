@@ -6,4 +6,6 @@ public interface ICreatorRepository
 {
     Task AddAsync(Creator creator);
     Task<Creator?> GetCreatorByIdAsync(string creatorId);
+    IQueryable<Creator> GetCreators();
+
 }

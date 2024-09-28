@@ -1,10 +1,13 @@
 ﻿
+using Microsoft.AspNetCore.Http;
+
 namespace Lyvads.Application.Dtos.RegularUserDtos;
 
 public class UpdateProfilePictureDto
 {
-    public string NewProfilePictureUrl { get; set; } = default!;
+    public IFormFile? NewProfilePictureUrl { get; set; }
 }
+
 
 public class UpdateProfilePicResponseDto
 {

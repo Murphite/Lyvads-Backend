@@ -2,6 +2,8 @@
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Repositories;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace Lyvads.Infrastructure.Repositories;
 
@@ -30,6 +32,33 @@ public class RequestRepository : IRequestRepository
 
             return (false, ex.Message ?? string.Empty);
         }
+    }
+
+    public IQueryable<Request> GetRequests()
+    {
+        return _context.Requests; 
+    }
+
+    public async Task<Request?> GetRequestByIdAsync(string requestId)
+    {
+        return await _context.Requests
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+    }
+
+    public IQueryable<Request> GetRequestsForCreator(string creatorId)
+    {
+        return _context.Requests
+                       .Include(r => r.User) // Include the Regular User who made the request
+                       .Include(r => r.Creator) // Include the Creator
+                       .Where(r => r.CreatorId == creatorId);
+    }
+
+    // Method to get requests made by a specific user
+    public IQueryable<Request> GetRequestsByUser(string userId)
+    {
+        return _context.Requests
+                       .Include(r => r.Creator) // Include Creator details if needed
+                       .Where(r => r.UserId == userId); // Filter by UserId
     }
 
 }

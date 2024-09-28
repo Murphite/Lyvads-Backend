@@ -1,5 +1,5 @@
 ﻿using Lyvads.Application.Interfaces;
-using Lyvads.Application.Implementions;
+using Lyvads.Application.Implementations;
 using Lyvads.Domain.Interfaces;
 using Lyvads.Domain.Repositories;
 using Lyvads.Infrastructure.Repositories;
@@ -96,6 +96,20 @@ public static class ServiceRegistration
         services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IRegularUserService, RegularUserService>();
+        services.AddScoped<IMediaService, MediaService>();
+        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<IChargeTransactionService, ChargeTransactionService>();
+        services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<ISuperAdminService, SuperAdminService>();
+        services.AddScoped<IAPostService, APostService>();
+        services.AddScoped<IChargeTransactionService, ChargeTransactionService>();
+        services.AddScoped<ICollaborationService, CollaborationService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IDisputeService, DisputeService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IPromotionService, PromotionService>();
+        services.AddScoped<IUserAdService, UserAdService>();
+
 
         // Register Repositories
         services.AddHttpContextAccessor();
@@ -111,5 +125,14 @@ public static class ServiceRegistration
         services.AddScoped<IRequestRepository, RequestRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
+        services.AddScoped<IDisputeRepository, DisputeRepository >();
+        services.AddScoped<IImpressionRepository, ImpressionRepository >();
+        services.AddScoped<IPostRepository, PostRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IUserAdRepository, UserAdRepository>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddScoped<ICollaborationRepository, CollaborationRepository>();
+        services.AddScoped<IChargeTransactionRepository, ChargeTransactionRepository>();
+
     }
 }

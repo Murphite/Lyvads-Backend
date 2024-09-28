@@ -2,13 +2,13 @@
 using Lyvads.Application.Dtos.AuthDtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
-using Lyvads.Application.Implementions;
+using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using static Lyvads.Application.Implementions.ProfileService;
+using static Lyvads.Application.Implementations.ProfileService;
 
 namespace Lyvads.API.Presentation.Controllers;
 
@@ -39,12 +39,13 @@ public class ProfileController : ControllerBase
         // Call the service to update the creator profile
         var result = await _profileService.EditProfileAsync(dto, user.Id);
 
-        if (!result.IsSuccess)
-            return BadRequest(result.Errors);
+        if (!result.IsFailure)
+            return BadRequest(result.ErrorResponse);
 
         // Return the updated profile data
         return Ok(ResponseDto<EditProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
     }
+
 
     [HttpPut("UpdateProfilePicture")]
     public async Task<IActionResult> UpdateProfilePicture([FromBody] UpdateProfilePictureDto dto)
@@ -54,14 +55,18 @@ public class ProfileController : ControllerBase
         if (user == null)
             return NotFound("User not found.");
 
-        // Update the profile picture for the logged-in user
-        var result = await _profileService.UpdateProfilePictureAsync(user.Id, dto.NewProfilePictureUrl);
+        // Convert the new profile picture URL to an IFormFile (you can adjust this based on your actual input)
+        var formFile = dto.NewProfilePictureUrl; 
 
-        if (!result.IsSuccess)
-            return BadRequest(result.Errors);
+        // Update the profile picture for the logged-in user (no need to pass folderName)
+        var result = await _profileService.UpdateProfilePictureAsync(user.Id, formFile);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<UpdateProfilePicResponseDto>.Success(result.Data, "Profile picture updated successfully."));
     }
+
 
     [HttpPost("InitiateEmailUpdate")]
     public async Task<IActionResult> InitiateEmailUpdate([FromBody] UpdateEmailDto dto)
@@ -81,11 +86,12 @@ public class ProfileController : ControllerBase
         var result = await _profileService.InitiateEmailUpdateAsync(dto.UserId, dto.NewEmail);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<UpdateEmailResponseDto>.Success(result.Data, "Verification code sent to the new email. Please check your email."));
     }
 
+    
     [HttpPost("VerifyEmailUpdate")]
     public async Task<IActionResult> VerifyEmailUpdate([FromBody] EmailUpdateVerificationDto dto)
     {
@@ -104,11 +110,10 @@ public class ProfileController : ControllerBase
         var result = await _profileService.VerifyEmailUpdateAsync(dto.UserId, dto.VerificationCode);
 
         if (result.IsFailure)
-        {
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
-        }
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<EmailVerificationResponseDto>.Success(result.Data, result.Message));
+
+        return Ok(ResponseDto<EmailVerificationResponseDto>.Success(result.Data, result.ResponseMessage));
     }
 
 
@@ -123,13 +128,14 @@ public class ProfileController : ControllerBase
         // Call the service to update the user's location
         var result = await _profileService.UpdateLocationAsync(dto, user.Id);
 
-        if (!result.IsSuccess)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        if (!result.IsFailure)
+            return BadRequest(result.ErrorResponse);
 
         // Return the updated location data
-        return Ok(ResponseDto<UpdateLocationResponseDto>.Success(result.Data, "Location updated successfully."));
+        return Ok(ResponseDto<UpdateLocationResponseDto>.Success(result.Data, result.ResponseMessage));
     }
 
+   
     [HttpPut("UpdatePhoneNumber")]
     public async Task<IActionResult> UpdatePhoneNumber([FromBody] UpdatePhoneNumberDto dto)
     {
@@ -141,11 +147,11 @@ public class ProfileController : ControllerBase
         // Call the service to update the user's phone number
         var result = await _profileService.UpdatePhoneNumberAsync(dto, user.Id);
 
-        if (!result.IsSuccess)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        if (!result.IsFailure)
+            return BadRequest(result.ErrorResponse);
 
         // Return the updated phone number data
-        return Ok(ResponseDto<UpdatePhoneNumberResponseDto>.Success(result.Data, "Phone number updated successfully."));
+        return Ok(ResponseDto<UpdatePhoneNumberResponseDto>.Success(result.Data, result.ResponseMessage));
     }
 
 
@@ -163,5 +169,11 @@ public class ProfileController : ControllerBase
         public string? UserId { get; set; }
         public string? NewEmail { get; set; }  
     }
+
+
+    //public class UpdateProfilePictureDto
+    //{
+    //    public IFormFile NewProfilePicture { get; set; }
+    //}
 
 }

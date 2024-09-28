@@ -21,4 +21,8 @@ public class RegularUserRepository : IRegularUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public IQueryable<RegularUser> GetRegularUsers()
+    {
+        return _context.RegularUsers;
+    }
 }

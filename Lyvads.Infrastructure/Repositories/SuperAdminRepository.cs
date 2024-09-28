@@ -20,15 +20,13 @@ public class SuperAdminRepository : ISuperAdminRepository
     {
         try
         {
-            // Add the SuperAdmin entity to the context
-            await _context.SuperAdmins.AddAsync(superAdmin);
-            // Save changes to the database
+            await _context.SuperAdmins.AddAsync(superAdmin);           
             await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while adding the SuperAdmin.");
-            throw; // Optionally rethrow or handle the exception as needed
+            throw; 
         }
     }
 }

@@ -26,4 +26,14 @@ public class CreatorRepository : ICreatorRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == creatorId);
     }
+
+    public IQueryable<Creator> GetCreators()
+    {
+        return _context.Creators;
+    }
+
+    public IQueryable<Creator> GetCreatorsWithDetails()
+    {
+        return _context.Creators.Include(c => c.Collaborations);
+    }
 }

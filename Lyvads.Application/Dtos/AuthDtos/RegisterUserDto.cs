@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Lyvads.Domain.Constants;
+using System.ComponentModel.DataAnnotations;
 
 namespace Lyvads.Application.Dtos.AuthDtos;
 
@@ -17,4 +18,11 @@ public class RegisterUserDto
     [DataType(DataType.Password)]
     [Compare("Password", ErrorMessage = "Password and confirm password do not match")]
     public string? ConfirmPassword { get; set; }
+    public UserRoleEnum Role { get; set; }
+}
+
+public enum UserRoleEnum
+{
+    Admin = 1,
+    SuperAdmin = 2
 }

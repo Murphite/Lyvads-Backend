@@ -1,7 +1,8 @@
 ﻿using Lyvads.API.Presentation.Dtos;
+using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
-using Lyvads.Application.Implementions;
+using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -27,44 +28,6 @@ public class RegularUserController : Controller
         _logger = logger;
     }
 
-    [HttpPut("UpdateProfilePicture")]
-    public async Task<IActionResult> UpdateProfilePicture([FromBody] UpdateProfilePictureDto dto)
-    {
-        if (string.IsNullOrEmpty(dto.NewProfilePictureUrl))
-            return BadRequest("Invalid input data.");
-
-        /// Get the logged-in user
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return NotFound("User not found.");
-
-        // Assuming you have a service that handles both regular users and creators
-        var result = await _regularUserService.UpdateProfilePictureAsync(user.Id, dto.NewProfilePictureUrl);
-
-        if (!result.IsSuccess)
-            return BadRequest(result.Errors);
-
-        return Ok(ResponseDto<UpdateProfilePicResponseDto>.Success(result.Data, "Profile picture updated successfully."));
-    }
-
-
-    [HttpPut("EditProfile")]
-    public async Task<IActionResult> EditProfile([FromBody] EditProfileDto dto)
-    {
-        // Get the logged-in user's ID
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return NotFound("User not found.");
-
-        // Call the service to update the creator profile
-        var result = await _regularUserService.EditProfileAsync(dto, user.Id);
-
-        if (!result.IsSuccess)
-            return BadRequest(result.Errors);
-
-        // Return the updated profile data
-        return Ok(ResponseDto<EditProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
-    }
 
     [HttpPut("UpdateProfile")]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateRegularUserProfileDto dto)
@@ -82,5 +45,20 @@ public class RegularUserController : Controller
 
         // Return the updated profile data
         return Ok(ResponseDto<RegularUserProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
+    }
+
+    
+    [HttpGet("RegularUsers")]
+    public async Task<IActionResult> GetRegularUsers([FromQuery] PaginationFilter paginationFilter)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var result = await _regularUserService.GetRegularUsers(paginationFilter);
+
+        if (!result.IsSuccessful)
+            return StatusCode(int.Parse(result.ResponseCode), result.ErrorResponse);
+
+        return Ok(ResponseDto<PaginatorDto<IEnumerable<RegularUserDto>>>.Success(result.Data, result.ResponseMessage));
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Lyvads.Application.Dtos.CreatorDtos;
-using Lyvads.Application.Implementions;
+using Lyvads.Application.Implementations;
 using Microsoft.AspNetCore.Identity;
 using Lyvads.Domain.Entities;
 
@@ -34,11 +34,12 @@ public class UserInteractionController : ControllerBase
     {
         var result = await _userInteractionService.AddCommentAsync(commentDto.UserId, commentDto.Content);
 
-        if (!result.IsSuccess)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        if(result.IsFailure)
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<object>.Success(result.Data));
     }
+
 
     [HttpPut("EditComment/{commentId}")]
     public async Task<IActionResult> EditComment(string commentId, [FromBody] string newContent)
@@ -50,10 +51,11 @@ public class UserInteractionController : ControllerBase
         var result = await _userInteractionService.EditCommentAsync(commentId, user.Id, newContent);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment updated successfully."));
     }
+
 
     [HttpDelete("DeleteComment/{commentId}")]
     public async Task<IActionResult> DeleteComment(string commentId)
@@ -65,21 +67,23 @@ public class UserInteractionController : ControllerBase
         var result = await _userInteractionService.DeleteCommentAsync(commentId, user.Id);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success("Comment deleted successfully."));
+        return Ok(ResponseDto<object>.Success(result.Data, "Comment deleted successfully."));
     }
+
 
     [HttpPost("Like")]
     public async Task<IActionResult> LikeContent([FromBody] LikeDto likeDto)
     {
         var result = await _userInteractionService.LikeContentAsync(likeDto.UserId, likeDto.ContentId);
 
-        if (!result.IsSuccess)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        if (result.IsFailure)
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(ResponseDto<object>.Success(result.Data));
     }
+
 
     [HttpPost("Unlike")]
     public async Task<IActionResult> UnlikeContent([FromBody] UnlikeDto unlikeDto)
@@ -98,37 +102,26 @@ public class UserInteractionController : ControllerBase
 
         var result = await _userInteractionService.UnlikeContentAsync(unlikeDto.UserId, unlikeDto.ContentId);
 
-        if (!result.IsSuccess)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        if (result.IsFailure)
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success("Content unliked successfully."));
+        return Ok(ResponseDto<object>.Success(result.Data, "Content unliked successfully."));
     }
+
+
 
     [HttpPost("FundWallet")]
     public async Task<IActionResult> FundWallet([FromBody] FundWalletDto fundWalletDto)
     {
         var result = await _userInteractionService.FundWalletAsync(fundWalletDto.UserId, fundWalletDto.Amount);
 
-        if (!result.IsSuccess)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        if(result.IsFailure)
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success());
-    }
+        return Ok(ResponseDto<object>.Success(result.Data));
+    }   
 
-    
-    [HttpPost("CreateRequest")]
-    public async Task<IActionResult> CreateRequest([FromBody] CreateRequestDto createRequestDto)
-    {
-        _logger.LogInformation("******* Inside the CreateRequest Controller Method ********");
-
-        var result = await _userInteractionService.CreateRequestAsync(createRequestDto);
-
-        if (!result.IsSuccess)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
-
-        return Ok(ResponseDto<object>.Success());
-    }
-
+   
     [HttpPost("MakeRequest")]
     public async Task<IActionResult> MakeRequest([FromQuery] string creatorId, [FromBody] CreateRequestDto createRequestDto)
     {
@@ -138,15 +131,26 @@ public class UserInteractionController : ControllerBase
         createRequestDto.CreatorId = creatorId;
         var result = await _userInteractionService.MakeRequestAsync(createRequestDto);
 
-        if (!result.IsSuccess)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        if (result.IsFailure)
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<MakeRequestResponseDto>.Success());
+        return Ok(ResponseDto<MakeRequestResponseDto>.Success(result.Data));
     }
 
 
 
+    //[HttpPost("CreateRequest")]
+    //public async Task<IActionResult> CreateRequest([FromBody] CreateRequestDto createRequestDto)
+    //{
+    //    _logger.LogInformation("******* Inside the CreateRequest Controller Method ********");
 
+    //    var result = await _userInteractionService.CreateRequestAsync(createRequestDto);
+
+    //    if (!result.IsSuccess)
+    //        return BadRequest(ResponseDto<object>.Failure(result.Errors));
+
+    //    return Ok(ResponseDto<object>.Success());
+    //}
 
 
     public class UnlikeDto

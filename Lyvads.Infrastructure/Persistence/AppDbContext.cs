@@ -2,6 +2,7 @@
 using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Lyvads.Infrastructure.Repositories;
 
 namespace Lyvads.Infrastructure.Persistence;
 
@@ -29,8 +30,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<ExclusiveDeal> ExclusiveDeals { get; set; }
     public DbSet<VerificationRecord> VerificationRecords { get; set; }
-    public DbSet<CollaborationRequest> CollaborationRequests { get; set; }
+    public DbSet<Collaboration> Collaborations { get; set; }
     public DbSet<BankAccount> BankAccounts { get; set; }
+    public DbSet<Promotion> Promotions { get; set; }
+    public DbSet<Charge> Charges { get; set; }
+    public DbSet<ChargeTransaction> ChargeTransactions { get; set; }
+    public DbSet<UserAd> UserAds { get; set; }
+    public DbSet<Dispute> Disputes { get; set; }
 
 
 
@@ -100,7 +106,21 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(d => d.RequestId)
             .OnDelete(DeleteBehavior.Cascade);
 
-       
+        modelBuilder.Entity<Creator>()
+         .HasMany(c => c.Collaborations)
+         .WithOne(collab => collab.Creator)
+         .HasForeignKey(collab => collab.CreatorId);
+
+        // Ignore the conflicting property 'Request.User' 
+        modelBuilder.Entity<Request>()
+            .Ignore(r => r.User);
+
+        // Configure the relationship between 'Request' and 'RegularUser'
+        modelBuilder.Entity<Request>()
+            .HasOne(r => r.RegularUser)
+            .WithMany(u => u.Requests)
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Wallet and Transaction Configuration
         // Transaction has a FromWallet (origin) and a ToWallet (destination)
@@ -127,7 +147,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         //    .WithOne(t => t.ToWallet)
         //    .HasForeignKey(t => t.ToWalletId);
 
-       
+
         // Exclusive Deals Configuration
         modelBuilder.Entity<ExclusiveDeal>()
             .HasOne(ed => ed.Creator)

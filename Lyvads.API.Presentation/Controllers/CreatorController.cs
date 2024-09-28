@@ -9,7 +9,9 @@ using Lyvads.Domain.Enums;
 using Lyvads.API.Presentation.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Lyvads.Application.Dtos.RegularUserDtos;
-using Lyvads.Application.Implementions;
+using Lyvads.Application.Implementations;
+using Lyvads.Domain.Responses;
+using Lyvads.Application.Dtos;
 
 namespace Lyvads.API.Presentation.Controllers;
 
@@ -42,8 +44,9 @@ public class CreatorController : ControllerBase
         // Call the service to update the creator profile
         var result = await _creatorService.UpdateCreatorSetUpRatesAsync(dto, user.Id);
 
-        if (!result.IsSuccess)
-            return BadRequest(result.Errors);
+        if (result.IsFailure)
+            return BadRequest(result.ErrorResponse);
+
 
         // Return the updated profile data
         return Ok(ResponseDto<CreatorProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
@@ -60,7 +63,7 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.CreatePostAsync(postDto, user.Id);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post Successfully Added"));
     }
@@ -77,13 +80,13 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.UpdatePostAsync(postDto, user.Id);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post successfully updated."));
     }
 
     [HttpDelete("DeletePost/{postId}")]
-    public async Task<IActionResult> DeletePost(int postId)
+    public async Task<IActionResult> DeletePost(string postId)
     {
         // Get the logged-in user's ID
         var user = await _userManager.GetUserAsync(User);
@@ -94,7 +97,7 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.DeletePostAsync(postId, user.Id);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success("Post successfully deleted."));
     }
@@ -110,7 +113,7 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.CommentOnPostAsync(postId, user.Id, content);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment added successfully."));
     }
@@ -124,7 +127,8 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.LikeCommentAsync(commentId, user.Id);
         
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
+
 
         return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
     }
@@ -138,7 +142,7 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.LikePostAsync(postId, user.Id);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
     }
@@ -150,21 +154,21 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.HandleRequestAsync(requestId, status);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<RequestResponseDto>.Success(result.Data, "Request handled successfully."));
     }
 
 
     [HttpPost("Send-Video")]
-    public async Task<IActionResult> SendVideoToUser(string requestId, string videoUrl)
+    public async Task<IActionResult> SendVideoToUser(string requestId, IFormFile videoUrl)
     {
         var result = await _creatorService.SendVideoToUserAsync(requestId, videoUrl);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<VideoResponseDto>.Success(result.Data, "Video sent successfully."));
+        return Ok(ResponseDto<VideoResponseDto>.Success(result.Data, result.ResponseMessage));
     }
 
 
@@ -177,7 +181,7 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.ViewWalletBalanceAsync(user.Id);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<WalletBalanceDto>.Success(result.Data, "Wallet balance retrieved successfully."));
     }
@@ -192,21 +196,23 @@ public class CreatorController : ControllerBase
         var result = await _creatorService.WithdrawToBankAccountAsync(user.Id, request.Amount, request.Currency);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success());
     }
 
+    
     [HttpGet("Notifications")]
     public async Task<IActionResult> GetNotifications()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return Unauthorized("User not found or unauthorized.");
+
         var result = await _creatorService.GetNotificationsAsync(user.Id);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<IEnumerable<NotificationResponseDto>>.Success(result.Data, "Notifications retrieved successfully."));
     }
@@ -218,13 +224,28 @@ public class CreatorController : ControllerBase
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return Unauthorized("User not found or unauthorized.");
+
         var result = await _creatorService.GetPostsByCreatorAsync(user.Id);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<IEnumerable<PostResponseDto>>.Success(result.Data, "Posts retrieved successfully."));
     }
 
+    [HttpGet("search")]
+    public async Task<ActionResult<ServerResponse<List<FilterCreatorDto>>>> SearchCreators(
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] string location,
+            [FromQuery] string industry)
+    {
+        var result = await _creatorService.SearchCreatorsAsync(minPrice, maxPrice, location, industry);
+
+        if (result.IsFailure)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(ResponseDto<IEnumerable<FilterCreatorDto>>.Success(result.Data, "Creators retrieved successfully."));
+    }
 
 }

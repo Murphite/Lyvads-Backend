@@ -2,7 +2,6 @@
 using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Stripe.Checkout;
-using static Lyvads.Application.Implementions.PaymentGatewayService;
 
 namespace Lyvads.Application.Interfaces;
 

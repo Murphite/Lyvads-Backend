@@ -17,7 +17,7 @@ public class PostDto
 
 public class UpdatePostDto
 {
-    public int PostId { get; set; }
+    public string? PostId { get; set; }
     public string Caption { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public PostVisibility? Visibility { get; set; }

@@ -3,12 +3,13 @@ using Lyvads.API.Extensions;
 using Lyvads.Application.Interfaces;
 using Lyvads.Application.Dtos.AuthDtos;
 using Microsoft.AspNetCore.Mvc;
-using static Lyvads.Application.Implementions.AuthService;
+using static Lyvads.Application.Implementations.AuthService;
 using System.ComponentModel.DataAnnotations;
 using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.CreatorDtos;
-using Lyvads.Application.Implementions;
+using Lyvads.Application.Implementations;
 using Microsoft.AspNetCore.Identity;
+using Lyvads.Domain.Responses;
 
 namespace Lyvads.API.Controllers;
 
@@ -33,8 +34,12 @@ public class AuthController : ControllerBase
         _logger.LogInformation("******* Initiate Registration ********");
 
         var result = await _authService.InitiateRegistration(dto.Email);
+
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+        {
+            _logger.LogWarning($"Failed to initiate registration for email: {dto.Email}.");
+            return BadRequest(result.ErrorResponse);
+        }
 
         return Ok(ResponseDto<RegistrationResponseDto>.Success(result.Data, "Verification code sent. Please check your email."));
     }
@@ -48,35 +53,33 @@ public class AuthController : ControllerBase
         var result = await _authService.VerifyEmail(dto.VerificationCode);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<EmailVerificationResponseDto>.Success(result.Data, result.Message));
+        return Ok(ResponseDto<EmailVerificationResponseDto>.Success(result.Data, "Email verification successful."));
     }
+
 
     [HttpPost("RegisterUser")]
     public async Task<IActionResult> RegisterUser([FromBody] CompleteRegistrationDto dto)
     {
         _logger.LogInformation($"******* Inside the RegisterUser Controller Method ********");
 
-        // Retrieve the email from EmailContext
         var email = EmailContext.VerifiedEmail;
 
         if (string.IsNullOrEmpty(email))
         {
             _logger.LogWarning("Email is not set in EmailContext.");
-            return BadRequest("Email verification is required.");
+            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email verification is required") }));
         }
 
-        // Retrieve the verified email using the service method
         var verifiedEmail = await _verificationService.GetVerifiedEmail(email);
 
         if (string.IsNullOrEmpty(verifiedEmail))
         {
             _logger.LogWarning("No verified email found for the provided email.");
-            return BadRequest("Email not verified.");
+            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email not verified") }));
         }
 
-        // Create a RegisterUserDto from the CompleteRegistrationDto
         var registerUserDto = new RegisterUserDto
         {
             FullName = dto.FullName,
@@ -90,29 +93,22 @@ public class AuthController : ControllerBase
         var result = await _authService.RegisterUser(registerUserDto);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, result.Message));
+        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "User registered successfully."));
     }
+
 
     [HttpPost("RegisterCreator")]
     public async Task<IActionResult> RegisterCreator([FromBody] CompleteRegistrationDto dto)
     {
-        _logger.LogInformation($"******* Inside the RegisterUser Controller Method ********");
+        _logger.LogInformation($"******* Inside the RegisterCreator Controller Method ********");
 
-        // Initialize the EmailHolder and set the email from context or session if needed
-        var emailHolder = new EmailHolder
-        {
-            Email = EmailContext.VerifiedEmail
-        };
+        var email = EmailContext.VerifiedEmail;
 
-        if (string.IsNullOrEmpty(emailHolder.Email))
-        {
-            // Handle the case where the email has not been verified or set
-            return BadRequest();
-        }
+        if (string.IsNullOrEmpty(email))
+            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email verification is required") }));
 
-        // Create a RegisterUserDto from the CompleteRegistrationDto
         var registerCreatorDto = new RegisterCreatorDto
         {
             FullName = dto.FullName,
@@ -120,35 +116,28 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.PhoneNumber,
             Password = dto.Password,
             ConfirmPassword = dto.ConfirmPassword,
-            Email = emailHolder.Email
+            Email = email
         };
 
         var result = await _authService.RegisterCreator(registerCreatorDto);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, result.Message));
+        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "Creator registered successfully."));
     }
+
 
     [HttpPost("RegisterSuperAdmin")]
     public async Task<IActionResult> RegisterSuperAdmin([FromBody] CompleteRegistrationDto dto)
     {
-        _logger.LogInformation($"******* Inside the RegisterUser Controller Method ********");
+        _logger.LogInformation($"******* Inside the RegisterSuperAdmin Controller Method ********");
 
-        // Initialize the EmailHolder and set the email from context or session if needed
-        var emailHolder = new EmailHolder
-        {
-            Email = EmailContext.VerifiedEmail
-        };
+        var email = EmailContext.VerifiedEmail;
 
-        if (string.IsNullOrEmpty(emailHolder.Email))
-        {
-            // Handle the case where the email has not been verified or set
-            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email not verified or set") }));
-        }
+        if (string.IsNullOrEmpty(email))
+            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email verification is required") }));
 
-        
         var registerSuperAdminDto = new RegisterSuperAdminDto
         {
             FullName = dto.FullName,
@@ -156,15 +145,15 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.PhoneNumber,
             Password = dto.Password,
             ConfirmPassword = dto.ConfirmPassword,
-            Email = emailHolder.Email
+            Email = email
         };
 
         var result = await _authService.RegisterSuperAdmin(registerSuperAdminDto);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, result.Message));
+        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "Super admin registered successfully."));
     }
 
 
@@ -176,78 +165,110 @@ public class AuthController : ControllerBase
         var result = await _authService.Login(loginUserDto);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success(new
         {
             Token = result.Data.Token,
             FullName = result.Data.FullName,
             Roles = result.Data.Roles,
-            Email = result.Data.Email    
-        }));
+            Email = result.Data.Email
+        }, "Login successful."));
     }
 
-    [HttpPost("ResetPassword")]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
-    {
-        _logger.LogInformation($"******* Inside the Reset Password Controller Method ********");
 
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ResponseDto<object>.Failure(ModelState.GetErrors()));
-        }
-
-        var resetPasswordResult = await _authService.ResetPasswordAsync(resetPasswordDto);
-
-        if (resetPasswordResult.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(resetPasswordResult.Errors));
-
-        return Ok(ResponseDto<object>.Success(resetPasswordResult));
-    }
 
     [HttpPost("ForgotPassword")]
-    public async Task<IActionResult> ForgotPassword([FromBody] ResetPasswordDto resetPasswordDto)
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto forgotPasswordDto)
     {
-        _logger.LogInformation($"******* Inside the Forgot Password Controller Method ********");
+        _logger.LogInformation("******* Inside the ForgotPassword Controller Method ********");
 
-        var result = await _authService.ForgotPassword(resetPasswordDto);
+        var result = await _authService.ForgotPassword(forgotPasswordDto);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(result.Message));
+        return Ok(ResponseDto<object>.Success(null!, "Password reset email sent successfully."));
     }
 
-    [HttpGet("ConfirmEmail")]
-    public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token)
-    {
-        _logger.LogInformation($"******* Inside the ConfirmEmail Controller Method ********");
 
-        var result = await _authService.ConfirmEmail(email, token);
+
+    [HttpPost("VerifyCodeAndResetPassword")]
+    public async Task<IActionResult> VerifyCodeAndResetPassword([FromBody] ResetPasswordWithCodeDto resetPasswordDto)
+    {
+        _logger.LogInformation("******* Inside the VerifyCodeAndResetPassword Controller Method ********");
+
+        var result = await _authService.VerifyCodeAndResetPassword(resetPasswordDto);
 
         if (result.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(result.Errors));
+            return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(result.Message));
-    }
-
-    [HttpPost("ChangePassword")]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
-    {
-        _logger.LogInformation($"******* Inside the Change Password Controller Method ********");
-
-        if (!ModelState.IsValid)
+        var passwordResetResponse = new PasswordResetResponseDto
         {
-            return BadRequest(ResponseDto<object>.Failure(ModelState.GetErrors()));
-        }
-        var changePasswordResult = await _authService.ChangePasswordAsync(changePasswordDto);
-        if (changePasswordResult.IsFailure)
-            return BadRequest(ResponseDto<object>.Failure(changePasswordResult.Errors));
+            Email = result.Data.Email,
+            NewPassword = result.Data.NewPassword,
+            Message = "Password reset successful"
+        };
 
-        return Ok(ResponseDto<object>.Success(changePasswordResult.Message));
+        return Ok(ResponseDto<PasswordResetResponseDto>.Success(passwordResetResponse, "Password reset successful."));
     }
 
-    
+
+
+    //[HttpGet("ConfirmEmail")]
+    //public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token)
+    //{
+    //    _logger.LogInformation($"******* Inside the ConfirmEmail Controller Method ********");
+
+    //    var result = await _authService.ConfirmEmail(email, token);
+
+    //    if (result.IsFailure)
+    //        return BadRequest(ResponseDto<object>.Failure(result.Errors));
+
+    //    return Ok(ResponseDto<object>.Success(result.Message));
+    //}
+
+    //[HttpPost("ChangePassword")]
+    //public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+    //{
+    //    _logger.LogInformation($"******* Inside the Change Password Controller Method ********");
+
+    //    if (!ModelState.IsValid)
+    //    {
+    //        return BadRequest(ResponseDto<object>.Failure(ModelState.GetErrors()));
+    //    }
+    //    var changePasswordResult = await _authService.ChangePasswordAsync(changePasswordDto);
+    //    if (changePasswordResult.IsFailure)
+    //        return BadRequest(ResponseDto<object>.Failure(changePasswordResult.Errors));
+
+    //    return Ok(ResponseDto<object>.Success(changePasswordResult.Message));
+    //}
+
+    //[HttpPost("ResetPassword")]
+    //public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+    //{
+    //    _logger.LogInformation($"******* Inside the Reset Password Controller Method ********");
+
+    //    if (!ModelState.IsValid)
+    //    {
+    //        return BadRequest(ResponseDto<object>.Failure(ModelState.GetErrors()));
+    //    }
+
+    //    var resetPasswordResult = await _authService.ResetPasswordAsync(resetPasswordDto);
+
+    //    if (resetPasswordResult.IsFailure)
+    //        return BadRequest(ResponseDto<object>.Failure(resetPasswordResult.Errors));
+
+    //    return Ok(ResponseDto<object>.Success(resetPasswordResult));
+    //}
+
+
+
+
+    public static class EmailContext
+    {
+        public static string VerifiedEmail { get; set; } = string.Empty;
+    }
 
     public class EmailHolder
     {

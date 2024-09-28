@@ -10,3 +10,10 @@ public enum RequestStatus
     //Declined,
     Completed
 }
+
+public enum CollaborationStatus
+{
+    Completed,
+    Pending,
+    Declined
+}

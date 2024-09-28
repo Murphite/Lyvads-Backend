@@ -5,11 +5,11 @@ public class Result<TValue> : Result where TValue : class
 {
     private readonly TValue? _data;
 
-    public Result(TValue? data, bool isSuccess, IEnumerable<Error> errors, string message = "") : base(isSuccess, errors, message)
+    public Result(TValue? data, bool isSuccess, IEnumerable<Error> errors, string message = "")
+        : base(isSuccess, errors, message)
     {
         _data = data;
     }
-
 
     public TValue Data => _data!;
 
@@ -29,19 +29,30 @@ public class Result<TValue> : Result where TValue : class
     {
         return Failure<TValue>(errors);
     }
+
+    public static Result<TValue> Success(TValue value, string message = "")
+    {
+        return new Result<TValue>(value, true, Error.None, message);
+    }
+
+    public static Result<TValue> Failure(Error[] errors, string message = "")
+    {
+        return new Result<TValue>(null, false, errors, message);
+    }
 }
+
 
 public class Result
 {
     protected Result(bool isSuccess, IEnumerable<Error> errors, string message)
     {
         if (isSuccess && errors.Any())
-            throw new InvalidOperationException("cannot be successful with error");
+            throw new InvalidOperationException("Cannot be successful with errors.");
         if (!isSuccess && !errors.Any())
-            throw new InvalidOperationException("cannot be unsuccessful without error");
+            throw new InvalidOperationException("Cannot be unsuccessful without errors.");
 
         IsSuccess = isSuccess;
-        Errors = errors;
+        Errors = errors ?? Enumerable.Empty<Error>();
         IsFailure = !isSuccess;
         Message = message;
     }
@@ -50,7 +61,6 @@ public class Result
     public bool IsFailure { get; }
     public IEnumerable<Error> Errors { get; }
     public string Message { get; }
-
 
     public static Result Success(string message = "")
     {
@@ -76,6 +86,5 @@ public class Result
     {
         return Failure(errors);
     }
-
-    
 }
+

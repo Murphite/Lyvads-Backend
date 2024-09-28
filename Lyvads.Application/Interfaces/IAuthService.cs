@@ -1,21 +1,22 @@
 ﻿using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.AuthDtos;
 using Lyvads.Application.Dtos.CreatorDtos;
+using Lyvads.Domain.Responses;
 
 namespace Lyvads.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<Result<RegistrationResponseDto>> InitiateRegistration(string email);
-    Task<Result<EmailVerificationResponseDto>> VerifyEmail(string verificationCode);
-    Task<Result<RegisterUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto);
-    Task<Result<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto);
-    //Task<Result<RegisterUserResponseDto>> RegisterAdmin(RegisterAdminDto registerAdminDto);
-    Task<Result<RegisterUserResponseDto>> RegisterSuperAdmin(RegisterSuperAdminDto registerSuperAdminDto);
-    Task<Result<LoginResponseDto>> Login(LoginUserDto loginUserDto);
+    Task<ServerResponse<RegistrationResponseDto>> InitiateRegistration(string email);
+    Task<ServerResponse<EmailVerificationResponseDto>> VerifyEmail(string verificationCode);
+    Task<ServerResponse<RegisterUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto);
+    Task<ServerResponse<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto);
+    Task<ServerResponse<RegisterUserResponseDto>> RegisterSuperAdmin(RegisterSuperAdminDto registerSuperAdminDto);
+    Task<ServerResponse<LoginResponseDto>> Login(LoginUserDto loginUserDto);
+    Task<ServerResponse<RegistrationResponseDto>> ForgotPassword(ForgotPasswordRequestDto forgotPasswordDto);
+    Task<ServerResponse<PasswordResetResponseDto>> VerifyCodeAndResetPassword(ResetPasswordWithCodeDto resetPasswordDto);
+
+    Task<Result> ConfirmEmail(string email, string token);
+    Task<Result> ChangePasswordAsync(ChangePasswordDto changePasswordDto);
     Task<Result> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
-    public Task<Result> ForgotPassword(ResetPasswordDto resetPasswordDto);
-    public Task<Result> ConfirmEmail(string email, string token);
-    public Task<Result> ChangePasswordAsync(ChangePasswordDto changePasswordDto);
-    
 }

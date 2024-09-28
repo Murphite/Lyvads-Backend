@@ -5,7 +5,7 @@ namespace Lyvads.Application.Utilities;
 
 public static class Pagination
 {
-    public static async Task<PaginatorDto<IEnumerable<TSource>>> Paginate<TSource>(this IQueryable<TSource> queryable,
+    public static async Task<PaginatorDto<IEnumerable<TSource>>> PaginateAsync<TSource>(this IQueryable<TSource> queryable,
         PaginationFilter paginationFilter)
         where TSource : class
     {
