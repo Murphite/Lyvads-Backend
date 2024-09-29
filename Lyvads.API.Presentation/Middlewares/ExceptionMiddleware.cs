@@ -11,11 +11,10 @@ public class ExceptionMiddleware
     private readonly ILogger _logger;
     private readonly bool _isProdEnv;
 
-    public ExceptionMiddleware(RequestDelegate next,
-        ILogger<ExceptionMiddleware> logger, IHostEnvironment hostingEnvironment)
+    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, IHostEnvironment hostingEnvironment)
     {
-        _logger = logger;
         _next = next;
+        _logger = logger;
         _isProdEnv = hostingEnvironment.IsProduction();
     }
 
@@ -39,17 +38,22 @@ public class ExceptionMiddleware
         }
     }
 
-    private async Task HandleException(HttpContext context, Exception ex, string errorMessage,
-        HttpStatusCode statusCode)
+    private async Task HandleException(HttpContext context, Exception ex, string errorMessage, HttpStatusCode statusCode)
     {
+        // Log the exception with detailed information
         _logger.LogError(ex, ex.Message);
 
         var response = context.Response;
         response.ContentType = "application/json";
+        response.StatusCode = (int)statusCode; // Set the response status code explicitly
 
-        var result =
-            JsonSerializer.Serialize(ResponseDto<object>.Failure(new Error[] { new("Server.Error", errorMessage) },
-                (int)statusCode));
+        // Return detailed error in non-production environments
+        var errorDetails = _isProdEnv
+            ? errorMessage
+            : $"{errorMessage} | Exception: {ex.Message}";  // Include exception message only in non-production
+
+        var result = JsonSerializer.Serialize(ResponseDto<object>.Failure(
+            new Error[] { new("Server.Error", errorDetails) }, (int)statusCode));
 
         await response.WriteAsync(result);
     }

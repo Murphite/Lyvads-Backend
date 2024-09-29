@@ -9,12 +9,8 @@ using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Constants;
 using Lyvads.Application.Dtos.AuthDtos;
 using Microsoft.Extensions.Logging;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.EntityFrameworkCore;
-using Lyvads.Infrastructure.Repositories;
-using Lyvads.Application.Dtos.CreatorDtos;
-using System.Web.Helpers;
 using Lyvads.Domain.Responses;
+using System.Text.RegularExpressions;
 
 namespace Lyvads.Application.Implementations;
 
@@ -56,8 +52,8 @@ public class AuthService : IAuthService
     {
         _logger.LogInformation("******* Inside the InitiateRegistration Method ********");
 
-        var emailExist = await _userManager.FindByEmailAsync(email);
-        if (emailExist != null)
+        // Check if the email format is valid
+        if (!IsValidEmail(email))
         {
             return new ServerResponse<RegistrationResponseDto>
             {
@@ -66,9 +62,42 @@ public class AuthService : IAuthService
                 {
                     ResponseCode = "400",
                     ResponseMessage = "Registration.Error",
-                    ResponseDescription = "Email already exists"
+                    ResponseDescription = "Invalid email format"
                 }
             };
+        }
+
+        // Check if the email exists in the database
+        var existingUser = await _userManager.FindByEmailAsync(email);
+        if (existingUser != null)
+        {
+            // Check if the email has already been confirmed/used
+            if (existingUser.EmailConfirmed)
+            {
+                return new ServerResponse<RegistrationResponseDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "400",
+                        ResponseMessage = "Registration.Error",
+                        ResponseDescription = "Email is already registered and confirmed"
+                    }
+                };
+            }
+            else
+            {
+                return new ServerResponse<RegistrationResponseDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "400",
+                        ResponseMessage = "Registration.Error",
+                        ResponseDescription = "Email is already registered but not yet confirmed"
+                    }
+                };
+            }
         }
 
         // Generate a 5-digit verification code
@@ -112,6 +141,8 @@ public class AuthService : IAuthService
             Data = registrationResponse
         };
     }
+
+
 
     public async Task<ServerResponse<EmailVerificationResponseDto>> VerifyEmail(string verificationCode)
     {
@@ -828,5 +859,12 @@ public class AuthService : IAuthService
     {
         return Guid.NewGuid().ToString();
     }
+
+    private bool IsValidEmail(string email)
+    {
+        var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+        return Regex.IsMatch(email, emailPattern);
+    }
+
 
 }

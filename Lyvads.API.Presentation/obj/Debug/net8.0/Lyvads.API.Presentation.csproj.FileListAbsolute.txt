@@ -166,3 +166,12 @@ C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.pdb
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.genruntimeconfig.cache
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\obj\Debug\net8.0\ref\Lyvads.API.Presentation.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\CloudinaryDotNet.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\System.Web.Mvc.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\System.Web.Razor.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\System.Web.Helpers.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\System.Web.WebPages.Deployment.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\System.Web.WebPages.Razor.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\System.Web.WebPages.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Microsoft.Bcl.TimeProvider.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Microsoft.Web.Infrastructure.dll

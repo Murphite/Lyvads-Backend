@@ -35,6 +35,9 @@ public class AuthController : ControllerBase
 
         var result = await _authService.InitiateRegistration(dto.Email);
 
+        // Log the server response, useful for debugging
+        _logger.LogInformation($"Initiate registration result: {System.Text.Json.JsonSerializer.Serialize(result)}");
+
         if (result.IsFailure)
         {
             _logger.LogWarning($"Failed to initiate registration for email: {dto.Email}.");

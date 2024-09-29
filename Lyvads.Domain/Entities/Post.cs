@@ -18,4 +18,5 @@ public class Post : Entity
     public ICollection<Like> Likes { get; set; } = new List<Like>();
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+    public PostStatus PostStatus { get; set; } 
 }

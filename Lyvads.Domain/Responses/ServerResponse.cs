@@ -6,10 +6,10 @@ namespace Lyvads.Domain.Responses;
 
 public class ServerResponse<T>
 {
-    public ServerResponse(bool success = false)
+    public ServerResponse(bool success = true, bool failure = false)
     {
         IsSuccessful = success;
-        IsFailure = !success;
+        IsFailure = failure;
     }
     public bool IsSuccessful { get; set; }
     public bool IsFailure { get; set; }
