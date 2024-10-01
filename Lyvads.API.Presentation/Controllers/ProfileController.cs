@@ -46,7 +46,6 @@ public class ProfileController : ControllerBase
         return Ok(ResponseDto<EditProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
     }
 
-
     [HttpPut("UpdateProfilePicture")]
     public async Task<IActionResult> UpdateProfilePicture([FromBody] UpdateProfilePictureDto dto)
     {
@@ -56,7 +55,10 @@ public class ProfileController : ControllerBase
             return NotFound("User not found.");
 
         // Convert the new profile picture URL to an IFormFile (you can adjust this based on your actual input)
-        var formFile = dto.NewProfilePictureUrl; 
+        var formFile = dto.NewProfilePictureUrl;
+
+        if (formFile == null)
+            return BadRequest("Profile picture cannot be null.");
 
         // Update the profile picture for the logged-in user (no need to pass folderName)
         var result = await _profileService.UpdateProfilePictureAsync(user.Id, formFile);
@@ -66,6 +68,7 @@ public class ProfileController : ControllerBase
 
         return Ok(ResponseDto<UpdateProfilePicResponseDto>.Success(result.Data, "Profile picture updated successfully."));
     }
+
 
 
     [HttpPost("InitiateEmailUpdate")]

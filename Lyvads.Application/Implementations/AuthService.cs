@@ -11,6 +11,8 @@ using Lyvads.Application.Dtos.AuthDtos;
 using Microsoft.Extensions.Logging;
 using Lyvads.Domain.Responses;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
+using System.Web.Helpers;
 
 namespace Lyvads.Application.Implementations;
 
@@ -28,11 +30,22 @@ public class AuthService : IAuthService
     private readonly IRegularUserRepository _regularUserRepository;
     private readonly ICreatorRepository _creatorRepository;
     private readonly ISuperAdminRepository _superAdminRepository;
-
-    public AuthService(UserManager<ApplicationUser> userManager, IRepository repository, IJwtService jwtService,
-        IEmailService emailService, IVerificationService verificationService, IConfiguration configuration, IUnitOfWork unitOfWork, 
-        ILogger<AuthService> logger, IAdminRepository adminRepository, IRegularUserRepository regularUserRepository,
-        ICreatorRepository creatorRepository, ISuperAdminRepository superAdminRepository)
+    private readonly IEmailContext _emailContext;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    public AuthService(UserManager<ApplicationUser> userManager, 
+        IRepository repository, 
+        IJwtService jwtService,
+        IEmailService emailService, 
+        IVerificationService verificationService, 
+        IConfiguration configuration, 
+        IUnitOfWork unitOfWork, 
+        ILogger<AuthService> logger, 
+        IAdminRepository adminRepository, 
+        IRegularUserRepository regularUserRepository,
+        ICreatorRepository creatorRepository, 
+        ISuperAdminRepository superAdminRepository,
+        IEmailContext emailContext,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _repository = repository;
@@ -46,11 +59,14 @@ public class AuthService : IAuthService
         _regularUserRepository = regularUserRepository;
         _creatorRepository = creatorRepository;
         _superAdminRepository = superAdminRepository;
+        _emailContext = emailContext;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ServerResponse<RegistrationResponseDto>> InitiateRegistration(string email)
     {
         _logger.LogInformation("******* Inside the InitiateRegistration Method ********");
+        email = email.ToLower();
 
         // Check if the email format is valid
         if (!IsValidEmail(email))
@@ -124,7 +140,7 @@ public class AuthService : IAuthService
         await _verificationService.SaveVerificationCode(email, verificationCode);
 
         // Set the email in EmailContext for future use
-        EmailContext.VerifiedEmail = email;
+        _emailContext.VerifiedEmail = email;
 
         // Create the response DTO
         var registrationResponse = new RegistrationResponseDto
@@ -142,68 +158,104 @@ public class AuthService : IAuthService
         };
     }
 
-
-
     public async Task<ServerResponse<EmailVerificationResponseDto>> VerifyEmail(string verificationCode)
     {
-        _logger.LogInformation($"******* Inside the VerifyEmail Method ********");
+        _logger.LogInformation("******* Inside the VerifyEmail Method ********");
 
-        // Retrieve the stored email using the verification code
-        var email = await _verificationService.GetEmailByVerificationCode(verificationCode);
-        if (email == null)
+        try
         {
+            // Retrieve the stored email using the verification code
+            var email = await _verificationService.GetEmailByVerificationCode(verificationCode);
+            if (email == null)
+            {
+                return new ServerResponse<EmailVerificationResponseDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "400",
+                        ResponseMessage = "Verification.Error",
+                        ResponseDescription = "Invalid verification code"
+                    }
+                };
+            }
+
+            // Validate the verification code
+            var isCodeValid = await _verificationService.ValidateVerificationCode(email, verificationCode);
+            if (!isCodeValid)
+            {
+                return new ServerResponse<EmailVerificationResponseDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "400",
+                        ResponseMessage = "Verification.Error",
+                        ResponseDescription = "Invalid verification code"
+                    }
+                };
+            }
+
+            // Mark email as verified
+            await _verificationService.MarkEmailAsVerified(email);
+
+            // Check if the email was successfully marked as verified
+            var isMarkedVerified = await _verificationService.IsEmailVerified(email);
+            if (!isMarkedVerified)
+            {
+                return new ServerResponse<EmailVerificationResponseDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "500",
+                        ResponseMessage = "Verification.Error",
+                        ResponseDescription = "Failed to mark email as verified."
+                    }
+                };
+            }
+
+            // Store the verified email in session
+            _httpContextAccessor.HttpContext?.Session.SetString("VerifiedEmail", email);
+
+            // Create the response DTO
+            var verificationResponse = new EmailVerificationResponseDto
+            {
+                Email = email,
+                IsVerified = true,
+                Message = "Email verified. Proceed with registration."
+            };
+
+            return new ServerResponse<EmailVerificationResponseDto>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Email verified successfully",
+                Data = verificationResponse
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"An error occurred while verifying email: {ex.Message}");
             return new ServerResponse<EmailVerificationResponseDto>
             {
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
                 {
-                    ResponseCode = "400",
+                    ResponseCode = "500",
                     ResponseMessage = "Verification.Error",
-                    ResponseDescription = "Invalid verification code"
+                    ResponseDescription = "An unexpected error occurred"
                 }
             };
         }
-
-        var isCodeValid = await _verificationService.ValidateVerificationCode(email, verificationCode);
-        if (!isCodeValid)
-        {
-            return new ServerResponse<EmailVerificationResponseDto>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "400",
-                    ResponseMessage = "Verification.Error",
-                    ResponseDescription = "Invalid verification code"
-                }
-            };
-        }
-
-        // Mark email as verified
-        await _verificationService.MarkEmailAsVerified(email);
-
-        // Create the response DTO
-        var verificationResponse = new EmailVerificationResponseDto
-        {
-            Email = email,
-            IsVerified = true,
-            Message = "Email verified. Proceed with registration."
-        };
-
-        return new ServerResponse<EmailVerificationResponseDto>
-        {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            ResponseMessage = "Email verified successfully",
-            Data = verificationResponse
-        };
     }
 
     public async Task<ServerResponse<RegisterUserResponseDto>> RegisterSuperAdmin(RegisterSuperAdminDto registerSuperAdminDto)
     {
         _logger.LogInformation("******* Inside the RegisterSuperAdmin Method ********");
 
-        var verifiedEmail = EmailContext.VerifiedEmail;
+        // Fetch the verified email from session storage
+        var verifiedEmail = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
         if (string.IsNullOrEmpty(verifiedEmail))
         {
             return new ServerResponse<RegisterUserResponseDto>
@@ -289,7 +341,9 @@ public class AuthService : IAuthService
 
         await _superAdminRepository.AddAsync(superAdmin);
         await _verificationService.MarkEmailAsVerified(verifiedEmail);
-        EmailContext.VerifiedEmail = string.Empty;
+
+        // Clear the verified email from the session after registration
+        _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
 
         return new ServerResponse<RegisterUserResponseDto>
         {
@@ -311,7 +365,8 @@ public class AuthService : IAuthService
     {
         _logger.LogInformation("******* Inside the RegisterUser Method ********");
 
-        var verifiedEmail = EmailContext.VerifiedEmail;
+        // Fetch the verified email directly from the verification service
+        var verifiedEmail = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
         if (string.IsNullOrEmpty(verifiedEmail))
         {
             return new ServerResponse<RegisterUserResponseDto>
@@ -397,8 +452,8 @@ public class AuthService : IAuthService
         }
 
         await _regularUserRepository.AddAsync(regularUser);
-        await _verificationService.MarkEmailAsVerified(verifiedEmail);
-        EmailContext.VerifiedEmail = string.Empty;
+        // Clear the EmailContext after successful registration
+        _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
 
         return new ServerResponse<RegisterUserResponseDto>
         {
@@ -420,7 +475,9 @@ public class AuthService : IAuthService
     {
         _logger.LogInformation("******* Inside the RegisterCreator Method ********");
 
-        var verifiedEmail = EmailContext.VerifiedEmail;
+        // Fetch the verified email directly from the verification service
+        var verifiedEmail = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
+
         if (string.IsNullOrEmpty(verifiedEmail))
         {
             return new ServerResponse<RegisterUserResponseDto>
@@ -507,7 +564,7 @@ public class AuthService : IAuthService
 
         await _creatorRepository.AddAsync(creator);
         await _verificationService.MarkEmailAsVerified(verifiedEmail);
-        EmailContext.VerifiedEmail = string.Empty;
+        _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
 
         return new ServerResponse<RegisterUserResponseDto>
         {
@@ -527,12 +584,13 @@ public class AuthService : IAuthService
 
     public async Task<ServerResponse<LoginResponseDto>> Login(LoginUserDto loginUserDto)
     {
-        _logger.LogInformation($"******* Inside the Login Method ********");
+        _logger.LogInformation("******* Inside the Login Method ********");
 
         var user = await _userManager.FindByEmailAsync(loginUserDto.Email);
 
         if (user is null)
         {
+            _logger.LogWarning("User not found for email: {email}", loginUserDto.Email);
             return new ServerResponse<LoginResponseDto>
             {
                 IsSuccessful = false,
@@ -540,15 +598,18 @@ public class AuthService : IAuthService
                 {
                     ResponseCode = "400",
                     ResponseMessage = "Auth.Error",
-                    ResponseDescription = "Email or password not correct"
+                    ResponseDescription = "Your email is incorrect"
                 }
             };
         }
+
+        _logger.LogInformation("User found: {email}", user.Email);
 
         var isValidUser = await _userManager.CheckPasswordAsync(user, loginUserDto.Password);
 
         if (!isValidUser)
         {
+            _logger.LogWarning("Invalid password for email: {email}", user.Email);
             return new ServerResponse<LoginResponseDto>
             {
                 IsSuccessful = false,
@@ -556,24 +617,52 @@ public class AuthService : IAuthService
                 {
                     ResponseCode = "400",
                     ResponseMessage = "Auth.Error",
-                    ResponseDescription = "Email or password not correct"
+                    ResponseDescription = "Your password is incorrect"
                 }
             };
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        var token = _jwtService.GenerateToken(user, roles);
-        var email = user.Email ?? string.Empty;
-        var fullName = user.FullName ?? string.Empty;
 
-        return new ServerResponse<LoginResponseDto>
+        // Log if user has no roles
+        if (roles == null || !roles.Any())
         {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            ResponseMessage = "Login successful",
-            Data = new LoginResponseDto(token, fullName, roles, email)
-        };
+            _logger.LogWarning("User {email} has no roles assigned", user.Email);
+        }
+
+        // Generate JWT token and check if the token service works properly
+        try
+        {
+            _logger.LogInformation("Generating token for user {email}", user.Email);
+            var token = _jwtService.GenerateToken(user, roles);
+
+            var email = user.Email ?? string.Empty;
+            var fullName = user.FullName ?? string.Empty;
+
+            return new ServerResponse<LoginResponseDto>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Login successful",
+                Data = new LoginResponseDto(token, fullName, roles, email)
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while generating token for {email}", user.Email);
+            return new ServerResponse<LoginResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "An error occurred during login"
+                }
+            };
+        }
     }
+
 
     public async Task<ServerResponse<RegistrationResponseDto>> ForgotPassword(ForgotPasswordRequestDto forgotPasswordDto)
     {
@@ -621,13 +710,17 @@ public class AuthService : IAuthService
         await _verificationService.SaveVerificationCode(forgotPasswordDto.Email, verificationCode);
 
         // Set the email in EmailContext for future use
-        EmailContext.VerifiedEmail = forgotPasswordDto.Email;
+        //var email = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
+        //_emailContext.VerifiedEmail = forgotPasswordDto.Email;
+        _httpContextAccessor.HttpContext?.Session.SetString("VerifiedEmail", forgotPasswordDto.Email);
+
 
         // Create the response DTO
         var registrationResponse = new RegistrationResponseDto
         {
             Email = forgotPasswordDto.Email,
             VerificationCode = verificationCode
+
         };
 
         return new ServerResponse<RegistrationResponseDto>
@@ -636,6 +729,8 @@ public class AuthService : IAuthService
             ResponseCode = "00",
             ResponseMessage = "Verification code sent successfully",
             Data = registrationResponse
+            //Data = new LoginResponseDto(token, fullName, roles, email)
+
         };
     }
 
@@ -706,8 +801,10 @@ public class AuthService : IAuthService
             };
         }
 
-        // Step 5: Reset the user's password
-        var resetPasswordResult = await _userManager.ResetPasswordAsync(user, user.SecurityStamp, resetPasswordDto.NewPassword);
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        // Step 5: Use the reset token (this should be passed from the frontend along with resetPasswordDto)
+        var resetPasswordResult = await _userManager.ResetPasswordAsync(user, resetToken, resetPasswordDto.NewPassword);
         if (!resetPasswordResult.Succeeded)
         {
             return new ServerResponse<PasswordResetResponseDto>
@@ -845,7 +942,7 @@ public class AuthService : IAuthService
 
     public static class EmailContext
     {
-        public static string VerifiedEmail { get; set; } = string.Empty;
+        public static string? VerifiedEmail { get; set; }
     }
 
     private string GenerateVerificationCode()
@@ -859,6 +956,19 @@ public class AuthService : IAuthService
     {
         return Guid.NewGuid().ToString();
     }
+
+    //public bool IsValidEmail(string email)
+    //{
+    //    try
+    //    {
+    //        var addr = new System.Net.Mail.MailAddress(email);
+    //        return addr.Address == email;
+    //    }
+    //    catch
+    //    {
+    //        return false;
+    //    }
+    //}
 
     private bool IsValidEmail(string email)
     {

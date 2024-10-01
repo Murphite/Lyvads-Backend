@@ -1,5 +1,7 @@
 ﻿
 
+using Lyvads.Domain.Responses;
+
 namespace Lyvads.Application.Interfaces;
 
 public interface IVerificationService

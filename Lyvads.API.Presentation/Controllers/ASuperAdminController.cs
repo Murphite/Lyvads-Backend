@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Lyvads.API.Presentation.Controllers;
 
+[ApiController]
+[Route("api/[controller]")]
 public class ASuperAdminController : Controller
 {
     private readonly ISuperAdminService _superAdminService;

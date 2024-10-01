@@ -10,8 +10,6 @@ using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Domain.Enums;
 using Lyvads.Domain.Responses;
 using Lyvads.Infrastructure.Repositories;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Microsoft.AspNetCore.Http;
@@ -85,8 +83,8 @@ public class CollaborationService : ICollaborationService
             var collaborationDtos = collaborations.Select(c => new CollaborationDto
             {
                 Id = c.Id,
-                RegularUserName = c.RegularUser.ApplicationUser.FirstName + " " + c.RegularUser.ApplicationUser.LastName,
-                CreatorName = c.Creator.ApplicationUser.FirstName + " " + c.Creator.ApplicationUser.LastName,
+                RegularUserName = c.RegularUser?.ApplicationUser?.FirstName + " " + c.RegularUser?.ApplicationUser?.LastName,
+                CreatorName = c.Creator?.ApplicationUser?.FirstName + " " + c.Creator?.ApplicationUser?.LastName,
                 Amount = c.Amount,
                 RequestDate = c.CreatedAt,
                 Status = c.Status,
@@ -132,8 +130,8 @@ public class CollaborationService : ICollaborationService
             var collaborationDto = new CollaborationDto
             {
                 Id = collaboration.Id,
-                RegularUserName = collaboration.RegularUser.ApplicationUser.FirstName + " " + collaboration.RegularUser.ApplicationUser.LastName,
-                CreatorName = collaboration.Creator.ApplicationUser.FirstName + " " + collaboration.Creator.ApplicationUser.LastName,
+                RegularUserName = collaboration.RegularUser?.ApplicationUser?.FirstName + " " + collaboration.RegularUser?.ApplicationUser?.LastName,
+                CreatorName = collaboration.Creator?.ApplicationUser?.FirstName + " " + collaboration.Creator?.ApplicationUser?.LastName,
                 Amount = collaboration.Amount,
                 RequestDate = collaboration.CreatedAt,
                 Status = collaboration.Status,
@@ -294,7 +292,7 @@ public class CollaborationService : ICollaborationService
         var requestDtos = requests.Select(r => new GetRequestDto
         {
             RequestId = r.Id,
-            CreatorFullName = $"{r.Creator.ApplicationUser.FirstName} {r.Creator.ApplicationUser.LastName}",
+            CreatorFullName = $"{r.Creator?.ApplicationUser?.FirstName} {r.Creator?.ApplicationUser?.LastName}",
             Status = r.Status,
             CreatedAt = r.CreatedAt.UtcDateTime,
         }).ToList();
@@ -326,7 +324,7 @@ public class CollaborationService : ICollaborationService
         var requestDetails = new RequestDetailsDto
         {
             RequestId = request.Id,
-            CreatorFullName = $"{request.Creator.ApplicationUser.FirstName} {request.Creator.ApplicationUser.LastName}",
+            CreatorFullName = $"{request.Creator?.ApplicationUser?.FirstName} {request.Creator?.ApplicationUser?.LastName}",
             RequestType = request.RequestType,
             VideoUrl = request.VideoUrl,
             CreatedAt = request.CreatedAt.UtcDateTime,

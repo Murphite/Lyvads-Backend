@@ -59,6 +59,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
+app.UseSession();
 
 // Custom middleware for exception handling
 app.UseMiddleware<ExceptionMiddleware>();

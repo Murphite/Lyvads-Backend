@@ -22,7 +22,7 @@ public class ResetPasswordWithCodeDto
 public class PasswordResetResponseDto
 {
     public string? Email { get; set; }
-    public bool IsPasswordReset { get; set; }
+    public bool IsPasswordReset { get; set; } = true;
     public string? Message { get; set; }
     public string? NewPassword { get; set; }
 

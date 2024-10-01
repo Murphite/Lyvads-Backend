@@ -131,7 +131,7 @@
           "dependencies": {
             "MailKit": {
               "target": "Package",
-              "version": "[4.7.1.1, )"
+              "version": "[4.8.0, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",

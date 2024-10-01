@@ -122,6 +122,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<VerificationRecord>()
+            .HasIndex(v => new { v.Email, v.Code })
+            .IsUnique();
+
+
         // Wallet and Transaction Configuration
         // Transaction has a FromWallet (origin) and a ToWallet (destination)
         //modelBuilder.Entity<Transaction>()

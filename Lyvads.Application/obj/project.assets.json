@@ -77,10 +77,10 @@
           }
         }
       },
-      "MailKit/4.7.1.1": {
+      "MailKit/4.8.0": {
         "type": "package",
         "dependencies": {
-          "MimeKit": "4.7.1",
+          "MimeKit": "4.8.0",
           "System.Formats.Asn1": "8.0.1"
         },
         "compile": {
@@ -1607,7 +1607,7 @@
           }
         }
       },
-      "MimeKit/4.7.1": {
+      "MimeKit/4.8.0": {
         "type": "package",
         "dependencies": {
           "BouncyCastle.Cryptography": "2.4.0",
@@ -3148,7 +3148,7 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "Lyvads.Domain": "1.0.0",
-          "MailKit": "4.7.1.1",
+          "MailKit": "4.8.0",
           "Microsoft.EntityFrameworkCore": "8.0.8",
           "Microsoft.EntityFrameworkCore.SqlServer": "8.0.8",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.8",
@@ -3245,10 +3245,10 @@
         "lib/netstandard2.0/CloudinaryDotNet.xml"
       ]
     },
-    "MailKit/4.7.1.1": {
-      "sha512": "Y3okmIxu8g/ZcoJiE2i+dCeKgnNyddsXmcJslZnCPGVPP0aRyeVINHV1h97V+OVMdqjQI6O12J2p8Duwq5UEqQ==",
+    "MailKit/4.8.0": {
+      "sha512": "zZ1UoM4FUnSFUJ9fTl5CEEaejR0DNP6+FDt1OfXnjg4igZntcir1tg/8Ufd6WY5vrpmvToAjluYqjVM24A+5lA==",
       "type": "package",
-      "path": "mailkit/4.7.1.1",
+      "path": "mailkit/4.8.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3285,7 +3285,7 @@
         "lib/netstandard2.1/MailKit.dll.config",
         "lib/netstandard2.1/MailKit.pdb",
         "lib/netstandard2.1/MailKit.xml",
-        "mailkit.4.7.1.1.nupkg.sha512",
+        "mailkit.4.8.0.nupkg.sha512",
         "mailkit.nuspec"
       ]
     },
@@ -5155,10 +5155,10 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "MimeKit/4.7.1": {
-      "sha512": "Qoj4aVvhX14A1FNvaJ33hzOP4VZI2j+Mr38I9wSGcjMq4BYDtWLJG89aJ9nRW2cNfH6Czjwyp7+Mh++xv3AZvg==",
+    "MimeKit/4.8.0": {
+      "sha512": "U24wp4LKED+sBRzyrWICE+3bSwptsTrPOcCIXbW5zfeThCNzQx5NCo8Wus+Rmi+EUkQrCwlI/3sVfejeq9tuxQ==",
       "type": "package",
-      "path": "mimekit/4.7.1",
+      "path": "mimekit/4.8.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -5193,7 +5193,7 @@
         "lib/netstandard2.1/MimeKit.dll.config",
         "lib/netstandard2.1/MimeKit.pdb",
         "lib/netstandard2.1/MimeKit.xml",
-        "mimekit.4.7.1.nupkg.sha512",
+        "mimekit.4.8.0.nupkg.sha512",
         "mimekit.nuspec"
       ]
     },

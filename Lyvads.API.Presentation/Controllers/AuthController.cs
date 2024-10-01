@@ -20,12 +20,21 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly IVerificationService _verificationService;
     private readonly ILogger<AuthController> _logger;
+    private readonly IEmailContext _emailContext;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuthController(IVerificationService verificationService, IAuthService authService, ILogger<AuthController> logger)
+    public AuthController(IVerificationService verificationService, 
+        IAuthService authService, 
+        ILogger<AuthController> logger, 
+        IEmailContext emailContext,
+        IHttpContextAccessor httpContextAccessor)
     {
         _verificationService = verificationService;
         _authService = authService;
         _logger = logger;
+        _emailContext = emailContext;
+        _emailContext = emailContext;
+        _httpContextAccessor = httpContextAccessor; 
     }
 
     [HttpPost("Initiate")]
@@ -67,20 +76,15 @@ public class AuthController : ControllerBase
     {
         _logger.LogInformation($"******* Inside the RegisterUser Controller Method ********");
 
-        var email = EmailContext.VerifiedEmail;
+        // Fetch the verified email directly from the verification service
+        //var verifiedEmail = _emailContext.VerifiedEmail;
+        var verifiedEmail = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
 
-        if (string.IsNullOrEmpty(email))
-        {
-            _logger.LogWarning("Email is not set in EmailContext.");
-            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email verification is required") }));
-        }
-
-        var verifiedEmail = await _verificationService.GetVerifiedEmail(email);
 
         if (string.IsNullOrEmpty(verifiedEmail))
         {
             _logger.LogWarning("No verified email found for the provided email.");
-            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email not verified") }));
+            return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email verification is required") }));
         }
 
         var registerUserDto = new RegisterUserDto
@@ -107,7 +111,10 @@ public class AuthController : ControllerBase
     {
         _logger.LogInformation($"******* Inside the RegisterCreator Controller Method ********");
 
-        var email = EmailContext.VerifiedEmail;
+        // Fetch the verified email directly from the verification service
+        //var email = await _verificationService.GetVerifiedEmail(_emailContext.VerifiedEmail);
+        var email = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
+
 
         if (string.IsNullOrEmpty(email))
             return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email verification is required") }));
@@ -136,7 +143,10 @@ public class AuthController : ControllerBase
     {
         _logger.LogInformation($"******* Inside the RegisterSuperAdmin Controller Method ********");
 
-        var email = EmailContext.VerifiedEmail;
+        // Fetch the verified email directly from the verification service
+        //var email = await _verificationService.GetVerifiedEmail(_emailContext.VerifiedEmail);
+        var email = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
+
 
         if (string.IsNullOrEmpty(email))
             return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email verification is required") }));
@@ -191,7 +201,7 @@ public class AuthController : ControllerBase
         if (result.IsFailure)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(null!, "Password reset email sent successfully."));
+        return Ok(ResponseDto<object>.Success(result.Data, "Password reset email sent successfully."));
     }
 
 

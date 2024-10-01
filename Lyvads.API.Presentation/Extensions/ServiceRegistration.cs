@@ -82,6 +82,14 @@ public static class ServiceRegistration
                 });
         });
 
+        services.AddDistributedMemoryCache(); 
+        services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30); // Session timeout
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true; 
+        });
+
         // Register Application Services
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
@@ -92,7 +100,6 @@ public static class ServiceRegistration
         services.AddScoped<IVerificationService, VerificationService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IWalletService, WalletService>();
-        services.AddScoped<WebSocketHandler>();
         services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IRegularUserService, RegularUserService>();
@@ -109,6 +116,7 @@ public static class ServiceRegistration
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IPromotionService, PromotionService>();
         services.AddScoped<IUserAdService, UserAdService>();
+        services.AddScoped<IEmailContext, EmailContext>();
 
 
         // Register Repositories
@@ -133,6 +141,10 @@ public static class ServiceRegistration
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<ICollaborationRepository, CollaborationRepository>();
         services.AddScoped<IChargeTransactionRepository, ChargeTransactionRepository>();
+
+        //other services
+        services.AddHttpContextAccessor();
+        services.AddScoped<WebSocketHandler>();
 
     }
 }
