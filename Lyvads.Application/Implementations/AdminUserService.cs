@@ -16,22 +16,22 @@ using Lyvads.Domain.Responses;
 
 namespace Lyvads.Application.Implementations;
 
-public class SuperAdminService : ISuperAdminService
+public class AdminUserService : ISuperAdminService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAdminRepository _adminRepository;
     private readonly ICurrentUserService _currentUserService;
-    private readonly ILogger<AdminService> _logger;
+    private readonly ILogger<AdminDashboardService> _logger;
     private readonly IRegularUserRepository _regularUserRepository;
     private readonly ICreatorRepository _creatorRepository;
     private readonly ISuperAdminRepository _superAdminRepository;
 
 
-    public SuperAdminService(
+    public AdminUserService(
         UserManager<ApplicationUser> userManager,
         IAdminRepository adminRepository,
         ICurrentUserService currentUserService,
-        ILogger<AdminService> logger,
+        ILogger<AdminDashboardService> logger,
         ISuperAdminRepository superAdminRepository,
         ICreatorRepository creatorRepository,
         IRegularUserRepository regularUserRepository

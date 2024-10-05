@@ -7,6 +7,8 @@ public class DashboardSummaryDto
     public int TotalCreators { get; set; }
     public int TotalRegularUsers { get; set; }
     public int TotalSignups { get; set; }
+    public int TotalAdmins { get; set; }
+    public int TotalSuperAdmins { get; set; }
     public double ImpressionPercentage { get; set; }
 }
 

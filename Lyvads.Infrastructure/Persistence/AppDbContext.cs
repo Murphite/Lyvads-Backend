@@ -37,12 +37,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ChargeTransaction> ChargeTransactions { get; set; }
     public DbSet<UserAd> UserAds { get; set; }
     public DbSet<Dispute> Disputes { get; set; }
+    public DbSet<ActivityLog> ActivityLogs { get; set; }
+    public DbSet<AdminPermission> AdminPermissions { get; set; }
+    public DbSet<AdminRole> AdminRoles { get; set; }
+    public DbSet<Impression> Impressions { get; set; }
 
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<AdminRole>()
+        .Property(r => r.RoleName)
+        .HasConversion<string>();
 
         // ApplicationUser Configuration
         modelBuilder.Entity<ApplicationUser>()
@@ -126,6 +134,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasIndex(v => new { v.Email, v.Code })
             .IsUnique();
 
+        modelBuilder.Entity<Impression>()
+           .HasOne(i => i.User)
+           .WithMany()
+           .HasForeignKey(i => i.UserId)
+           .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Impression>()
+            .HasOne(i => i.Creator)
+            .WithMany() 
+            .HasForeignKey(i => i.CreatorId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Wallet and Transaction Configuration
         // Transaction has a FromWallet (origin) and a ToWallet (destination)

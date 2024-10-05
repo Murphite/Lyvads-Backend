@@ -15,8 +15,7 @@ public interface IAuthService
     Task<ServerResponse<LoginResponseDto>> Login(LoginUserDto loginUserDto);
     Task<ServerResponse<RegistrationResponseDto>> ForgotPassword(ForgotPasswordRequestDto forgotPasswordDto);
     Task<ServerResponse<PasswordResetResponseDto>> VerifyCodeAndResetPassword(ResetPasswordWithCodeDto resetPasswordDto);
-
-    Task<Result> ConfirmEmail(string email, string token);
-    Task<Result> ChangePasswordAsync(ChangePasswordDto changePasswordDto);
-    Task<Result> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
+    Task<ServerResponse<RegistrationResponseDto>> AdminForgotPassword(ForgotPasswordRequestDto forgotPasswordDto);
+    Task<ServerResponse<string>> VerifyAdminVerificationCode(string verificationCode);
+    Task<ServerResponse<PasswordResetResponseDto>> ResetAdminPassword(ResetPasswordWithCodeDto resetPasswordDto, string email);
 }

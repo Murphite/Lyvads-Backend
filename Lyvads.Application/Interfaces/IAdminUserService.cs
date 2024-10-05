@@ -6,7 +6,7 @@ using Lyvads.Domain.Responses;
 
 namespace Lyvads.Application.Interfaces;
 
-public interface IAdminService
+public interface IAdminUserService
 {
     Task<ServerResponse<AddUserResponseDto>> RegisterAdmin(RegisterAdminDto registerAdminDto);
     Task<ServerResponse<DashboardSummaryDto>> GetDashboardSummary();

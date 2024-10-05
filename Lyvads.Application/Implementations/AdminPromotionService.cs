@@ -12,7 +12,7 @@ using Lyvads.Domain.Responses;
 
 namespace Lyvads.Application.Implementations;
 
-public class PromotionService : IPromotionService
+public class AdminPromotionService : IPromotionService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAdminRepository _adminRepository;
@@ -22,9 +22,9 @@ public class PromotionService : IPromotionService
     private readonly IImpressionRepository _impressionRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICurrentUserService _currentUserService;
-    private readonly ILogger<AdminService> _logger;
+    private readonly ILogger<AdminDashboardService> _logger;
 
-    public PromotionService(
+    public AdminPromotionService(
         UserManager<ApplicationUser> userManager,
         IAdminRepository adminRepository,
         IMediaService mediaService,
@@ -32,7 +32,7 @@ public class PromotionService : IPromotionService
         IPromotionRepository promotionRepository,
         ITransactionRepository transactionRepository,
         ICurrentUserService currentUserService,
-        ILogger<AdminService> logger,
+        ILogger<AdminDashboardService> logger,
         IImpressionRepository impressionRepository)
     {
         _userManager = userManager;

@@ -28,4 +28,6 @@ public class ApplicationUser : IdentityUser, IAuditable
     public Wallet Wallet { get; set; } = default!;
     public ICollection<Notification>? Notifications { get; set; } = new List<Notification>();
     public string? StripeAccountId { get; set; } = default!;
+    public bool IsActive { get; set; } = true;
+    public AdminPermission AdminPermissions { get; set; } = default!;
 }

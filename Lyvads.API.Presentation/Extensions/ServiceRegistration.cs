@@ -105,19 +105,21 @@ public static class ServiceRegistration
         services.AddScoped<IRegularUserService, RegularUserService>();
         services.AddScoped<IMediaService, MediaService>();
         services.AddScoped<IProfileService, ProfileService>();
-        services.AddScoped<IChargeTransactionService, ChargeTransactionService>();
-        services.AddScoped<IAdminService, AdminService>();
-        services.AddScoped<ISuperAdminService, SuperAdminService>();
-        services.AddScoped<IAPostService, APostService>();
-        services.AddScoped<IChargeTransactionService, ChargeTransactionService>();
+        services.AddScoped<IAdminChargeTransactionService, AdminChargeTransactionService>();
+        services.AddScoped<IAdminUserService, AdminDashboardService>();
+        services.AddScoped<ISuperAdminService, AdminUserService>();
+        services.AddScoped<IAdminPostService, AdminPostService>();
+        services.AddScoped<IAdminChargeTransactionService, AdminChargeTransactionService>();
         services.AddScoped<ICollaborationService, CollaborationService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddScoped<IDisputeService, DisputeService>();
+        services.AddScoped<IDisputeService, AdminDisputeService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddScoped<IPromotionService, PromotionService>();
-        services.AddScoped<IUserAdService, UserAdService>();
+        services.AddScoped<IPromotionService, AdminPromotionService>();
+        services.AddScoped<IUserAdService, AdminUserAdService>();
         services.AddScoped<IEmailContext, EmailContext>();
-
+        services.AddScoped<IAdminActivityLogService, AdminActivityLogService>();
+        services.AddScoped<IAdminChargeTransactionService, AdminChargeTransactionService>();
+        services.AddScoped<IAdminPermissionsService, AdminPermissionsService>();
 
         // Register Repositories
         services.AddHttpContextAccessor();
@@ -141,10 +143,13 @@ public static class ServiceRegistration
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<ICollaborationRepository, CollaborationRepository>();
         services.AddScoped<IChargeTransactionRepository, ChargeTransactionRepository>();
+        services.AddScoped<IAdminPermissionsRepository, AdminPermissionsRepository>();
+        services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
 
         //other services
         services.AddHttpContextAccessor();
         services.AddScoped<WebSocketHandler>();
+        services.AddHttpContextAccessor();
 
     }
 }

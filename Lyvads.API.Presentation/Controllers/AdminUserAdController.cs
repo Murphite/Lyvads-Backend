@@ -7,14 +7,14 @@ namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AUserAdController : ControllerBase
+public class AdminUserAdController : ControllerBase
 {
     private readonly IUserAdService _userAdService;
-    private readonly ILogger<AUserAdController> _logger;
+    private readonly ILogger<AdminUserAdController> _logger;
 
 
-    public AUserAdController(IUserAdService userAdService,
-        ILogger<AUserAdController> logger)
+    public AdminUserAdController(IUserAdService userAdService,
+        ILogger<AdminUserAdController> logger)
     {
         _userAdService = userAdService;
         _logger = logger;

@@ -7,13 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Lyvads.Application.Implementations;
 
-public class UserAdService : IUserAdService
+public class AdminUserAdService : IUserAdService
 {
     private readonly IUserAdRepository _userAdRepository;
-    private readonly ILogger<UserAdService> _logger;
+    private readonly ILogger<AdminUserAdService> _logger;
 
-    public UserAdService(IUserAdRepository userAdRepository,
-        ILogger<UserAdService> logger)
+    public AdminUserAdService(IUserAdRepository userAdRepository,
+        ILogger<AdminUserAdService> logger)
     {
         _userAdRepository = userAdRepository;
         _logger = logger;

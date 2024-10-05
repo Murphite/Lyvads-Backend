@@ -34,7 +34,7 @@ public class UserInteractionController : ControllerBase
     {
         var result = await _userInteractionService.AddCommentAsync(commentDto.UserId, commentDto.Content);
 
-        if(result.IsFailure)
+        if(!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success(result.Data));
@@ -50,7 +50,7 @@ public class UserInteractionController : ControllerBase
 
         var result = await _userInteractionService.EditCommentAsync(commentId, user.Id, newContent);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment updated successfully."));
@@ -66,7 +66,7 @@ public class UserInteractionController : ControllerBase
 
         var result = await _userInteractionService.DeleteCommentAsync(commentId, user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success(result.Data, "Comment deleted successfully."));
@@ -78,7 +78,7 @@ public class UserInteractionController : ControllerBase
     {
         var result = await _userInteractionService.LikeContentAsync(likeDto.UserId, likeDto.ContentId);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success(result.Data));
@@ -102,7 +102,7 @@ public class UserInteractionController : ControllerBase
 
         var result = await _userInteractionService.UnlikeContentAsync(unlikeDto.UserId, unlikeDto.ContentId);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success(result.Data, "Content unliked successfully."));
@@ -115,7 +115,7 @@ public class UserInteractionController : ControllerBase
     {
         var result = await _userInteractionService.FundWalletAsync(fundWalletDto.UserId, fundWalletDto.Amount);
 
-        if(result.IsFailure)
+        if(!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success(result.Data));
@@ -131,7 +131,7 @@ public class UserInteractionController : ControllerBase
         createRequestDto.CreatorId = creatorId;
         var result = await _userInteractionService.MakeRequestAsync(createRequestDto);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<MakeRequestResponseDto>.Success(result.Data));

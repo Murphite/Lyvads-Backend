@@ -7,14 +7,14 @@ namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ChargeTransactionController : ControllerBase
+public class AdminChargeTransactionController : ControllerBase
 {
-    private readonly ChargeTransactionService _chargeTransactionService;
-    private readonly ILogger<ChargeTransactionController> _logger;
+    private readonly AdminChargeTransactionService _chargeTransactionService;
+    private readonly ILogger<AdminChargeTransactionController> _logger;
 
-    public ChargeTransactionController(
-        ChargeTransactionService chargeTransactionService,
-        ILogger<ChargeTransactionController> logger)
+    public AdminChargeTransactionController(
+        AdminChargeTransactionService chargeTransactionService,
+        ILogger<AdminChargeTransactionController> logger)
     {
         _chargeTransactionService = chargeTransactionService;
         _logger = logger;

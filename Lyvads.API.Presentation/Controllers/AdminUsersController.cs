@@ -6,13 +6,13 @@ namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ASuperAdminController : Controller
+public class AdminUsersController : Controller
 {
     private readonly ISuperAdminService _superAdminService;
-    private readonly ILogger<ASuperAdminController> _logger;
+    private readonly ILogger<AdminUsersController> _logger;
 
-    public ASuperAdminController(ISuperAdminService superAdminService,
-        ILogger<ASuperAdminController> logger)
+    public AdminUsersController(ISuperAdminService superAdminService,
+        ILogger<AdminUsersController> logger)
     {
         _superAdminService = superAdminService;
         _logger = logger;
@@ -31,6 +31,7 @@ public class ASuperAdminController : Controller
         return Ok(response.Data);
     }
 
+
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto registerUserDto)
     {
@@ -42,6 +43,7 @@ public class ASuperAdminController : Controller
         }
         return Ok(response.Data);
     }
+
 
     [HttpDelete("{userId}")]
     public async Task<IActionResult> DeleteUser(string userId)
@@ -55,6 +57,7 @@ public class ASuperAdminController : Controller
         return Ok(new { message = "User deleted successfully." });
     }
 
+
     [HttpPost("{userId}/disable")]
     public async Task<IActionResult> DisableUser(string userId)
     {
@@ -66,6 +69,7 @@ public class ASuperAdminController : Controller
         }
         return Ok(new { message = "User disabled successfully." });
     }
+
 
     [HttpPost("{userId}/activate")]
     public async Task<IActionResult> ActivateUser(string userId)

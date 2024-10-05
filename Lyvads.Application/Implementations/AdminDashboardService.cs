@@ -14,7 +14,7 @@ using Lyvads.Domain.Responses;
 
 namespace Lyvads.Application.Implementations;
 
-public class AdminService : IAdminService
+public class AdminDashboardService : IAdminUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IAdminRepository _adminRepository;
@@ -24,9 +24,9 @@ public class AdminService : IAdminService
     private readonly IImpressionRepository _impressionRepository;
     private readonly ITransactionRepository _transactionRepository;
     private readonly ICurrentUserService _currentUserService;
-    private readonly ILogger<AdminService> _logger;
+    private readonly ILogger<AdminDashboardService> _logger;
 
-    public AdminService(
+    public AdminDashboardService(
         UserManager<ApplicationUser> userManager,
         IAdminRepository adminRepository,
         IRequestRepository requestRepository,
@@ -34,7 +34,7 @@ public class AdminService : IAdminService
         ICollaborationRepository collaborationRepository,
         ITransactionRepository transactionRepository,
         ICurrentUserService currentUserService,
-        ILogger<AdminService> logger,
+        ILogger<AdminDashboardService> logger,
         IImpressionRepository impressionRepository)
     {
         _userManager = userManager;
@@ -168,9 +168,34 @@ public class AdminService : IAdminService
         // Fetch all users
         var users = await _userManager.Users.ToListAsync();
 
-        // Count total creators and regular users
-        var totalCreators = await Task.WhenAll(users.Select(async u => await _userManager.IsInRoleAsync(u, RolesConstant.Creator)));
-        var totalRegularUsers = await Task.WhenAll(users.Select(async u => await _userManager.IsInRoleAsync(u, RolesConstant.RegularUser)));
+        var totalCreatorsCount = 0;
+        var totalRegularUsersCount = 0;
+        var totalAdminsCount = 0;
+        var totalSuperAdminsCount = 0;
+
+        // Use a loop to check roles one by one
+        foreach (var user in users)
+        {
+            // Check if the user is a creator
+            if (await _userManager.IsInRoleAsync(user, RolesConstant.Creator))
+            {
+                totalCreatorsCount++;
+            }
+
+            // Check if the user is a regular user
+            if (await _userManager.IsInRoleAsync(user, RolesConstant.RegularUser))
+            {
+                totalRegularUsersCount++;
+            }
+            if (await _userManager.IsInRoleAsync(user, RolesConstant.Admin))
+            {
+                totalAdminsCount++;
+            }
+            if (await _userManager.IsInRoleAsync(user, RolesConstant.SuperAdmin))
+            {
+                totalSuperAdminsCount++;
+            }
+        }
 
         var totalSignups = users.Count;
         var totalImpressions = await _impressionRepository.CountAsync();
@@ -180,8 +205,10 @@ public class AdminService : IAdminService
 
         var dashboardSummary = new DashboardSummaryDto
         {
-            TotalCreators = totalCreators.Count(c => c),
-            TotalRegularUsers = totalRegularUsers.Count(r => r),
+            TotalCreators = totalCreatorsCount,
+            TotalRegularUsers = totalRegularUsersCount,
+            TotalAdmins = totalAdminsCount,
+            TotalSuperAdmins = totalSuperAdminsCount,
             TotalSignups = totalSignups,
             ImpressionPercentage = impressionPercentage
         };
@@ -236,18 +263,29 @@ public class AdminService : IAdminService
 
     public async Task<ServerResponse<List<TopRequestDto>>> GetTopRequests()
     {
-        var topRequests = await _requestRepository.GetRequests()
+        var requests = await _requestRepository.GetRequests()
+            .Select(r => new
+            {
+                r.UserId,
+                r.User.FirstName,
+                r.User.LastName,
+                r.RequestType,
+                TransactionAmount = r.Transactions.Sum(t => t.Amount)
+            })
+            .ToListAsync();
+
+        var topRequests = requests
             .GroupBy(r => new { r.UserId, r.RequestType })
             .Select(g => new TopRequestDto
             {
-                RegularUser = g.First().User.FirstName + " " + g.First().User.LastName,
+                RegularUser = g.First().FirstName + " " + g.First().LastName,
                 RequestType = g.Key.RequestType.ToString(),
                 RequestCount = g.Count(),
-                TotalAmount = g.Sum(r => r.Transactions.Sum(t => t.Amount)),
+                TotalAmount = g.Sum(x => x.TransactionAmount),
                 TimePeriod = DateTime.UtcNow
             })
             .OrderByDescending(r => r.RequestCount)
-            .ToListAsync();
+            .ToList();
 
         _logger.LogInformation("Top requests retrieved successfully.");
         return new ServerResponse<List<TopRequestDto>>

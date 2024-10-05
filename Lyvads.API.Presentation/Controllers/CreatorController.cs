@@ -44,7 +44,7 @@ public class CreatorController : ControllerBase
         // Call the service to update the creator profile
         var result = await _creatorService.UpdateCreatorSetUpRatesAsync(dto, user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
 
@@ -62,7 +62,7 @@ public class CreatorController : ControllerBase
 
         var result = await _creatorService.CreatePostAsync(postDto, user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post Successfully Added"));
@@ -79,7 +79,7 @@ public class CreatorController : ControllerBase
         // Call the service to update the post
         var result = await _creatorService.UpdatePostAsync(postDto, user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post successfully updated."));
@@ -96,7 +96,7 @@ public class CreatorController : ControllerBase
         // Call the service to delete the post
         var result = await _creatorService.DeletePostAsync(postId, user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success("Post successfully deleted."));
@@ -112,7 +112,7 @@ public class CreatorController : ControllerBase
 
         var result = await _creatorService.CommentOnPostAsync(postId, user.Id, content);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment added successfully."));
@@ -126,7 +126,7 @@ public class CreatorController : ControllerBase
             return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.LikeCommentAsync(commentId, user.Id);
         
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
 
@@ -141,7 +141,7 @@ public class CreatorController : ControllerBase
             return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.LikePostAsync(postId, user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
@@ -153,7 +153,7 @@ public class CreatorController : ControllerBase
     {
         var result = await _creatorService.HandleRequestAsync(requestId, status);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<RequestResponseDto>.Success(result.Data, "Request handled successfully."));
@@ -165,7 +165,7 @@ public class CreatorController : ControllerBase
     {
         var result = await _creatorService.SendVideoToUserAsync(requestId, videoUrl);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<VideoResponseDto>.Success(result.Data, result.ResponseMessage));
@@ -180,7 +180,7 @@ public class CreatorController : ControllerBase
             return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.ViewWalletBalanceAsync(user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<WalletBalanceDto>.Success(result.Data, "Wallet balance retrieved successfully."));
@@ -195,7 +195,7 @@ public class CreatorController : ControllerBase
             return Unauthorized("User not found or unauthorized.");
         var result = await _creatorService.WithdrawToBankAccountAsync(user.Id, request.Amount, request.Currency);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success());
@@ -211,7 +211,7 @@ public class CreatorController : ControllerBase
 
         var result = await _creatorService.GetNotificationsAsync(user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<IEnumerable<NotificationResponseDto>>.Success(result.Data, "Notifications retrieved successfully."));
@@ -227,7 +227,7 @@ public class CreatorController : ControllerBase
 
         var result = await _creatorService.GetPostsByCreatorAsync(user.Id);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<IEnumerable<PostResponseDto>>.Success(result.Data, "Posts retrieved successfully."));
@@ -242,7 +242,7 @@ public class CreatorController : ControllerBase
     {
         var result = await _creatorService.SearchCreatorsAsync(minPrice, maxPrice, location, industry);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<IEnumerable<FilterCreatorDto>>.Success(result.Data, "Creators retrieved successfully."));

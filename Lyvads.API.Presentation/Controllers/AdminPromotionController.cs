@@ -9,51 +9,56 @@ namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class APromotionsController : ControllerBase
+public class AdminPromotionsController : ControllerBase
 {
     private readonly IPromotionService _promotionService;
+    private readonly ILogger<AdminPromotionsController> _logger;
 
-    public APromotionsController(IPromotionService promotionService)
+    public AdminPromotionsController(IPromotionService promotionService, 
+        ILogger<AdminPromotionsController> logger)
     {
         _promotionService = promotionService;
+        _logger = logger;
     }
 
     [HttpPost]
     public async Task<IActionResult> AddPromotion([FromForm] CreatePromotionDto createPromotionDto)
     {
         var result = await _promotionService.AddPromotion(createPromotionDto);
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(result);
-
     }
 
+    
     [HttpPut("{promotionId}")]
     public async Task<IActionResult> UpdatePromotion(string promotionId, [FromForm] UpdatePromotionDto updatePromotionDto)
     {
         var result = await _promotionService.UpdatePromotion(promotionId, updatePromotionDto);
-        if(result.IsFailure)
+        if(!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(result);
     }
 
+    
     [HttpDelete("{promotionId}")]
     public async Task<IActionResult> DeletePromotion(string promotionId)
     {
         var result = await _promotionService.DeletePromotion(promotionId);
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(result);
     }
 
+    
     [HttpPut("{promotionId}/toggle-visibility")]
     public async Task<IActionResult> TogglePromotionVisibility(string promotionId, [FromQuery] bool hide)
     {
         var result = await _promotionService.TogglePromotionVisibility(promotionId, hide);
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(result);

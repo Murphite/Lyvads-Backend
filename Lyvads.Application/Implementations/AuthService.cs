@@ -710,8 +710,6 @@ public class AuthService : IAuthService
         await _verificationService.SaveVerificationCode(forgotPasswordDto.Email, verificationCode);
 
         // Set the email in EmailContext for future use
-        //var email = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
-        //_emailContext.VerifiedEmail = forgotPasswordDto.Email;
         _httpContextAccessor.HttpContext?.Session.SetString("VerifiedEmail", forgotPasswordDto.Email);
 
 
@@ -840,6 +838,208 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<ServerResponse<RegistrationResponseDto>> AdminForgotPassword(ForgotPasswordRequestDto forgotPasswordDto)
+    {
+        _logger.LogInformation("******* Inside the AdminForgotPassword Method ********");
+
+        // Retrieve the user by email
+        var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
+
+        // Check if user is null and is an admin or supper admin
+        if (user == null || !(await _userManager.IsInRoleAsync(user, "Admin")) || !(await _userManager.IsInRoleAsync(user, "SuperAdmin")))
+        {
+            return new ServerResponse<RegistrationResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "No admin user found with the provided email"
+                }
+            };
+        }
+
+        // Generate a verification code
+        var verificationCode = GenerateVerificationCode();
+
+        // Send the verification code via email
+        const string emailSubject = "Admin Password Reset Verification Code";
+        var emailBody = $"Hello {user.FullName}, your admin password reset verification code is: {verificationCode}.";
+
+        var isSuccessful = await _emailService.SendEmailAsync(forgotPasswordDto.Email, emailSubject, emailBody);
+        if (!isSuccessful)
+        {
+            return new ServerResponse<RegistrationResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Error occurred while sending the verification email"
+                }
+            };
+        }
+
+        // Store the verification code and email in a temporary storage (e.g., Redis or session)
+        await _verificationService.SaveVerificationCode(forgotPasswordDto.Email, verificationCode);
+        _httpContextAccessor.HttpContext?.Session.SetString("VerifiedAdminEmail", forgotPasswordDto.Email);
+
+        // Create response DTO
+        var registrationResponse = new RegistrationResponseDto
+        {
+            Email = forgotPasswordDto.Email,
+            VerificationCode = verificationCode
+        };
+
+        return new ServerResponse<RegistrationResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Admin verification code sent successfully",
+            Data = registrationResponse
+        };
+    }
+
+    public async Task<ServerResponse<string>> VerifyAdminVerificationCode(string verificationCode)
+    {
+        _logger.LogInformation("******* Inside the VerifyAdminVerificationCode Method ********");
+
+        // Step 1: Retrieve the stored email using the verification code
+        var email = await _verificationService.GetEmailByVerificationCode(verificationCode);
+        if (email == null)
+        {
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Verification.Error",
+                    ResponseDescription = "Invalid verification code"
+                }
+            };
+        }
+
+        // Step 2: Validate the verification code (check expiration and match)
+        var isCodeValid = await _verificationService.ValidateVerificationCode(email, verificationCode);
+        if (!isCodeValid)
+        {
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Verification.Error",
+                    ResponseDescription = "Invalid or expired verification code"
+                }
+            };
+        }
+
+        // Step 3: Retrieve the user by email and check if they are an admin
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null || !(await _userManager.IsInRoleAsync(user, "Admin")) || !(await _userManager.IsInRoleAsync(user, "Admin")))
+        {
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "No admin user found with the provided email"
+                }
+            };
+        }
+
+        // Step 4: Return the email as the result of successful verification
+        return new ServerResponse<string>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Verification successful",
+            Data = email
+        };
+    }
+
+    public async Task<ServerResponse<PasswordResetResponseDto>> ResetAdminPassword(ResetPasswordWithCodeDto resetPasswordDto, string email)
+    {
+        _logger.LogInformation("******* Inside the ResetAdminPassword Method ********");
+
+        // Step 1: Retrieve the user by email and check if they are an admin
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null || !(await _userManager.IsInRoleAsync(user, "Admin")))
+        {
+            return new ServerResponse<PasswordResetResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "No admin user found with the provided email"
+                }
+            };
+        }
+
+        // Step 2: Ensure password and confirm password match
+        if (resetPasswordDto.NewPassword != resetPasswordDto.ConfirmPassword)
+        {
+            return new ServerResponse<PasswordResetResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Passwords do not match"
+                }
+            };
+        }
+
+        // Step 3: Generate a password reset token and reset the password
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var resetPasswordResult = await _userManager.ResetPasswordAsync(user, resetToken, resetPasswordDto.NewPassword);
+        if (!resetPasswordResult.Succeeded)
+        {
+            return new ServerResponse<PasswordResetResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Error occurred while resetting the password"
+                }
+            };
+        }
+
+        // Step 4: Optionally clear the verification code after successful password reset
+        await _verificationService.MarkEmailAsVerified(email);
+
+        // Step 5: Return success response
+        var passwordResetResponse = new PasswordResetResponseDto
+        {
+            Email = email, // Retain the email from verification
+            IsPasswordReset = true,
+            NewPassword = resetPasswordDto.NewPassword,
+            Message = "Admin password reset successful"
+        };
+
+        return new ServerResponse<PasswordResetResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Admin password reset successful",
+            Data = passwordResetResponse
+        };
+    }
+
+
+
+
 
     public async Task<Result> ConfirmEmail(string email, string token)
     {
@@ -936,7 +1136,7 @@ public class AuthService : IAuthService
         return Result.Success("Password reset successfully.");
     }
 
-
+   
 
 
 

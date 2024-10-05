@@ -8,13 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Lyvads.Application.Implementations;
 
-public class DisputeService : IDisputeService
+public class AdminDisputeService : IDisputeService
 {
-    private readonly ILogger<DisputeService> _logger;
+    private readonly ILogger<AdminDisputeService> _logger;
     private readonly IDisputeRepository _disputeRepository;
 
-    public DisputeService(
-        ILogger<DisputeService> logger, IDisputeRepository disputeRepository)
+    public AdminDisputeService(
+        ILogger<AdminDisputeService> logger, IDisputeRepository disputeRepository)
     {
         _logger = logger;
         _disputeRepository = disputeRepository;

@@ -5,7 +5,7 @@ using Lyvads.Domain.Responses;
 
 namespace Lyvads.Application.Interfaces;
 
-public interface IChargeTransactionService
+public interface IAdminChargeTransactionService
 {
     Task<ServerResponse<List<ChargeTransactionDto>>> GetAllChargeTransactionsAsync();
     Task<ServerResponse<string>> AddNewChargeAsync(CreateChargeDto chargeDto);

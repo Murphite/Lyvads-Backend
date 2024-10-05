@@ -29,7 +29,7 @@ public class CollaborationService : ICollaborationService
     private readonly IUserRepository _userRepository;
     private readonly IDisputeRepository _disputeRepository;
     private readonly ICurrentUserService _currentUserService;
-    private readonly ILogger<AdminService> _logger;
+    private readonly ILogger<AdminDashboardService> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly IMediaService _mediaService;
     private readonly IWalletService _walletService;
@@ -43,7 +43,7 @@ public class CollaborationService : ICollaborationService
         IUserRepository userRepository,
         IDisputeRepository disputeRepository,
         IRequestRepository requestRepository,
-        ILogger<AdminService> logger, 
+        ILogger<AdminDashboardService> logger, 
         IMediaService mediaService, 
         IWalletService walletService,
         IWebHostEnvironment webHostEnvironment)

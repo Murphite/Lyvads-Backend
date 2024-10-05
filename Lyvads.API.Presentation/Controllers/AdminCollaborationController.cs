@@ -10,12 +10,13 @@ namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ACollaborationController : ControllerBase
+public class AdminCollaborationController : ControllerBase
 {
-    private readonly CollaborationService _collaborationService;
-    private readonly ILogger<CollaborationController> _logger;
+    private readonly ICollaborationService _collaborationService;
+    private readonly ILogger<AdminCollaborationController> _logger;
 
-    public ACollaborationController(CollaborationService collaborationService, ILogger<CollaborationController> logger)
+    public AdminCollaborationController(CollaborationService collaborationService, 
+        ILogger<AdminCollaborationController> logger)
     {
         _collaborationService = collaborationService;
         _logger = logger;

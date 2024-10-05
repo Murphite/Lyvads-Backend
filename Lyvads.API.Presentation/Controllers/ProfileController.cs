@@ -39,7 +39,7 @@ public class ProfileController : ControllerBase
         // Call the service to update the creator profile
         var result = await _profileService.EditProfileAsync(dto, user.Id);
 
-        if (!result.IsFailure)
+        if (!!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         // Return the updated profile data
@@ -88,7 +88,7 @@ public class ProfileController : ControllerBase
 
         var result = await _profileService.InitiateEmailUpdateAsync(dto.UserId, dto.NewEmail);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<UpdateEmailResponseDto>.Success(result.Data, "Verification code sent to the new email. Please check your email."));
@@ -112,7 +112,7 @@ public class ProfileController : ControllerBase
 
         var result = await _profileService.VerifyEmailUpdateAsync(dto.UserId, dto.VerificationCode);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
 
@@ -131,7 +131,7 @@ public class ProfileController : ControllerBase
         // Call the service to update the user's location
         var result = await _profileService.UpdateLocationAsync(dto, user.Id);
 
-        if (!result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         // Return the updated location data
@@ -150,7 +150,7 @@ public class ProfileController : ControllerBase
         // Call the service to update the user's phone number
         var result = await _profileService.UpdatePhoneNumberAsync(dto, user.Id);
 
-        if (!result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         // Return the updated phone number data

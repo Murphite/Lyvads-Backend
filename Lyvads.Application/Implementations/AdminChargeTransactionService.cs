@@ -5,18 +5,28 @@ using Lyvads.Domain.Responses;
 using Microsoft.Extensions.Logging;
 using Lyvads.Domain.Enums;
 using Lyvads.Application.Interfaces;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Lyvads.Domain.Constants;
 
 namespace Lyvads.Application.Implementations;
 
-public class ChargeTransactionService : IChargeTransactionService
+public class AdminChargeTransactionService : IAdminChargeTransactionService
 {
-    private readonly ILogger<ChargeTransactionService> _logger;
+    private readonly ILogger<AdminChargeTransactionService> _logger;
     private readonly IChargeTransactionRepository _chargeTransactionRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAdminActivityLogService _adminActivityLogService;
 
-    public ChargeTransactionService(ILogger<ChargeTransactionService> logger, IChargeTransactionRepository chargeTransactionRepository)
+    public AdminChargeTransactionService(ILogger<AdminChargeTransactionService> logger,
+        IChargeTransactionRepository chargeTransactionRepository,
+        IHttpContextAccessor httpContextAccessor,
+        IAdminActivityLogService adminActivityLogService)
     {
         _logger = logger;
         _chargeTransactionRepository = chargeTransactionRepository;
+        _httpContextAccessor = httpContextAccessor;
+        _adminActivityLogService = adminActivityLogService;
     }
 
     // Get all ChargeTransactions
@@ -74,6 +84,19 @@ public class ChargeTransactionService : IChargeTransactionService
             };
 
             await _chargeTransactionRepository.AddAsync(charge);
+
+            // Get the currently logged-in admin user's ID and username
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var username = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Name);
+
+            // Log the admin activity
+            await _adminActivityLogService.LogActivityAsync(
+                userId, 
+                username,
+                RolesConstant.Admin,
+                "Added new charge: " + chargeDto.ChargeName,
+                "Charge Management");
+
 
             return new ServerResponse<string>
             {

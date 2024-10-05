@@ -47,7 +47,7 @@ public class AuthController : ControllerBase
         // Log the server response, useful for debugging
         _logger.LogInformation($"Initiate registration result: {System.Text.Json.JsonSerializer.Serialize(result)}");
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
         {
             _logger.LogWarning($"Failed to initiate registration for email: {dto.Email}.");
             return BadRequest(result.ErrorResponse);
@@ -64,7 +64,7 @@ public class AuthController : ControllerBase
 
         var result = await _authService.VerifyEmail(dto.VerificationCode);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<EmailVerificationResponseDto>.Success(result.Data, "Email verification successful."));
@@ -99,7 +99,7 @@ public class AuthController : ControllerBase
 
         var result = await _authService.RegisterUser(registerUserDto);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "User registered successfully."));
@@ -131,7 +131,7 @@ public class AuthController : ControllerBase
 
         var result = await _authService.RegisterCreator(registerCreatorDto);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "Creator registered successfully."));
@@ -163,7 +163,7 @@ public class AuthController : ControllerBase
 
         var result = await _authService.RegisterSuperAdmin(registerSuperAdminDto);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "Super admin registered successfully."));
@@ -177,7 +177,7 @@ public class AuthController : ControllerBase
 
         var result = await _authService.Login(loginUserDto);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success(new
@@ -190,7 +190,6 @@ public class AuthController : ControllerBase
     }
 
 
-
     [HttpPost("ForgotPassword")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto forgotPasswordDto)
     {
@@ -198,12 +197,11 @@ public class AuthController : ControllerBase
 
         var result = await _authService.ForgotPassword(forgotPasswordDto);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<object>.Success(result.Data, "Password reset email sent successfully."));
     }
-
 
 
     [HttpPost("VerifyCodeAndResetPassword")]
@@ -213,7 +211,7 @@ public class AuthController : ControllerBase
 
         var result = await _authService.VerifyCodeAndResetPassword(resetPasswordDto);
 
-        if (result.IsFailure)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         var passwordResetResponse = new PasswordResetResponseDto
@@ -225,6 +223,104 @@ public class AuthController : ControllerBase
 
         return Ok(ResponseDto<PasswordResetResponseDto>.Success(passwordResetResponse, "Password reset successful."));
     }
+
+
+    // POST: api/admin/forgot-password
+    [HttpPost("Admin/ForgotPassword")]
+    public async Task<ActionResult<ServerResponse<RegistrationResponseDto>>> AdminForgotPassword([FromBody] ForgotPasswordRequestDto forgotPasswordDto)
+    {
+        if (forgotPasswordDto == null)
+        {
+            return BadRequest(new ServerResponse<RegistrationResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Request body is null"
+                }
+            });
+        }
+
+        var response = await _authService.AdminForgotPassword(forgotPasswordDto);
+        return Ok(response);
+    }
+
+    // POST: api/admin/verify-code
+    [HttpPost("Admin/VerifyCode")]
+    public async Task<ActionResult<ServerResponse<string>>> VerifyAdminVerificationCode([FromBody] string verificationCode)
+    {
+        if (string.IsNullOrWhiteSpace(verificationCode))
+        {
+            return BadRequest(new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Verification.Error",
+                    ResponseDescription = "Verification code is required"
+                }
+            });
+        }
+
+        var response = await _authService.VerifyAdminVerificationCode(verificationCode);
+        return Ok(response);
+    }
+
+    // POST: api/admin/reset-password
+    [HttpPost("Admin/ResetPassword")]
+    public async Task<ActionResult<ServerResponse<PasswordResetResponseDto>>> ResetAdminPassword([FromBody] ResetPasswordWithCodeDto resetPasswordDto)
+    {
+        if (resetPasswordDto == null)
+        {
+            return BadRequest(new ServerResponse<PasswordResetResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Request body is null"
+                }
+            });
+        }
+
+        // Retrieve the email from the session or another mechanism, if applicable
+        var email = HttpContext.Session.GetString("VerifiedAdminEmail");
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest(new ServerResponse<PasswordResetResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Email not found in session"
+                }
+            });
+        }
+
+        var response = await _authService.ResetAdminPassword(resetPasswordDto, email);
+        return Ok(response);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
