@@ -244,7 +244,7 @@ public class CollaborationService : ICollaborationService
         var requestDtos = requests.Select(r => new GetUserRequestDto
         {
             RequestId = r.Id,
-            UserFullName = $"{r.User.FirstName} {r.User.LastName}", // Full name of the Regular User who made the request
+            UserFullName = $"{r.User.ApplicationUser!.FirstName} {r.User.ApplicationUser.LastName}", // Full name of the Regular User who made the request
             Status = r.Status,
             CreatedAt = r.CreatedAt.UtcDateTime,
         }).ToList();
@@ -379,8 +379,8 @@ public class CollaborationService : ICollaborationService
             };
         }
 
-        var regularUser = await _userRepository.GetUserByIdAsync(dispute.RegularUserId);
-        var creator = await _userRepository.GetUserByIdAsync(dispute.CreatorId);
+        var regularUser = await _userRepository.GetUserByIdAsync(dispute.RegularUserId!);
+        var creator = await _userRepository.GetUserByIdAsync(dispute.CreatorId!);
 
         var disputeResponse = new DisputeResponseDto
         {
@@ -593,7 +593,7 @@ public class CollaborationService : ICollaborationService
         var disputeDtos = disputes.Select(d => new FetchDisputeDto
         {
             DisputeId = d.Id,
-            RegularUserFullName = $"{d.Request.User.FirstName} {d.Request.User.LastName}",
+            RegularUserFullName = $"{d.Request!.User.ApplicationUser!.FirstName} {d.Request.User.ApplicationUser.LastName}",
             CreatedAt = d.CreatedAt.UtcDateTime,
             DisputeType = DisputeType.DisputedVideo,
             Status = d.Status
@@ -668,7 +668,7 @@ public class CollaborationService : ICollaborationService
         var disputeDetailsDto = new DisputeDetailsDto
         {
             DisputeId = dispute.Id,
-            RegularUserFullName = $"{dispute.Request.User.FirstName} {dispute.Request.User.LastName}",
+            RegularUserFullName = $"{dispute.Request.User.ApplicationUser!.FirstName} {dispute.Request.User.ApplicationUser.LastName}",
             CreatedAt = dispute.CreatedAt.UtcDateTime,
             DisputeReason = dispute.Reason,
             DisputeMessage = dispute.DisputeMessage

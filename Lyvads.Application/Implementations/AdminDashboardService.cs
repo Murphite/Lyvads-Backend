@@ -267,8 +267,8 @@ public class AdminDashboardService : IAdminUserService
             .Select(r => new
             {
                 r.UserId,
-                r.User.FirstName,
-                r.User.LastName,
+                r.User.ApplicationUser!.FirstName,
+                r.User.ApplicationUser!.LastName,
                 r.RequestType,
                 TransactionAmount = r.Transactions.Sum(t => t.Amount)
             })

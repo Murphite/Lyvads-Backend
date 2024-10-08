@@ -10,8 +10,10 @@ using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Implementations;
 using Microsoft.AspNetCore.Identity;
 using Lyvads.Domain.Responses;
+using Lyvads.Shared.DTOs;
 
 namespace Lyvads.API.Controllers;
+
 
 [ApiController]
 [Route("api/[controller]")]
@@ -72,7 +74,7 @@ public class AuthController : ControllerBase
 
 
     [HttpPost("RegisterUser")]
-    public async Task<IActionResult> RegisterUser([FromBody] CompleteRegistrationDto dto)
+    public async Task<IActionResult> RegisterUser([FromBody] RUserCompleteRegistrationDto dto)
     {
         _logger.LogInformation($"******* Inside the RegisterUser Controller Method ********");
 
@@ -93,6 +95,7 @@ public class AuthController : ControllerBase
             AppUserName = dto.AppUserName,
             PhoneNumber = dto.PhoneNumber,
             Password = dto.Password,
+            Location = dto.Location!,
             ConfirmPassword = dto.ConfirmPassword,
             Email = verifiedEmail
         };
@@ -111,10 +114,7 @@ public class AuthController : ControllerBase
     {
         _logger.LogInformation($"******* Inside the RegisterCreator Controller Method ********");
 
-        // Fetch the verified email directly from the verification service
-        //var email = await _verificationService.GetVerifiedEmail(_emailContext.VerifiedEmail);
         var email = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
-
 
         if (string.IsNullOrEmpty(email))
             return BadRequest(ResponseDto<object>.Failure(new[] { new Error("Email.Error", "Email verification is required") }));
@@ -126,7 +126,12 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.PhoneNumber,
             Password = dto.Password,
             ConfirmPassword = dto.ConfirmPassword,
-            Email = email
+            Email = email,
+            Bio = dto.Bio ?? string.Empty,
+            Location = dto.Location ?? string.Empty,
+            Occupation = dto.Occupation ?? string.Empty,
+            SocialHandles = dto.SocialHandles, // Pass through even if null
+            ExclusiveDeals = dto.ExclusiveDeals ?? new List<ExclusiveDealDto>() // Default to empty list if null
         };
 
         var result = await _authService.RegisterCreator(registerCreatorDto);
@@ -138,8 +143,9 @@ public class AuthController : ControllerBase
     }
 
 
+
     [HttpPost("RegisterSuperAdmin")]
-    public async Task<IActionResult> RegisterSuperAdmin([FromBody] CompleteRegistrationDto dto)
+    public async Task<IActionResult> RegisterSuperAdmin([FromBody] AdminCompleteRegistrationDto dto)
     {
         _logger.LogInformation($"******* Inside the RegisterSuperAdmin Controller Method ********");
 
@@ -156,6 +162,7 @@ public class AuthController : ControllerBase
             FullName = dto.FullName,
             AppUserName = dto.AppUserName,
             PhoneNumber = dto.PhoneNumber,
+            Location = dto.Location,
             Password = dto.Password,
             ConfirmPassword = dto.ConfirmPassword,
             Email = email
@@ -218,64 +225,43 @@ public class AuthController : ControllerBase
         {
             Email = result.Data.Email,
             NewPassword = result.Data.NewPassword,
-            Message = "Password reset successful"
+            Message = "Password reset was successful"
         };
 
-        return Ok(ResponseDto<PasswordResetResponseDto>.Success(passwordResetResponse, "Password reset successful."));
+        return Ok(ResponseDto<PasswordResetResponseDto>.Success(passwordResetResponse, "Password reset was successful."));
     }
 
 
     // POST: api/admin/forgot-password
-    [HttpPost("Admin/ForgotPassword")]
-    public async Task<ActionResult<ServerResponse<RegistrationResponseDto>>> AdminForgotPassword([FromBody] ForgotPasswordRequestDto forgotPasswordDto)
+    [HttpPost("admin-forgotPassword")]
+    public async Task<ActionResult<RegistrationResponseDto>> AdminForgotPassword([FromBody] ForgotPasswordRequestDto forgotPasswordDto)
     {
-        if (forgotPasswordDto == null)
-        {
-            return BadRequest(new ServerResponse<RegistrationResponseDto>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "400",
-                    ResponseMessage = "Auth.Error",
-                    ResponseDescription = "Request body is null"
-                }
-            });
-        }
-
         var response = await _authService.AdminForgotPassword(forgotPasswordDto);
+
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+
         return Ok(response);
     }
 
     // POST: api/admin/verify-code
-    [HttpPost("Admin/VerifyCode")]
-    public async Task<ActionResult<ServerResponse<string>>> VerifyAdminVerificationCode([FromBody] string verificationCode)
+    [HttpPost("admin-verifyCode")]
+    public async Task<ActionResult<string>> VerifyAdminVerificationCode([FromBody] EmailVerificationDto verificationCode)
     {
-        if (string.IsNullOrWhiteSpace(verificationCode))
-        {
-            return BadRequest(new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "400",
-                    ResponseMessage = "Verification.Error",
-                    ResponseDescription = "Verification code is required"
-                }
-            });
-        }
-
-        var response = await _authService.VerifyAdminVerificationCode(verificationCode);
+        var response = await _authService.VerifyAdminVerificationCode(verificationCode.VerificationCode);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
         return Ok(response);
     }
 
     // POST: api/admin/reset-password
-    [HttpPost("Admin/ResetPassword")]
-    public async Task<ActionResult<ServerResponse<PasswordResetResponseDto>>> ResetAdminPassword([FromBody] ResetPasswordWithCodeDto resetPasswordDto)
+    [HttpPost("admin-resetPassword")]
+    public async Task<ActionResult<AdminResetPasswordWithCodeDto>> AdminResetAdminPassword([FromBody] AdminResetPasswordWithCodeDto 
+        resetPasswordDto)
     {
         if (resetPasswordDto == null)
         {
-            return BadRequest(new ServerResponse<PasswordResetResponseDto>
+            return BadRequest(new ServerResponse<AdminResetPasswordWithCodeDto>
             {
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
@@ -291,7 +277,7 @@ public class AuthController : ControllerBase
         var email = HttpContext.Session.GetString("VerifiedAdminEmail");
         if (string.IsNullOrWhiteSpace(email))
         {
-            return BadRequest(new ServerResponse<PasswordResetResponseDto>
+            return BadRequest(new ServerResponse<AdminResetPasswordWithCodeDto>
             {
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
@@ -407,5 +393,44 @@ public class AuthController : ControllerBase
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Password and confirm password do not match")]
         public required string ConfirmPassword { get; set; }
+        public string? Bio { get; set; }
+        public string? Location { get; set; }
+        public string? Occupation { get; set; }
+        public SocialHandlesDto? SocialHandles { get; set; } 
+        public List<ExclusiveDealDto>? ExclusiveDeals { get; set; }
+    }
+
+    public class AdminCompleteRegistrationDto
+    {
+        [Required] public required string FullName { get; init; }
+        [Required] public required string AppUserName { get; init; }
+        [Required] public required string PhoneNumber { get; init; }
+        [Required] public required string Location { get; init; }
+
+        [Required(ErrorMessage = "New password is required")]
+        [DataType(DataType.Password)]
+        public required string Password { get; set; }
+
+        [Required(ErrorMessage = "Confirm password is required")]
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Password and confirm password do not match")]
+        public required string ConfirmPassword { get; set; }
+    }
+
+    public class RUserCompleteRegistrationDto
+    {
+        [Required] public required string FullName { get; init; }
+        [Required] public required string AppUserName { get; init; }
+        [Required] public required string PhoneNumber { get; init; }
+
+        [Required(ErrorMessage = "New password is required")]
+        [DataType(DataType.Password)]
+        public required string Password { get; set; }
+
+        [Required(ErrorMessage = "Confirm password is required")]
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Password and confirm password do not match")]
+        public required string ConfirmPassword { get; set; }
+        public string? Location { get; set; }
     }
 }

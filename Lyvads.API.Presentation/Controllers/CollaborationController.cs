@@ -1,12 +1,14 @@
 ﻿using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Implementations;
 using Lyvads.Domain.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe.Forwarding;
 
 namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class CollaborationController : ControllerBase
 {

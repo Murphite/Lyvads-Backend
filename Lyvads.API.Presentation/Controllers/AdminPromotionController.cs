@@ -3,11 +3,13 @@ using Lyvads.Application.Dtos.AuthDtos;
 using Lyvads.Application.Dtos.SuperAdminDtos;
 using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class AdminPromotionsController : ControllerBase
 {

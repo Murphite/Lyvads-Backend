@@ -283,82 +283,106 @@ public class AuthService : IAuthService
                 }
             };
         }
-
-        var names = registerSuperAdminDto.FullName.Split(' ');
-        var firstName = names[0];
-        var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
-
-        var applicationUser = new ApplicationUser
+        using (var transaction = await _repository.BeginTransactionAsync())
         {
-            FirstName = firstName,
-            LastName = lastName,
-            UserName = verifiedEmail,
-            AppUserName = registerSuperAdminDto.AppUserName,
-            Email = verifiedEmail,
-            PhoneNumber = registerSuperAdminDto.PhoneNumber,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            PublicId = Guid.NewGuid().ToString(),
-        };
-
-        var superAdmin = new SuperAdmin
-        {
-            ApplicationUserId = applicationUser.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            ApplicationUser = applicationUser,
-        };
-
-        var result = await _userManager.CreateAsync(applicationUser, registerSuperAdminDto.Password);
-        if (!result.Succeeded)
-        {
-            return new ServerResponse<RegisterUserResponseDto>
+            try
             {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
+                var names = registerSuperAdminDto.FullName.Split(' ');
+                var firstName = names[0];
+                var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
+
+                var applicationUser = new ApplicationUser
                 {
-                    ResponseCode = "400",
-                    ResponseMessage = "User creation failed",
-                    ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
-                }
-            };
-        }
+                    FirstName = firstName,
+                    LastName = lastName,
+                    UserName = verifiedEmail,
+                    AppUserName = registerSuperAdminDto.AppUserName,
+                    Location = registerSuperAdminDto.Location,
+                    Email = verifiedEmail,
+                    PhoneNumber = registerSuperAdminDto.PhoneNumber,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    PublicId = Guid.NewGuid().ToString(),
+                };
 
-        result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.SuperAdmin);
-        if (!result.Succeeded)
-        {
-            return new ServerResponse<RegisterUserResponseDto>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
+                var superAdmin = new SuperAdmin
                 {
-                    ResponseCode = "400",
-                    ResponseMessage = "Failed to assign role",
-                    ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                    ApplicationUserId = applicationUser.Id,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    ApplicationUser = applicationUser,
+                };
+
+                var result = await _userManager.CreateAsync(applicationUser, registerSuperAdminDto.Password);
+                if (!result.Succeeded)
+                {
+                    return new ServerResponse<RegisterUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "400",
+                            ResponseMessage = "User creation failed",
+                            ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                        }
+                    };
                 }
-            };
-        }
 
-        await _superAdminRepository.AddAsync(superAdmin);
-        await _verificationService.MarkEmailAsVerified(verifiedEmail);
+                result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.SuperAdmin);
+                if (!result.Succeeded)
+                {
+                    return new ServerResponse<RegisterUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "400",
+                            ResponseMessage = "Failed to assign role",
+                            ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                        }
+                    };
+                }
 
-        // Clear the verified email from the session after registration
-        _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
+                await _superAdminRepository.AddAsync(superAdmin);
+                await _verificationService.MarkEmailAsVerified(verifiedEmail);
 
-        return new ServerResponse<RegisterUserResponseDto>
-        {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            ResponseMessage = "Registration successful",
-            Data = new RegisterUserResponseDto
-            {
-                UserId = applicationUser.Id,
-                AppUserName = applicationUser.AppUserName,
-                Email = applicationUser.Email,
-                Role = RolesConstant.SuperAdmin,
-                Message = "Registration successful."
+                // Clear the verified email from the session after registration
+                _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
+
+                return new ServerResponse<RegisterUserResponseDto>
+                {
+                    IsSuccessful = true,
+                    ResponseCode = "00",
+                    ResponseMessage = "Registration successful",
+                    Data = new RegisterUserResponseDto
+                    {
+                        UserId = applicationUser.Id,
+                        AppUserName = applicationUser.AppUserName,
+                        Email = applicationUser.Email,
+                        Location = applicationUser.Location,
+                        Role = RolesConstant.SuperAdmin,
+                        Message = "Registration successful."
+                    }
+                };
             }
-        };
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred during registration: {ex.Message}");
+
+                await transaction.RollbackAsync();
+
+                return new ServerResponse<RegisterUserResponseDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "500",
+                        ResponseMessage = "Registration.Error",
+                        ResponseDescription = "An unexpected error occurred during registration."
+                    }
+                };
+            }
+        }
     }
 
     public async Task<ServerResponse<RegisterUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto)
@@ -395,87 +419,114 @@ public class AuthService : IAuthService
             };
         }
 
-        var names = registerUserDto.FullName.Split(' ');
-        var firstName = names[0];
-        var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
-
-        var applicationUser = new ApplicationUser
+        using (var transaction = await _repository.BeginTransactionAsync())
         {
-            FirstName = firstName,
-            LastName = lastName,
-            UserName = verifiedEmail,
-            AppUserName = registerUserDto.AppUserName,
-            Email = verifiedEmail,
-            PhoneNumber = registerUserDto.PhoneNumber,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            WalletId = GenerateWalletId(),
-            PublicId = Guid.NewGuid().ToString(),
-        };
-
-        var regularUser = new RegularUser
-        {
-            ApplicationUserId = applicationUser.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            ApplicationUser = applicationUser,
-        };
-
-        var result = await _userManager.CreateAsync(applicationUser, registerUserDto.Password);
-        if (!result.Succeeded)
-        {
-            return new ServerResponse<RegisterUserResponseDto>
+            try
             {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
+                var names = registerUserDto.FullName.Split(' ');
+                var firstName = names[0];
+                var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
+
+                var applicationUser = new ApplicationUser
                 {
-                    ResponseCode = "400",
-                    ResponseMessage = "User creation failed",
-                    ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
-                }
-            };
-        }
+                    FirstName = firstName,
+                    LastName = lastName,
+                    UserName = verifiedEmail,
+                    AppUserName = registerUserDto.AppUserName,
+                    Email = verifiedEmail,
+                    PhoneNumber = registerUserDto.PhoneNumber,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    WalletId = GenerateWalletId(),
+                    PublicId = Guid.NewGuid().ToString(),
+                    Location = registerUserDto.Location, // Include user's location
+                    IsVerified = false // Mark the user as not verified initially
+                };
 
-        result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.RegularUser);
-        if (!result.Succeeded)
-        {
-            return new ServerResponse<RegisterUserResponseDto>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
+                var regularUser = new RegularUser
                 {
-                    ResponseCode = "400",
-                    ResponseMessage = "Failed to assign role",
-                    ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                    ApplicationUserId = applicationUser.Id,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    ApplicationUser = applicationUser,
+                };
+
+                var result = await _userManager.CreateAsync(applicationUser, registerUserDto.Password);
+                if (!result.Succeeded)
+                {
+                    return new ServerResponse<RegisterUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "400",
+                            ResponseMessage = "User creation failed",
+                            ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                        }
+                    };
                 }
-            };
-        }
 
-        await _regularUserRepository.AddAsync(regularUser);
-        // Clear the EmailContext after successful registration
-        _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
+                result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.RegularUser);
+                if (!result.Succeeded)
+                {
+                    return new ServerResponse<RegisterUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "400",
+                            ResponseMessage = "Failed to assign role",
+                            ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                        }
+                    };
+                }
 
-        return new ServerResponse<RegisterUserResponseDto>
-        {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            ResponseMessage = "Registration successful",
-            Data = new RegisterUserResponseDto
-            {
-                UserId = applicationUser.Id,
-                AppUserName = applicationUser.AppUserName,
-                Email = applicationUser.Email,
-                Role = RolesConstant.RegularUser,
-                Message = "Registration successful."
+                await _regularUserRepository.AddAsync(regularUser);
+                // Clear the EmailContext after successful registration
+                _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
+
+                // Notify Admin/SuperAdmin about pending user for verification (e.g., send an email or push notification)
+
+                return new ServerResponse<RegisterUserResponseDto>
+                {
+                    IsSuccessful = true,
+                    ResponseCode = "00",
+                    ResponseMessage = "Registration successful. Awaiting Admin verification.",
+                    Data = new RegisterUserResponseDto
+                    {
+                        UserId = applicationUser.Id,
+                        AppUserName = applicationUser.AppUserName,
+                        Email = applicationUser.Email,
+                        Location = applicationUser.Location,
+                        Role = RolesConstant.RegularUser,
+                        Message = "Registration successful. Your account will be activated after Admin verification."
+                    }
+                };
             }
-        };
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred during registration: {ex.Message}");
+
+                await transaction.RollbackAsync();
+
+                return new ServerResponse<RegisterUserResponseDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "500",
+                        ResponseMessage = "Registration.Error",
+                        ResponseDescription = "An unexpected error occurred during registration."
+                    }
+                };
+            }
+        }
     }
 
     public async Task<ServerResponse<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto)
     {
         _logger.LogInformation("******* Inside the RegisterCreator Method ********");
 
-        // Fetch the verified email directly from the verification service
         var verifiedEmail = _httpContextAccessor.HttpContext?.Session.GetString("VerifiedEmail");
 
         if (string.IsNullOrEmpty(verifiedEmail))
@@ -506,80 +557,121 @@ public class AuthService : IAuthService
             };
         }
 
-        var names = registerCreatorDto.FullName.Split(' ');
-        var firstName = names[0];
-        var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
-
-        var applicationUser = new ApplicationUser
+        using (var transaction = await _repository.BeginTransactionAsync())
         {
-            FirstName = firstName,
-            LastName = lastName,
-            UserName = verifiedEmail,
-            AppUserName = registerCreatorDto.AppUserName,
-            Email = verifiedEmail,
-            PhoneNumber = registerCreatorDto.PhoneNumber,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            WalletId = GenerateWalletId(),
-            PublicId = Guid.NewGuid().ToString(),
-        };
-
-        var creator = new Creator
-        {
-            ApplicationUserId = applicationUser.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            ApplicationUser = applicationUser,
-        };
-
-        var result = await _userManager.CreateAsync(applicationUser, registerCreatorDto.Password);
-        if (!result.Succeeded)
-        {
-            return new ServerResponse<RegisterUserResponseDto>
+            try
             {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
+
+                var names = registerCreatorDto.FullName!.Split(' ');
+                var firstName = names[0];
+                var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
+
+                var applicationUser = new ApplicationUser
                 {
-                    ResponseCode = "400",
-                    ResponseMessage = "User creation failed",
-                    ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
-                }
-            };
-        }
+                    FirstName = firstName,
+                    LastName = lastName,
+                    UserName = verifiedEmail,
+                    AppUserName = registerCreatorDto.AppUserName,
+                    Email = verifiedEmail,
+                    PhoneNumber = registerCreatorDto.PhoneNumber,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    WalletId = GenerateWalletId(),
+                    PublicId = Guid.NewGuid().ToString(),
+                    Bio = registerCreatorDto.Bio,
+                    Location = registerCreatorDto.Location,
+                    Occupation = registerCreatorDto.Occupation,
+                    IsVerified = false // Mark creator as not verified initially
+                };
 
-        result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.Creator);
-        if (!result.Succeeded)
-        {
-            return new ServerResponse<RegisterUserResponseDto>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
+                var creator = new Creator
                 {
-                    ResponseCode = "400",
-                    ResponseMessage = "Failed to assign role",
-                    ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                    ApplicationUserId = applicationUser.Id,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    ApplicationUser = applicationUser,
+                    Instagram = registerCreatorDto.SocialHandles?.Instagram,
+                    Facebook = registerCreatorDto.SocialHandles?.Facebook,
+                    XTwitter = registerCreatorDto.SocialHandles?.XTwitter,
+                    Tiktok = registerCreatorDto.SocialHandles?.Tiktok,
+                    ExclusiveDeals = registerCreatorDto.ExclusiveDeals?.Select(deal => new ExclusiveDeal
+                    {
+                        Industry = deal.Industry!,
+                        BrandName = deal.BrandName!,
+                        CreatorId = applicationUser.Id
+                    }).ToList() ?? new List<ExclusiveDeal>() // Default to empty list if null
+                };
+
+                var result = await _userManager.CreateAsync(applicationUser, registerCreatorDto.Password!);
+                if (!result.Succeeded)
+                {
+                    return new ServerResponse<RegisterUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "400",
+                            ResponseMessage = "User creation failed",
+                            ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                        }
+                    };
                 }
-            };
-        }
 
-        await _creatorRepository.AddAsync(creator);
-        await _verificationService.MarkEmailAsVerified(verifiedEmail);
-        _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
+                result = await _userManager.AddToRoleAsync(applicationUser, RolesConstant.Creator);
+                if (!result.Succeeded)
+                {
+                    return new ServerResponse<RegisterUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "400",
+                            ResponseMessage = "Failed to assign role",
+                            ResponseDescription = string.Join("; ", result.Errors.Select(e => e.Description))
+                        }
+                    };
+                }
 
-        return new ServerResponse<RegisterUserResponseDto>
-        {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            ResponseMessage = "Registration successful",
-            Data = new RegisterUserResponseDto
-            {
-                UserId = applicationUser.Id,
-                AppUserName = applicationUser.AppUserName,
-                Email = applicationUser.Email,
-                Role = RolesConstant.Creator,
-                Message = "Registration successful."
+                await _creatorRepository.AddAsync(creator);
+                await _verificationService.MarkEmailAsVerified(verifiedEmail);
+                _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
+
+                // Notify Admin/SuperAdmin about pending creator for verification (e.g., send an email or push notification)
+
+                return new ServerResponse<RegisterUserResponseDto>
+                {
+                    IsSuccessful = true,
+                    ResponseCode = "00",
+                    ResponseMessage = "Registration successful. Awaiting Admin verification.",
+                    Data = new RegisterUserResponseDto
+                    {
+                        UserId = applicationUser.Id,
+                        AppUserName = applicationUser.AppUserName,
+                        Email = applicationUser.Email,
+                        Location = applicationUser.Location,
+                        Role = RolesConstant.Creator,
+                        Message = "Registration successful. Your account will be activated after Admin verification."
+                    }
+                };
             }
-        };
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred during registration: {ex.Message}");
+
+                await transaction.RollbackAsync();
+
+                return new ServerResponse<RegisterUserResponseDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "500",
+                        ResponseMessage = "Registration.Error",
+                        ResponseDescription = "An unexpected error occurred during registration."
+                    }
+                };
+            }
+        }
     }
 
     public async Task<ServerResponse<LoginResponseDto>> Login(LoginUserDto loginUserDto)
@@ -634,7 +726,7 @@ public class AuthService : IAuthService
         try
         {
             _logger.LogInformation("Generating token for user {email}", user.Email);
-            var token = _jwtService.GenerateToken(user, roles);
+            var token = _jwtService.GenerateToken(user, roles!);
 
             var email = user.Email ?? string.Empty;
             var fullName = user.FullName ?? string.Empty;
@@ -644,7 +736,7 @@ public class AuthService : IAuthService
                 IsSuccessful = true,
                 ResponseCode = "00",
                 ResponseMessage = "Login successful",
-                Data = new LoginResponseDto(token, fullName, roles, email)
+                Data = new LoginResponseDto(token, fullName, roles!, email)
             };
         }
         catch (Exception ex)
@@ -843,10 +935,10 @@ public class AuthService : IAuthService
         _logger.LogInformation("******* Inside the AdminForgotPassword Method ********");
 
         // Retrieve the user by email
-        var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email);
+        var user = await _userManager.FindByEmailAsync(forgotPasswordDto.Email!);
 
-        // Check if user is null and is an admin or supper admin
-        if (user == null || !(await _userManager.IsInRoleAsync(user, "Admin")) || !(await _userManager.IsInRoleAsync(user, "SuperAdmin")))
+        // Check if user is null and is not an admin or supper admin
+        if (user == null)
         {
             return new ServerResponse<RegistrationResponseDto>
             {
@@ -855,11 +947,25 @@ public class AuthService : IAuthService
                 {
                     ResponseCode = "400",
                     ResponseMessage = "Auth.Error",
-                    ResponseDescription = "No admin user found with the provided email"
+                    ResponseDescription = "User not found with the provided email"
                 }
             };
         }
 
+       
+        if ((await _userManager.IsInRoleAsync(user, "Creator")) || (await _userManager.IsInRoleAsync(user, "RegularUser")))
+        {
+            return new ServerResponse<RegistrationResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "User not a Super admin or admin."
+                }
+            };
+        }
         // Generate a verification code
         var verificationCode = GenerateVerificationCode();
 
@@ -867,7 +973,7 @@ public class AuthService : IAuthService
         const string emailSubject = "Admin Password Reset Verification Code";
         var emailBody = $"Hello {user.FullName}, your admin password reset verification code is: {verificationCode}.";
 
-        var isSuccessful = await _emailService.SendEmailAsync(forgotPasswordDto.Email, emailSubject, emailBody);
+        var isSuccessful = await _emailService.SendEmailAsync(forgotPasswordDto.Email!, emailSubject, emailBody);
         if (!isSuccessful)
         {
             return new ServerResponse<RegistrationResponseDto>
@@ -940,7 +1046,7 @@ public class AuthService : IAuthService
 
         // Step 3: Retrieve the user by email and check if they are an admin
         var user = await _userManager.FindByEmailAsync(email);
-        if (user == null || !(await _userManager.IsInRoleAsync(user, "Admin")) || !(await _userManager.IsInRoleAsync(user, "Admin")))
+        if (user == null || (await _userManager.IsInRoleAsync(user, "Creator")) || (await _userManager.IsInRoleAsync(user, "RegularUser")))
         {
             return new ServerResponse<string>
             {
@@ -964,13 +1070,13 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<ServerResponse<PasswordResetResponseDto>> ResetAdminPassword(ResetPasswordWithCodeDto resetPasswordDto, string email)
+    public async Task<ServerResponse<PasswordResetResponseDto>> ResetAdminPassword(AdminResetPasswordWithCodeDto resetPasswordDto, string email)
     {
         _logger.LogInformation("******* Inside the ResetAdminPassword Method ********");
 
         // Step 1: Retrieve the user by email and check if they are an admin
         var user = await _userManager.FindByEmailAsync(email);
-        if (user == null || !(await _userManager.IsInRoleAsync(user, "Admin")))
+        if (user == null || (await _userManager.IsInRoleAsync(user, "Creator")) || (await _userManager.IsInRoleAsync(user, "RegularUser")))
         {
             return new ServerResponse<PasswordResetResponseDto>
             {
@@ -1001,7 +1107,7 @@ public class AuthService : IAuthService
 
         // Step 3: Generate a password reset token and reset the password
         var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-        var resetPasswordResult = await _userManager.ResetPasswordAsync(user, resetToken, resetPasswordDto.NewPassword);
+        var resetPasswordResult = await _userManager.ResetPasswordAsync(user, resetToken, resetPasswordDto.NewPassword!);
         if (!resetPasswordResult.Succeeded)
         {
             return new ServerResponse<PasswordResetResponseDto>

@@ -16,7 +16,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Admin> Admins { get; set; }
     public DbSet<SuperAdmin> SuperAdmins { get; set; }
     public DbSet<Creator> Creators { get; set; }
-    public DbSet<RegularUser> RegularUsers { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Transfer> Transfers { get; set; }
@@ -41,6 +40,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AdminPermission> AdminPermissions { get; set; }
     public DbSet<AdminRole> AdminRoles { get; set; }
     public DbSet<Impression> Impressions { get; set; }
+    public DbSet<Favorite> Favorites { get; set; }
+    public DbSet<Follow> Follows { get; set; }
+    public DbSet<CollaborationRate> CollabRates { get; set; }
+    public DbSet<RegularUser> RegularUsers { get; set; }
 
 
 
@@ -51,6 +54,18 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<AdminRole>()
         .Property(r => r.RoleName)
         .HasConversion<string>();
+
+        modelBuilder.Entity<RegularUser>()
+        .HasOne(r => r.ApplicationUser)
+        .WithOne(u => u.RegularUser)
+        .HasForeignKey<RegularUser>(r => r.ApplicationUserId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Creator>()
+        .HasOne(r => r.ApplicationUser)
+        .WithOne(u => u.Creator)
+        .HasForeignKey<Creator>(r => r.ApplicationUserId)
+        .OnDelete(DeleteBehavior.Restrict);
 
         // ApplicationUser Configuration
         modelBuilder.Entity<ApplicationUser>()

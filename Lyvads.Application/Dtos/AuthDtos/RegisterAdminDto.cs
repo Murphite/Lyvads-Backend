@@ -24,6 +24,7 @@ public class RegisterSuperAdminDto
     public required string FullName { get; init; } = default!;
     public required string AppUserName { get; init; } = default!;
     public required string PhoneNumber { get; init; } = default!;
+    public required string Location { get; init; } = default!;
     [EmailAddress] public required string Email { get; init; }
 
     [Required(ErrorMessage = "New password is required")]

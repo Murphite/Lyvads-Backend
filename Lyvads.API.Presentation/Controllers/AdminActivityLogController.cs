@@ -2,12 +2,15 @@
 using Lyvads.Application.Dtos.SuperAdminDtos;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lyvads.API.Presentation.Controllers;
 
-[Route("api/[controller]")]
+
 [ApiController]
+[Authorize]
+[Route("api/[controller]")]
 public class AdminActivityLogController : ControllerBase
 {
     private readonly IAdminActivityLogService _activityLogService;

@@ -30,4 +30,6 @@ public class ApplicationUser : IdentityUser, IAuditable
     public string? StripeAccountId { get; set; } = default!;
     public bool IsActive { get; set; } = true;
     public AdminPermission AdminPermissions { get; set; } = default!;
+    public RegularUser? RegularUser { get; set; }
+    public Creator? Creator { get; set; }
 }

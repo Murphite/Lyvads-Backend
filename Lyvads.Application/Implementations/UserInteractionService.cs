@@ -14,6 +14,7 @@ using Stripe.Checkout;
 using Lyvads.Domain.Responses;
 using Lyvads.Application.Dtos.AuthDtos;
 using Microsoft.EntityFrameworkCore;
+using Lyvads.Shared.DTOs;
 
 namespace Lyvads.Application.Implementations;
 
@@ -508,6 +509,225 @@ public class UserInteractionService : IUserInteractionService
             IsSuccessful = true
         };
     }
+
+    public async Task<ServerResponse<int>> GetNumberOfLikesAsync(string postId)
+    {
+        var likesCount = await _userRepository.GetLikesCountAsync(postId);
+        return new ServerResponse<int>
+        {
+            IsSuccessful = true,
+            Data = likesCount
+        };
+    }
+
+    public async Task<ServerResponse<int>> GetNumberOfCommentsAsync(string postId)
+    {
+        var commentsCount = await _repository.GetAll<Comment>()
+            .CountAsync(c => c.PostId == postId);
+
+        return new ServerResponse<int>
+        {
+            IsSuccessful = true,
+            Data = commentsCount
+        };
+    }
+
+    public async Task<ServerResponse<List<string>>> GetUsersWhoLikedPostAsync(string postId)
+    {
+        var userIds = await _userRepository.GetUserIdsWhoLikedPostAsync(postId);
+
+        return new ServerResponse<List<string>>
+        {
+            IsSuccessful = true,
+            Data = userIds
+        };
+    }
+
+    public async Task<ServerResponse<List<CommentResponseDto>>> GetAllCommentsOnPostAsync(string postId)
+    {
+        var comments = await _repository.GetAll<Comment>()
+            .Where(c => c.PostId == postId)
+            .ToListAsync();
+
+        var commentResponses = comments.Select(c => new CommentResponseDto
+        {
+            CommentId = c.Id,
+            UserId = c.ApplicationUserId,
+            Content = c.Content,
+            CreatedAt = c.CreatedAt,
+            UpdatedAt = c.UpdatedAt,
+            CommentBy = c.CommentBy
+        }).ToList();
+
+        return new ServerResponse<List<CommentResponseDto>>
+        {
+            IsSuccessful = true,
+            Data = commentResponses
+        };
+    }
+
+    public async Task<ServerResponse<object>> AddCreatorToFavoritesAsync(string userId, string creatorId)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.Error",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        await _userRepository.AddFavoriteAsync(userId, creatorId);
+
+        return new ServerResponse<object>
+        {
+            IsSuccessful = true
+        };
+    }
+
+    public async Task<ServerResponse<List<CreatorResponseDto>>> GetFavoriteCreatorsAsync(string userId)
+    {
+        var favoriteCreators = await _userRepository.GetFavoriteCreatorsAsync(userId);
+
+        var creatorResponses = favoriteCreators.Select(c => new CreatorResponseDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            ProfilePicture = c.ProfilePicture,
+            Industry = c.Industry,
+            AppUserName = c.AppUserName,
+        }).ToList();
+
+        return new ServerResponse<List<CreatorResponseDto>>
+        {
+            IsSuccessful = true,
+            Data = creatorResponses
+        };
+    }
+
+  
+    public async Task<ServerResponse<List<ViewPostResponseDto>>> GetAllPostsOfCreatorAsync(string creatorId)
+    {
+        var posts = await _repository.GetAll<Post>()
+            .Where(p => p.CreatorId == creatorId)
+            .ToListAsync();
+
+        var postResponses = posts.Select(p => new ViewPostResponseDto
+        {
+            PostId = p.Id,
+            Caption = p.Caption,
+            CreatedAt = p.CreatedAt
+        }).ToList();
+
+        return new ServerResponse<List<ViewPostResponseDto>>
+        {
+            IsSuccessful = true,
+            Data = postResponses
+        };
+    }
+
+    public async Task<ServerResponse<List<FeaturedCreatorDto>>> GetFeaturedCreatorsAsync(int count)
+    {
+        var creators = await _userRepository.GetCreatorsWithMostEngagementAndFollowersAsync(count); // Pass count here
+
+        var featuredCreators = creators.Select(c => new FeaturedCreatorDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            ProfilePicture = c.ProfilePicture,
+            Industry = c.Industry,
+            EngagementCount = c.EngagementCount,
+            FollowersCount = c.FollowersCount 
+        }).ToList();
+
+        return new ServerResponse<List<FeaturedCreatorDto>>
+        {
+            IsSuccessful = true,
+            Data = featuredCreators
+        };
+    }
+
+
+    public async Task<ServerResponse<CreatorProfileDto>> ViewCreatorProfileAsync(string creatorId)
+    {
+        var creator = await _userRepository.GetCreatorByIdAsync(creatorId);
+        if (creator == null)
+        {
+            return new ServerResponse<CreatorProfileDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Creator.Error",
+                    ResponseMessage = "Creator not found."
+                }
+            };
+        }
+
+        // Calculate the sum of rates per request type
+        var collabRates = creator?.CollabRates?
+         .GroupBy(c => c.RequestType)
+         .Select(group => new CollabRateDto
+         {
+             RequestType = group.Key.ToString(), // RequestType from CollaborationRate
+             TotalAmount = group.Sum(c => c.TotalAmount) // Summing Rate from CollaborationRate entity
+         })
+         .ToList();
+
+
+        // Get all posts and convert to ViewPostDto
+        var postResponse = await GetAllPostsOfCreatorAsync(creatorId);
+        var posts = postResponse.Data.Select(p => new ViewPostDto
+        {
+            Id = p.PostId,
+            Caption = p.Caption,
+            CreatedAt = p.CreatedAt
+        }).ToList();
+
+        var creatorProfile = new CreatorProfileDto
+        {
+            Name = creator?.Name,
+            AppUserName = creator?.AppUserName,
+            FollowersCount = await _userRepository.GetFollowerCountAsync(creatorId),
+            Posts = posts,
+            Bio = creator?.Bio,
+            Occupation = creator?.Occupation,
+            CollabRates = collabRates // Correctly assigning the aggregated rates
+        };
+
+        return new ServerResponse<CreatorProfileDto>
+        {
+            IsSuccessful = true,
+            Data = creatorProfile
+        };
+    }
+
+    public async Task<ServerResponse<object>> FollowCreatorAsync(string userId, string creatorId)
+    {
+        await _userRepository.FollowCreatorAsync(userId, creatorId);
+
+        return new ServerResponse<object>
+        {
+            IsSuccessful = true
+        };
+    }
+
+
+    public async Task<ServerResponse<object>> UnfollowCreatorAsync(string userId, string creatorId)
+    {
+        await _userRepository.UnfollowCreatorAsync(userId, creatorId);
+
+        return new ServerResponse<object>
+        {
+            IsSuccessful = true
+        };
+    }
+
 
 
 

@@ -1,12 +1,14 @@
 ﻿using Lyvads.Application.Dtos;
 using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class AdminChargeController : ControllerBase
 {

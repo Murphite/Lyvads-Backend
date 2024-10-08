@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Lyvads.Application.Implementations;
 using Lyvads.Application.Dtos.SuperAdminDtos;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Lyvads.API.Presentation.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
+[Authorize]
+[Route("api/[controller]")]
 public class AdminPermissionsController : Controller
 {
     private readonly IAdminPermissionsService _adminPermissionsService;

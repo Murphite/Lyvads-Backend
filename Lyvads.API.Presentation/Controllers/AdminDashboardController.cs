@@ -4,6 +4,7 @@ using Lyvads.Application.Dtos.AuthDtos;
 using Lyvads.Application.Dtos.SuperAdminDtos;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lyvads.API.Presentation.Controllers;
@@ -51,9 +52,7 @@ public class AdminDashboardController : Controller
     //    return Ok(response);
     //}
 
-    
     [HttpGet("dashboard-summary")]
-    [ProducesResponseType(typeof(ServerResponse<DashboardSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ServerResponse<DashboardSummaryDto>>> GetDashboardSummary()
     {
         var result = await _adminService.GetDashboardSummary();
@@ -66,7 +65,6 @@ public class AdminDashboardController : Controller
 
     
     [HttpGet("revenue-report")]
-    [ProducesResponseType(typeof(ServerResponse<DashboardSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ServerResponse<RevenueReportDto>>> GetRevenueReport()
     {
         var result = await _adminService.GetRevenueReport();
@@ -79,7 +77,6 @@ public class AdminDashboardController : Controller
 
     
     [HttpGet("top-requests")]
-    [ProducesResponseType(typeof(ServerResponse<DashboardSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ServerResponse<List<TopRequestDto>>>> GetTopRequests()
     {
         var result = await _adminService.GetTopRequests();
@@ -92,7 +89,6 @@ public class AdminDashboardController : Controller
 
     
     [HttpGet("top-creators")]
-    [ProducesResponseType(typeof(ServerResponse<DashboardSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ServerResponse<List<TopCreatorDto>>>> GetTopCreators()
     {
         var result = await _adminService.GetTopCreators();
@@ -105,7 +101,6 @@ public class AdminDashboardController : Controller
 
     
     [HttpGet("collaboration-statuses")]
-    [ProducesResponseType(typeof(ServerResponse<DashboardSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ServerResponse<CollaborationStatusReportDto>>> GetCollaborationStatusesReport()
     {
         var result = await _adminService.GetCollaborationStatusesReport();

@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lyvads.Infrastructure\Lyvads.Infrastructure.csproj" />
+    <ProjectReference Include="..\Lyvads.Shared\Lyvads.Shared.csproj" />
   </ItemGroup>
 
 </Project>

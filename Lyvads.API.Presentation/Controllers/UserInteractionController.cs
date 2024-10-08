@@ -8,6 +8,8 @@ using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Implementations;
 using Microsoft.AspNetCore.Identity;
 using Lyvads.Domain.Entities;
+using Lyvads.Shared.DTOs;
+using Lyvads.Application.Dtos;
 
 namespace Lyvads.API.Controllers;
 
@@ -137,7 +139,104 @@ public class UserInteractionController : ControllerBase
         return Ok(ResponseDto<MakeRequestResponseDto>.Success(result.Data));
     }
 
+    [HttpGet("posts/{postId}/likes")]
+    public async Task<IActionResult> GetNumberOfLikes(string postId)
+    {
+        var response = await _userInteractionService.GetNumberOfLikesAsync(postId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
 
+    [HttpGet("posts/{postId}/comments")]
+    public async Task<IActionResult> GetNumberOfComments(string postId)
+    {
+        var response = await _userInteractionService.GetNumberOfCommentsAsync(postId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpGet("posts/{postId}/users-who-liked")]
+    public async Task<IActionResult> GetUsersWhoLikedPost(string postId)
+    {
+        var response = await _userInteractionService.GetUsersWhoLikedPostAsync(postId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpGet("posts/{postId}/comments/all")]
+    public async Task<IActionResult> GetAllCommentsOnPost(string postId)
+    {
+        var response = await _userInteractionService.GetAllCommentsOnPostAsync(postId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpPost("favorites")]
+    public async Task<IActionResult> AddCreatorToFavorites([FromBody] AddFavoriteDto favoriteDto)
+    {
+        var response = await _userInteractionService.AddCreatorToFavoritesAsync(favoriteDto.UserId, favoriteDto.CreatorId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpGet("{userId}/favorites/creators")]
+    public async Task<IActionResult> GetFavoriteCreators(string userId)
+    {
+        var response = await _userInteractionService.GetFavoriteCreatorsAsync(userId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpGet("creators/{creatorId}/posts")]
+    public async Task<IActionResult> GetAllPostsOfCreator(string creatorId)
+    {
+        var response = await _userInteractionService.GetAllPostsOfCreatorAsync(creatorId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpGet("creators/featured")]
+    public async Task<IActionResult> GetFeaturedCreators([FromQuery] int count)
+    {
+        var response = await _userInteractionService.GetFeaturedCreatorsAsync(count);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpGet("creators/{creatorId}")]
+    public async Task<IActionResult> ViewCreatorProfile(string creatorId)
+    {
+        var response = await _userInteractionService.ViewCreatorProfileAsync(creatorId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpPost("creators/{creatorId}/follow")]
+    public async Task<IActionResult> FollowCreator(string userId, string creatorId)
+    {
+        var response = await _userInteractionService.FollowCreatorAsync(userId, creatorId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpPost("creators/{creatorId}/unfollow")]
+    public async Task<IActionResult> UnfollowCreator(string userId, string creatorId)
+    {
+        var response = await _userInteractionService.UnfollowCreatorAsync(userId, creatorId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
 
     //[HttpPost("CreateRequest")]
     //public async Task<IActionResult> CreateRequest([FromBody] CreateRequestDto createRequestDto)
@@ -157,5 +256,11 @@ public class UserInteractionController : ControllerBase
     {
         public string? UserId { get; set; }
         public string? ContentId { get; set; }
+    }
+
+    public class AddFavoriteDto
+    {
+        public string? UserId { get; set; }
+        public string? CreatorId { get; set; }
     }
 }

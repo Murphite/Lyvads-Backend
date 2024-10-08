@@ -1,7 +1,9 @@
 using Lyvads.API.Extensions;
+using Lyvads.API.Presentation.Extensions;
 using Lyvads.API.Presentation.Middlewares;
 using Lyvads.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Stripe;
 
@@ -12,7 +14,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbServices(builder.Configuration);
 builder.Services.AddServices(builder.Configuration);
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lyvads API", Version = "v1" });
+
+    // Optional: Add custom OperationFilter to remove specific default responses
+    c.OperationFilter<RemoveDefaultResponseFilter>();
+});
 
 // Add Serilog for logging
 builder.Logging.AddSerilog();

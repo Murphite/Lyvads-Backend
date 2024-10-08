@@ -1191,6 +1191,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
+          "Lyvads.Shared": "1.0.0",
           "Microsoft.AspNetCore.Http.Features": "5.0.17",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.8",
           "Newtonsoft.Json": "13.0.3",
@@ -1201,6 +1202,16 @@
         },
         "runtime": {
           "bin/placeholder/Lyvads.Domain.dll": {}
+        }
+      },
+      "Lyvads.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Lyvads.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Lyvads.Shared.dll": {}
         }
       }
     }
@@ -3149,11 +3160,17 @@
       "type": "project",
       "path": "../Lyvads.Domain/Lyvads.Domain.csproj",
       "msbuildProject": "../Lyvads.Domain/Lyvads.Domain.csproj"
+    },
+    "Lyvads.Shared/1.0.0": {
+      "type": "project",
+      "path": "../Lyvads.Shared/Lyvads.Shared.csproj",
+      "msbuildProject": "../Lyvads.Shared/Lyvads.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
       "Lyvads.Domain >= 1.0.0",
+      "Lyvads.Shared >= 1.0.0",
       "MailKit >= 4.8.0",
       "Microsoft.EntityFrameworkCore >= 8.0.8",
       "Microsoft.EntityFrameworkCore.SqlServer >= 8.0.8",
@@ -3191,6 +3208,9 @@
           "projectReferences": {
             "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Lyvads.Domain.csproj": {
               "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Lyvads.Domain.csproj"
+            },
+            "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\Lyvads.Shared.csproj": {
+              "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\Lyvads.Shared.csproj"
             }
           }
         }

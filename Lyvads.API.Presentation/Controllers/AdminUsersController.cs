@@ -1,10 +1,13 @@
 ﻿using Lyvads.Application.Dtos.AuthDtos;
 using Lyvads.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class AdminUsersController : Controller
 {
@@ -32,10 +35,10 @@ public class AdminUsersController : Controller
     }
 
 
-    [HttpPost("register")]
-    public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto registerUserDto)
+    [HttpPost("add-user")]
+    public async Task<IActionResult> AddUser([FromBody] RegisterUserDto registerUserDto)
     {
-        var response = await _superAdminService.RegisterUser(registerUserDto);
+        var response = await _superAdminService.AddUser(registerUserDto);
         if (!response.IsSuccessful)
         {
             _logger.LogError("User registration failed: {Error}", response.ErrorResponse.ResponseDescription);
@@ -74,7 +77,7 @@ public class AdminUsersController : Controller
     [HttpPost("{userId}/activate")]
     public async Task<IActionResult> ActivateUser(string userId)
     {
-        var response = await _superAdminService.ActivateUser(userId);
+        var response = await _superAdminService.ActivateUserAsync(userId);
         if (!response.IsSuccessful)
         {
             _logger.LogError("User activation failed: {Error}", response.ErrorResponse.ResponseDescription);

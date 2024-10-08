@@ -7,5 +7,6 @@ namespace Lyvads.Domain.Repositories;
 public interface ISuperAdminRepository
 {
     Task AddAsync(SuperAdmin superAdmin);
+
 }
 

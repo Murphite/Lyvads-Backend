@@ -3131,6 +3131,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
+          "Lyvads.Shared": "1.0.0",
           "Microsoft.AspNetCore.Http.Features": "5.0.17",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.8",
           "Newtonsoft.Json": "13.0.3",
@@ -3148,6 +3149,7 @@
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
           "Lyvads.Domain": "1.0.0",
+          "Lyvads.Shared": "1.0.0",
           "MailKit": "4.8.0",
           "Microsoft.EntityFrameworkCore": "8.0.8",
           "Microsoft.EntityFrameworkCore.SqlServer": "8.0.8",
@@ -3159,6 +3161,16 @@
         },
         "runtime": {
           "bin/placeholder/Lyvads.Infrastructure.dll": {}
+        }
+      },
+      "Lyvads.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Lyvads.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Lyvads.Shared.dll": {}
         }
       }
     }
@@ -8804,12 +8816,18 @@
       "type": "project",
       "path": "../Lyvads.Infrastructure/Lyvads.Infrastructure.csproj",
       "msbuildProject": "../Lyvads.Infrastructure/Lyvads.Infrastructure.csproj"
+    },
+    "Lyvads.Shared/1.0.0": {
+      "type": "project",
+      "path": "../Lyvads.Shared/Lyvads.Shared.csproj",
+      "msbuildProject": "../Lyvads.Shared/Lyvads.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
       "CloudinaryDotNet >= 1.26.2",
       "Lyvads.Infrastructure >= 1.0.0",
+      "Lyvads.Shared >= 1.0.0",
       "Microsoft.AspNet.Mvc >= 5.3.0",
       "Microsoft.AspNetCore.Hosting >= 2.1.1",
       "Microsoft.AspNetCore.Hosting.Abstractions >= 2.2.0",
@@ -8849,6 +8867,9 @@
           "projectReferences": {
             "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj": {
               "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj"
+            },
+            "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\Lyvads.Shared.csproj": {
+              "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\Lyvads.Shared.csproj"
             }
           }
         }

@@ -99,7 +99,7 @@ public class AdminUserService : ISuperAdminService
         }
     }
 
-    public async Task<ServerResponse<AddUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto)
+    public async Task<ServerResponse<AddUserResponseDto>> AddUser(RegisterUserDto registerUserDto)
     {
         var currentUserId = _currentUserService.GetCurrentUserId();
         var currentUser = await _userManager.FindByIdAsync(currentUserId);
@@ -134,8 +134,10 @@ public class AdminUserService : ISuperAdminService
             };
         }
 
-        var validRoles = new[] { UserRoleEnum.Admin, UserRoleEnum.SuperAdmin };
-        if (!validRoles.Contains(registerUserDto.Role))
+        // Validate the role
+        var validRoles = new[] { RolesConstant.Creator, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.SuperAdmin };
+
+        if (string.IsNullOrWhiteSpace(registerUserDto.Role) || !validRoles.Contains(registerUserDto.Role.ToUpper()))
         {
             return new ServerResponse<AddUserResponseDto>
             {
@@ -149,9 +151,11 @@ public class AdminUserService : ISuperAdminService
             };
         }
 
-        var names = registerUserDto.FullName.Split(' ');
+        var role = registerUserDto.Role;
+
+        var names = registerUserDto.FullName.Split(' ', 2);
         var firstName = names[0];
-        var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
+        var lastName = names.Length > 1 ? names[1] : string.Empty;
 
         var applicationUser = new ApplicationUser
         {
@@ -163,22 +167,6 @@ public class AdminUserService : ISuperAdminService
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             PublicId = Guid.NewGuid().ToString(),
-        };
-
-        var superAdmin = new SuperAdmin
-        {
-            ApplicationUserId = applicationUser.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            ApplicationUser = applicationUser,
-        };
-
-        var admin = new Admin
-        {
-            ApplicationUserId = applicationUser.Id,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            ApplicationUser = applicationUser,
         };
 
         var result = await _userManager.CreateAsync(applicationUser, registerUserDto.Password);
@@ -197,7 +185,7 @@ public class AdminUserService : ISuperAdminService
             };
         }
 
-        result = await _userManager.AddToRoleAsync(applicationUser, registerUserDto.Role.ToString());
+        result = await _userManager.AddToRoleAsync(applicationUser, role);
         if (!result.Succeeded)
         {
             return new ServerResponse<AddUserResponseDto>
@@ -212,13 +200,41 @@ public class AdminUserService : ISuperAdminService
             };
         }
 
-        switch (registerUserDto.Role)
+        // Add the user to the corresponding role repository
+        switch (role)
         {
-            case UserRoleEnum.Admin:
-                await _adminRepository.AddAsync(admin);
+            case RolesConstant.Admin:
+                await _adminRepository.AddAsync(new Admin 
+                {
+                    ApplicationUserId = applicationUser.Id, 
+                    CreatedAt = DateTimeOffset.UtcNow, 
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    ApplicationUser = applicationUser 
+                });
                 break;
-            case UserRoleEnum.SuperAdmin:
-                await _superAdminRepository.AddAsync(superAdmin);
+            case RolesConstant.SuperAdmin:
+                await _superAdminRepository.AddAsync(new SuperAdmin 
+                { ApplicationUserId = applicationUser.Id, 
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow, 
+                    ApplicationUser = applicationUser 
+                });
+                break;
+            case RolesConstant.Creator:
+                await _creatorRepository.AddAsync(new Creator 
+                { ApplicationUserId = applicationUser.Id, 
+                    CreatedAt = DateTimeOffset.UtcNow, 
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    ApplicationUser = applicationUser 
+                });
+                break;
+            case RolesConstant.RegularUser:
+                await _regularUserRepository.AddAsync(new RegularUser 
+                { ApplicationUserId = applicationUser.Id, 
+                    CreatedAt = DateTimeOffset.UtcNow, 
+                    UpdatedAt = DateTimeOffset.UtcNow, 
+                    ApplicationUser = applicationUser 
+                });
                 break;
         }
 
@@ -226,11 +242,11 @@ public class AdminUserService : ISuperAdminService
         {
             UserId = applicationUser.Id,
             Email = applicationUser.Email,
-            Role = registerUserDto.Role.ToString(),
-            Message = $"{registerUserDto.Role} registration successful."
+            Role = role,
+            Message = $"{role} registration successful."
         };
 
-        _logger.LogInformation("User {UserEmail} registered successfully as {UserRole}", applicationUser.Email, registerUserDto.Role);
+        _logger.LogInformation("User {UserEmail} registered successfully as {UserRole}", applicationUser.Email, role);
         return new ServerResponse<AddUserResponseDto> { IsSuccessful = true, Data = addUserResponse };
     }
 
@@ -393,55 +409,66 @@ public class AdminUserService : ISuperAdminService
         };
     }
 
-    public async Task<ServerResponse<string>> ActivateUser(string userId)
+    public async Task<ServerResponse<string>> ActivateUserAsync(string userId)
     {
-        _logger.LogInformation($"Attempting to activate user with ID: {userId}");
-
+        // Retrieve the user by ID
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            _logger.LogWarning($"User with ID {userId} not found.");
             return new ServerResponse<string>
             {
                 IsSuccessful = false,
-                ResponseCode = "404",
-                ResponseMessage = "User not found"
-            };
-        }
-
-        user.LockoutEnd = null;  // Removes lockout
-
-        var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.Select(error => new ErrorResponse
-            {
-                ResponseCode = error.Code,
-                ResponseMessage = error.Description
-            }).ToList();
-
-            _logger.LogError($"Failed to activate user {userId}. Errors: {string.Join(", ", errors.Select(e => e.ResponseMessage))}");
-
-            return new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "400",
-                ResponseMessage = "Failed to activate user",
                 ErrorResponse = new ErrorResponse
                 {
-                    ResponseCode = "400",
-                    ResponseMessage = "Activation failed",
-                    ResponseDescription = string.Join(", ", errors.Select(e => e.ResponseMessage))
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found",
+                    ResponseDescription = "The user with the provided ID does not exist."
                 }
             };
         }
 
-        _logger.LogInformation($"User with ID {userId} activated successfully.");
+        // Check if the user is already active
+        if (user.IsActive)
+        {
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "User is already active",
+                    ResponseDescription = "The user is already active, no further action is required."
+                }
+            };
+        }
+
+        // Check if the user is a Creator
+        var isCreator = await _userManager.IsInRoleAsync(user, RolesConstant.Creator);
+
+        // If the user is a Creator and not verified, verify them
+        if (isCreator && !user.IsVerified)
+        {
+            user.IsVerified = true;
+        }
+        else if (!isCreator && !user.IsVerified)
+        {
+            // If it's a regular user, you can decide whether you want to auto-verify them or not
+            user.IsVerified = true;
+        }
+
+        // Activate the user
+        user.IsActive = true;
+
+        // Update the user in the database
+        await _userManager.UpdateAsync(user);
+
         return new ServerResponse<string>
         {
             IsSuccessful = true,
-            ResponseCode = "200",
-            ResponseMessage = "User activated successfully"
+            ResponseMessage = "User has been activated and verified (if necessary) successfully.",
+            Data = "User activation complete"
         };
     }
+
+
 }

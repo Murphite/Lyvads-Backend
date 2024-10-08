@@ -1,11 +1,13 @@
 ﻿using Lyvads.Application.Dtos;
 using Lyvads.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 
 namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class AdminDisputeController : ControllerBase
 {

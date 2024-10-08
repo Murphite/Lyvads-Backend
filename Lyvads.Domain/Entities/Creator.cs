@@ -15,10 +15,18 @@ public class Creator : Entity, IAuditable
     public decimal Price { get; set; }
 
     // Social Media Handles
+    public string? Instagram { get; set; }
+    public string? Facebook { get; set; }
+    public string? XTwitter { get; set; }
+    public string? Tiktok { get; set; }
+
+
+    // Creator SetUp Rates
     public string? SimpleAdvert { get; set; }
     public string? WearBrand { get; set; }
     public string? SongAdvert { get; set; }
     public RequestType? Request { get; set; }
+    
 
     // Exclusive Deal Properties
     public bool HasExclusiveDeal { get; set; }
@@ -27,9 +35,16 @@ public class Creator : Entity, IAuditable
     public DateTimeOffset UpdatedAt { get; set; }
     [Column(TypeName = "decimal(18, 2)")]
     public decimal AdvertAmount { get; set; }
-    //navigation property   
+
+
+    // Navigation Property   
     public string ApplicationUserId { get; set; } = default!;
     public ApplicationUser? ApplicationUser { get; set; }
+
+    [NotMapped]
+    public int EngagementCount => Posts.Sum(p => p.Likes.Count + p.Comments.Count);
+    public ICollection<CollaborationRate>? CollabRates { get; set; }
+
 }
 
 public class ExclusiveDeal : Entity
@@ -38,4 +53,12 @@ public class ExclusiveDeal : Entity
     public string BrandName { get; set; } = default!;
     public string CreatorId { get; set; } = default!;
     public Creator Creator { get; set; } = default!;
+}
+
+
+public class CollaborationRate : Entity
+{
+    public RequestType RequestType { get; set; }
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal Rate { get; set; } // Rate for the request
 }

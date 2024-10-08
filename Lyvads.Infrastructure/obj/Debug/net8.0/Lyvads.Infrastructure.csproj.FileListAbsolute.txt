@@ -2,7 +2,9 @@ C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\bin\De
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\bin\Debug\net8.0\Lyvads.Infrastructure.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\bin\Debug\net8.0\Lyvads.Infrastructure.pdb
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\bin\Debug\net8.0\Lyvads.Domain.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\bin\Debug\net8.0\Lyvads.Shared.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\bin\Debug\net8.0\Lyvads.Domain.pdb
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\bin\Debug\net8.0\Lyvads.Shared.pdb
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\obj\Debug\net8.0\Lyvads.Infrastructure.csproj.AssemblyReference.cache
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\obj\Debug\net8.0\Lyvads.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.Infrastructure\obj\Debug\net8.0\Lyvads.Infrastructure.AssemblyInfoInputs.cache

@@ -2,6 +2,7 @@
 using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 namespace Lyvads.API.Presentation.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class AdminCollaborationController : ControllerBase
 {

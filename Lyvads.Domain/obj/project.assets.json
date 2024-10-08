@@ -400,6 +400,16 @@
         "build": {
           "buildTransitive/net6.0/System.Text.Json.targets": {}
         }
+      },
+      "Lyvads.Shared/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Lyvads.Shared.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Lyvads.Shared.dll": {}
+        }
       }
     }
   },
@@ -1074,10 +1084,16 @@
         "system.text.json.nuspec",
         "useSharedDesignerContext.txt"
       ]
+    },
+    "Lyvads.Shared/1.0.0": {
+      "type": "project",
+      "path": "../Lyvads.Shared/Lyvads.Shared.csproj",
+      "msbuildProject": "../Lyvads.Shared/Lyvads.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
+      "Lyvads.Shared >= 1.0.0",
       "Microsoft.AspNetCore.Http.Features >= 5.0.17",
       "Microsoft.AspNetCore.Identity.EntityFrameworkCore >= 8.0.8",
       "Newtonsoft.Json >= 13.0.3",
@@ -1111,7 +1127,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\Lyvads.Shared.csproj": {
+              "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\Lyvads.Shared.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

@@ -5,5 +5,6 @@ namespace Lyvads.Domain.Enums;
 public enum RequestType
 {
     BirthdayShoutouts,
-    Publicity
+    Publicity,
+    BusinessAdverts
 }

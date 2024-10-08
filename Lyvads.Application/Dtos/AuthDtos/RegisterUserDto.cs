@@ -8,6 +8,7 @@ public class RegisterUserDto
     [Required] public required string FullName { get; init; }
     [Required] public required string AppUserName { get; init; }
     [Required] public required string PhoneNumber { get; init; }
+    [Required] public required string Location { get; init; }
     [EmailAddress] public required string Email { get; init; }
 
     [Required(ErrorMessage = "New password is required")]
@@ -18,7 +19,7 @@ public class RegisterUserDto
     [DataType(DataType.Password)]
     [Compare("Password", ErrorMessage = "Password and confirm password do not match")]
     public string? ConfirmPassword { get; set; }
-    public UserRoleEnum Role { get; set; }
+    public string? Role { get; set; }
 }
 
 public enum UserRoleEnum

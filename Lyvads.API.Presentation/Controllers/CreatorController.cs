@@ -33,7 +33,7 @@ public class CreatorController : ControllerBase
 
     
 
-    [HttpPut("UpdateProfile")]
+    [HttpPut("update-creator-setUpRates")]
     public async Task<IActionResult> UpdateCreatorSetUpRates([FromBody] UpdateCreatorProfileDto dto)
     {
         // Get the logged-in user's ID
@@ -52,7 +52,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<CreatorProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
     }    
 
-    [HttpPost("CreatePost")]
+    [HttpPost("create-post")]
     public async Task<IActionResult> CreatePost([FromBody] PostDto postDto)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -68,7 +68,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post Successfully Added"));
     }
 
-    [HttpPut("UpdatePost")]
+    [HttpPut("update-post")]
     public async Task<IActionResult> UpdatePost([FromBody] UpdatePostDto postDto)
     {
         // Get the logged-in user's ID
@@ -85,7 +85,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post successfully updated."));
     }
 
-    [HttpDelete("DeletePost/{postId}")]
+    [HttpDelete("deletePost/{postId}")]
     public async Task<IActionResult> DeletePost(string postId)
     {
         // Get the logged-in user's ID
@@ -102,7 +102,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<object>.Success("Post successfully deleted."));
     }
 
-    [HttpPost("Comment")]
+    [HttpPost("commentOnPost")]
     public async Task<IActionResult> CommentOnPost(string postId, string content)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -118,7 +118,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment added successfully."));
     }
 
-    [HttpPost("LikeComment")]
+    [HttpPost("likeComment")]
     public async Task<IActionResult> LikeComment(string commentId)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -133,7 +133,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
     }
 
-    [HttpPost("LikePost")]
+    [HttpPost("likePost")]
     public async Task<IActionResult> LikePost(string postId)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -147,8 +147,37 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
     }
 
+    [HttpGet("posts")]
+    public async Task<IActionResult> GetPostsByCreator()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
 
-    [HttpPost("Handle-Request")]
+        var result = await _creatorService.GetPostsByCreatorAsync(user.Id);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(ResponseDto<IEnumerable<PostResponseDto>>.Success(result.Data, "Posts retrieved successfully."));
+    }
+
+    [HttpGet("searchQuery")]
+    public async Task<ActionResult<ServerResponse<List<FilterCreatorDto>>>> SearchCreators(
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] string location,
+            [FromQuery] string industry)
+    {
+        var result = await _creatorService.SearchCreatorsAsync(minPrice, maxPrice, location, industry);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(ResponseDto<IEnumerable<FilterCreatorDto>>.Success(result.Data, "Creators retrieved successfully."));
+    }
+
+    [HttpPost("handle-request")]
     public async Task<IActionResult> HandleRequest(string requestId, RequestStatus status)
     {
         var result = await _creatorService.HandleRequestAsync(requestId, status);
@@ -160,7 +189,7 @@ public class CreatorController : ControllerBase
     }
 
 
-    [HttpPost("Send-Video")]
+    [HttpPost("send-video")]
     public async Task<IActionResult> SendVideoToUser(string requestId, IFormFile videoUrl)
     {
         var result = await _creatorService.SendVideoToUserAsync(requestId, videoUrl);
@@ -172,7 +201,7 @@ public class CreatorController : ControllerBase
     }
 
 
-    [HttpGet("Wallet")]
+    [HttpGet("wallet-balance")]
     public async Task<IActionResult> ViewWalletBalance()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -187,7 +216,7 @@ public class CreatorController : ControllerBase
     }
 
 
-    [HttpPost("Withdraw")]
+    [HttpPost("withdraw-to-bankAccount")]
     public async Task<IActionResult> WithdrawToBankAccount([FromBody] WithdrawRequestDto request)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -202,7 +231,7 @@ public class CreatorController : ControllerBase
     }
 
     
-    [HttpGet("Notifications")]
+    [HttpGet("notifications")]
     public async Task<IActionResult> GetNotifications()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -218,34 +247,6 @@ public class CreatorController : ControllerBase
     }
 
 
-    [HttpGet("Posts")]
-    public async Task<IActionResult> GetPostsByCreator()
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not found or unauthorized.");
-
-        var result = await _creatorService.GetPostsByCreatorAsync(user.Id);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(ResponseDto<IEnumerable<PostResponseDto>>.Success(result.Data, "Posts retrieved successfully."));
-    }
-
-    [HttpGet("search")]
-    public async Task<ActionResult<ServerResponse<List<FilterCreatorDto>>>> SearchCreators(
-            [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice,
-            [FromQuery] string location,
-            [FromQuery] string industry)
-    {
-        var result = await _creatorService.SearchCreatorsAsync(minPrice, maxPrice, location, industry);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(ResponseDto<IEnumerable<FilterCreatorDto>>.Success(result.Data, "Creators retrieved successfully."));
-    }
+    
 
 }

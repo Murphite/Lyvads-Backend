@@ -2,6 +2,7 @@
 using Lyvads.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Lyvads.Infrastructure.Repositories;
 
@@ -44,5 +45,9 @@ public class Repository : IRepository
         return await _context.Set<T>().FirstOrDefaultAsync(expression);
     }
 
+    public async Task<IDbContextTransaction> BeginTransactionAsync()
+    {
+        return await _context.Database.BeginTransactionAsync();
+    }
 
 }

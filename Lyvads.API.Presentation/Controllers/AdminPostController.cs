@@ -1,10 +1,12 @@
 ﻿using Lyvads.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lyvads.API.Presentation.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
+[Authorize]
+[Route("api/[controller]")]
 public class AdminPostController : ControllerBase
 {
     private readonly IAdminPostService _adminPostService;
