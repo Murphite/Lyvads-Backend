@@ -57,18 +57,18 @@ public class AdminCollaborationController : ControllerBase
     }
 
     // GET: api/collaboration/download-receipt/{id}
-    [HttpGet("download-receipt/{collaborationId}")]
-    public async Task<ActionResult<ServerResponse<FileStreamResult>>> DownloadReceipt(string collaborationId)
-    {
-        _logger.LogInformation("Handling request to download receipt for collaboration ID: {CollaborationId}", collaborationId);
-        var response = await _collaborationService.DownloadReceiptAsync(collaborationId);
+    //[HttpGet("download-receipt/{collaborationId}")]
+    //public async Task<ActionResult<ServerResponse<FileStreamResult>>> DownloadReceipt(string collaborationId)
+    //{
+    //    _logger.LogInformation("Handling request to download receipt for collaboration ID: {CollaborationId}", collaborationId);
+    //    var response = await _collaborationService.DownloadReceiptAsync(collaborationId);
 
-        if (!response.IsSuccessful)
-        {
-            _logger.LogWarning("Failed to download receipt: {ResponseMessage}", response.ResponseMessage);
-            return NotFound(response);
-        }
+    //    if (!response.IsSuccessful)
+    //    {
+    //        _logger.LogWarning("Failed to download receipt: {ResponseMessage}", response.ResponseMessage);
+    //        return NotFound(response);
+    //    }
 
-        return File(response.Data.FileStream, "application/pdf", response.Data.FileDownloadName);
-    }
+    //    return File(response.Data.FileStream, "application/pdf", response.Data.FileDownloadName);
+    //}
 }

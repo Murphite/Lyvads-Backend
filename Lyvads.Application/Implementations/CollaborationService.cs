@@ -30,7 +30,7 @@ public class CollaborationService : ICollaborationService
     private readonly IDisputeRepository _disputeRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<AdminDashboardService> _logger;
-    private readonly IWebHostEnvironment _webHostEnvironment;
+    //private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly IMediaService _mediaService;
     private readonly IWalletService _walletService;
 
@@ -43,10 +43,10 @@ public class CollaborationService : ICollaborationService
         IUserRepository userRepository,
         IDisputeRepository disputeRepository,
         IRequestRepository requestRepository,
-        ILogger<AdminDashboardService> logger, 
-        IMediaService mediaService, 
-        IWalletService walletService,
-        IWebHostEnvironment webHostEnvironment)
+        ILogger<AdminDashboardService> logger,
+        IMediaService mediaService,
+        IWalletService walletService)
+        //IWebHostEnvironment webHostEnvironment)
     {
         _userManager = userManager;
         _currentUserService = currentUserService;
@@ -57,7 +57,7 @@ public class CollaborationService : ICollaborationService
         _disputeRepository = disputeRepository;
         _creatorRepository = creatorRepository;
         _requestRepository = requestRepository;
-        _webHostEnvironment = webHostEnvironment;
+        //_webHostEnvironment = webHostEnvironment;
         _mediaService = mediaService;
         _walletService = walletService;
     }
@@ -158,55 +158,55 @@ public class CollaborationService : ICollaborationService
         }
     }
 
-    public async Task<ServerResponse<FileStreamResult>> DownloadReceiptAsync(string collaborationId)
-    {
-        _logger.LogInformation("Downloading receipt for collaboration ID: {CollaborationId}", collaborationId);
+    //public async Task<ServerResponse<FileStreamResult>> DownloadReceiptAsync(string collaborationId)
+    //{
+    //    _logger.LogInformation("Downloading receipt for collaboration ID: {CollaborationId}", collaborationId);
 
-        try
-        {
-            var collaboration = await _collaborationRepository.GetByIdAsync(collaborationId);
-            if (collaboration == null || string.IsNullOrEmpty(collaboration.ReceiptUrl))
-            {
-                _logger.LogWarning("Receipt not found for collaboration ID: {CollaborationId}", collaborationId);
-                return new ServerResponse<FileStreamResult>(false)
-                {
-                    ResponseCode = "404",
-                    ResponseMessage = "Receipt not found."
-                };
-            }
+    //    try
+    //    {
+    //        var collaboration = await _collaborationRepository.GetByIdAsync(collaborationId);
+    //        if (collaboration == null || string.IsNullOrEmpty(collaboration.ReceiptUrl))
+    //        {
+    //            _logger.LogWarning("Receipt not found for collaboration ID: {CollaborationId}", collaborationId);
+    //            return new ServerResponse<FileStreamResult>(false)
+    //            {
+    //                ResponseCode = "404",
+    //                ResponseMessage = "Receipt not found."
+    //            };
+    //        }
 
-            var receiptPath = Path.Combine(_webHostEnvironment.WebRootPath, collaboration.ReceiptUrl);
+    //        var receiptPath = Path.Combine(_webHostEnvironment.WebRootPath, collaboration.ReceiptUrl);
 
-            var memory = new MemoryStream();
-            using (var stream = new FileStream(receiptPath, FileMode.Open))
-            {
-                await stream.CopyToAsync(memory);
-            }
-            memory.Position = 0;
+    //        var memory = new MemoryStream();
+    //        using (var stream = new FileStream(receiptPath, FileMode.Open))
+    //        {
+    //            await stream.CopyToAsync(memory);
+    //        }
+    //        memory.Position = 0;
 
-            var fileResult = new FileStreamResult(memory, "application/pdf")
-            {
-                FileDownloadName = $"Receipt_{collaborationId}.pdf"
-            };
+    //        var fileResult = new FileStreamResult(memory, "application/pdf")
+    //        {
+    //            FileDownloadName = $"Receipt_{collaborationId}.pdf"
+    //        };
 
-            _logger.LogInformation("Successfully downloaded receipt for collaboration ID: {CollaborationId}", collaborationId);
-            return new ServerResponse<FileStreamResult>(true)
-            {
-                ResponseCode = "00",
-                ResponseMessage = "Receipt downloaded successfully.",
-                Data = fileResult
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error downloading receipt for collaboration ID: {CollaborationId}", collaborationId);
-            return new ServerResponse<FileStreamResult>(false)
-            {
-                ResponseCode = "500",
-                ResponseMessage = "An error occurred while downloading the receipt."
-            };
-        }
-    }
+    //        _logger.LogInformation("Successfully downloaded receipt for collaboration ID: {CollaborationId}", collaborationId);
+    //        return new ServerResponse<FileStreamResult>(true)
+    //        {
+    //            ResponseCode = "00",
+    //            ResponseMessage = "Receipt downloaded successfully.",
+    //            Data = fileResult
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error downloading receipt for collaboration ID: {CollaborationId}", collaborationId);
+    //        return new ServerResponse<FileStreamResult>(false)
+    //        {
+    //            ResponseCode = "500",
+    //            ResponseMessage = "An error occurred while downloading the receipt."
+    //        };
+    //    }
+    //}
 
     public async Task<ServerResponse<List<GetUserRequestDto>>> GetAllRequestsForCreatorAsync(string creatorId, string status)
     {

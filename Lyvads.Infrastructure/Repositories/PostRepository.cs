@@ -17,6 +17,12 @@ public class PostRepository : IPostRepository
         _context = context;
     }
 
+    public IQueryable<Post> GetAllPosts()
+    {
+        return _context.Posts.AsQueryable();
+    }
+
+
     public async Task<IEnumerable<Post>> GetAllAsync()
     {
         return await _context.Posts

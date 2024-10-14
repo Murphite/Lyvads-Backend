@@ -21,6 +21,7 @@ namespace Lyvads.Application.Implementations;
 public class CreatorService : ICreatorService
 {
     private readonly IRepository _repository;
+    private readonly IPostRepository _postRepository;
     private readonly ICreatorRepository _creatorRepository;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUnitOfWork _unitOfWork;
@@ -40,7 +41,8 @@ public class CreatorService : ICreatorService
         ILogger<CreatorService> logger,
         IEmailService emailService,
         IVerificationService verificationService,
-        IMediaService mediaService)
+        IMediaService mediaService,
+        IPostRepository postRepository)
     {
         _repository = repository;
         _creatorRepository = creatorRepository;
@@ -52,6 +54,7 @@ public class CreatorService : ICreatorService
         _emailService = emailService;
         _verificationService = verificationService;
         _mediaService = mediaService;
+        _postRepository = postRepository;
     }
 
     public async Task<ServerResponse<PaginatorDto<IEnumerable<CreatorDto>>>> GetCreators(PaginationFilter paginationFilter)
@@ -84,8 +87,8 @@ public class CreatorService : ICreatorService
             var paginatedResult = await Pagination.PaginateAsync(
                 creatorsQuery.Select(c => new CreatorDto
                 {
-                    FullName = c.ApplicationUser.FullName,
-                    Industry = c.ExclusiveDeals.Select(ed => ed.Industry).FirstOrDefault(),
+                    FullName = c.ApplicationUser!.FullName!,
+                    Industry = c.ExclusiveDeals.Select(ed => ed.Industry).FirstOrDefault()!,
                     AdvertAmount = c.AdvertAmount
                 }),
                 paginationFilter
@@ -132,7 +135,7 @@ public class CreatorService : ICreatorService
         }
     }
 
-    public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, string userId)
+    public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, string userId, IFormFile photo)
     {
         _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
 
@@ -154,12 +157,34 @@ public class CreatorService : ICreatorService
             };
         }
 
+        // Upload image to Cloudinary if a photo is provided
+        string mediaUrl = null;
+        if (photo != null)
+        {
+            var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
+            if (uploadResult["Code"] != "200")
+            {
+                return new ServerResponse<PostResponseDto>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = "400",
+                    ResponseMessage = "Image upload failed.",
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "400",
+                        ResponseMessage = "Failed to upload the image."
+                    }
+                };
+            }
+            mediaUrl = uploadResult["Url"];
+        }
+
         // Create the new post
         var post = new Post
         {
             CreatorId = creator.Id,
             Caption = postDto.Caption,
-            MediaUrl = postDto.MediaUrl,
+            MediaUrl = mediaUrl,  // Use the uploaded image URL
             Location = postDto.Location,
             Visibility = postDto.Visibility,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -214,9 +239,9 @@ public class CreatorService : ICreatorService
         }
     }
 
-    public async Task<ServerResponse<PostResponseDto>> UpdatePostAsync(UpdatePostDto postDto, string userId)
+    public async Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, string userId, IFormFile photo)
     {
-        _logger.LogInformation("Updating post with Post ID: {PostId} for User ID: {UserId}", postDto.PostId, userId);
+        _logger.LogInformation("Updating post with Post ID: {PostId} for User ID: {UserId}", postId, userId);
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
@@ -234,10 +259,10 @@ public class CreatorService : ICreatorService
             };
         }
 
-        var post = _repository.GetAll<Post>().FirstOrDefault(x => x.Id == postDto.PostId);
+        var post = _repository.GetAll<Post>().FirstOrDefault(x => x.Id == postId);
         if (post == null)
         {
-            _logger.LogWarning("Post with ID: {PostId} not found.", postDto.PostId);
+            _logger.LogWarning("Post with ID: {PostId} not found.", postId);
             return new ServerResponse<PostResponseDto>
             {
                 IsSuccessful = false,
@@ -266,6 +291,27 @@ public class CreatorService : ICreatorService
                     ResponseMessage = "Unauthorized."
                 }
             };
+        }
+
+        // Upload image to Cloudinary if a photo is provided
+        if (photo != null)
+        {
+            var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming 'post_images' folder
+            if (uploadResult["Code"] != "200")
+            {
+                return new ServerResponse<PostResponseDto>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = "400",
+                    ResponseMessage = "Image upload failed.",
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "400",
+                        ResponseMessage = "Failed to upload the image."
+                    }
+                };
+            }
+            post.MediaUrl = uploadResult["Url"];  // Update the MediaUrl
         }
 
         post.Caption = postDto.Caption ?? post.Caption;
@@ -303,7 +349,7 @@ public class CreatorService : ICreatorService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating post with Post ID: {PostId}", postDto.PostId);
+            _logger.LogError(ex, "Error updating post with Post ID: {PostId}", postId);
             return new ServerResponse<PostResponseDto>
             {
                 IsSuccessful = false,
@@ -455,7 +501,8 @@ public class CreatorService : ICreatorService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Comment added to post successfully."
+            ResponseMessage = "Comment added to post successfully.",
+            Data = commentResponse
         };
     }
 
@@ -524,7 +571,8 @@ public class CreatorService : ICreatorService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Comment liked successfully."
+            ResponseMessage = "Comment liked successfully.",
+            Data = likeResponse
         };
     }
 
@@ -593,13 +641,15 @@ public class CreatorService : ICreatorService
             UserId = like.UserId,
             CreatedAt = like.CreatedAt,
             LikedBy = $"{user.FirstName} {user.LastName}",
+            
         };
 
         return new ServerResponse<LikeResponseDto>
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Post liked successfully."
+            ResponseMessage = "Post liked successfully.",
+            Data = likeResponse
         };
     }
 
@@ -679,7 +729,8 @@ public class CreatorService : ICreatorService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Request handled successfully."
+            ResponseMessage = "Request handled successfully.",
+            Data = requestResponse
         };
     }
 
@@ -784,27 +835,27 @@ public class CreatorService : ICreatorService
     {
         _logger.LogInformation("Viewing wallet balance for creator with ID: {CreatorId}", creatorId);
 
-        // Check if the creator exists
-        var creator = await _repository.GetById<Creator>(creatorId);
-        if (creator == null)
-        {
-            _logger.LogWarning("Creator with ID: {CreatorId} not found.", creatorId);
-            return new ServerResponse<WalletBalanceDto>
-            {
-                IsSuccessful = false,
-                ResponseCode = "404",
-                ResponseMessage = "Creator not found.",
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "404",
-                    ResponseMessage = "Creator not found."
-                }
-            };
+        //// Check if the creator exists
+        //var creator = await _repository.GetById<Creator>(creatorId);
+        //if (creator == null)
+        //{
+        //    _logger.LogWarning("Creator with ID: {CreatorId} not found.", creatorId);
+        //    return new ServerResponse<WalletBalanceDto>
+        //    {
+        //        IsSuccessful = false,
+        //        ResponseCode = "404",
+        //        ResponseMessage = "Creator not found.",
+        //        ErrorResponse = new ErrorResponse
+        //        {
+        //            ResponseCode = "404",
+        //            ResponseMessage = "Creator not found."
+        //        }
+        //    };
 
-        }
+        //}
 
         // Check if the user ID is not null or empty
-        if (string.IsNullOrEmpty(creator.ApplicationUserId))
+        if (string.IsNullOrEmpty(creatorId))
         {
             _logger.LogWarning("User ID for creator with ID: {CreatorId} is null or empty.", creatorId);
             //return new Error[] { new("User.Error", "User ID is missing.") };
@@ -822,10 +873,10 @@ public class CreatorService : ICreatorService
         }
 
         // Check if the associated user exists
-        var user = await _repository.GetById<ApplicationUser>(creator.ApplicationUserId);
+        var user = await _repository.GetById<ApplicationUser>(creatorId);
         if (user == null)
         {
-            _logger.LogWarning("User with ID: {UserId} not found.", creator.ApplicationUserId);
+            _logger.LogWarning("User with ID: {UserId} not found.", creatorId);
             return new ServerResponse<WalletBalanceDto>
             {
                 IsSuccessful = false,
@@ -852,7 +903,8 @@ public class CreatorService : ICreatorService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Wallet balance successfully fetched."
+            ResponseMessage = "Wallet balance successfully fetched.",
+            Data = walletBalanceResponse
         };
     }
 
@@ -954,7 +1006,8 @@ public class CreatorService : ICreatorService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Withdrawal successful."
+            ResponseMessage = "Withdrawal successful.",
+            Data = withdrawResponse
         };
     }
 
@@ -1003,19 +1056,39 @@ public class CreatorService : ICreatorService
         };
     }
 
-    public async Task<ServerResponse<IEnumerable<PostResponseDto>>> GetPostsByCreatorAsync(string creatorId)
+    public async Task<ServerResponse<IEnumerable<PostResponseDto>>> GetPostsByCreatorAsync(string applicationUserId)
     {
-        _logger.LogInformation("Getting posts for creator with ID: {CreatorId}", creatorId);
+        _logger.LogInformation("Getting posts for creator with ApplicationUser ID: {ApplicationUserId}", applicationUserId);
 
-        var posts = await _repository.GetAll<Post>()
-                                     .Where(p => p.CreatorId == creatorId)
-                                     .ToListAsync();
+        // Step 1: Retrieve Creator based on ApplicationUserId
+        var creator = await _repository.GetAll<Creator>()
+                                    .Where(c => c.ApplicationUserId == applicationUserId)
+                                    .FirstOrDefaultAsync();
+
+        if (creator == null)
+        {
+            _logger.LogWarning("No creator found for ApplicationUser ID: {ApplicationUserId}", applicationUserId);
+            return new ServerResponse<IEnumerable<PostResponseDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Creator not found.",
+                Data = null!
+            };
+        }
+
+        // Step 2: Use CreatorId to retrieve posts
+        var posts = await _postRepository.GetAllPosts()
+                             .Where(p => p.CreatorId == creator.Id)  // Use CreatorId now
+                             .ToListAsync();
+
+        _logger.LogInformation("Number of posts found for creator ID {CreatorId}: {PostCount}", creator.Id, posts.Count);
 
         var postResponses = posts.Select(p => new PostResponseDto
         {
             PostId = p.Id,
             CreatorId = p.CreatorId,
-            CreatorName = p.Creator?.ApplicationUser?.FullName ?? "Unknown",
+            CreatorName = p.Creator?.ApplicationUser?.FullName ?? "Unknown",  // Ensure this is properly populated
             Caption = p.Caption,
             MediaUrl = p.MediaUrl,
             Location = p.Location,
@@ -1023,8 +1096,6 @@ public class CreatorService : ICreatorService
             CreatedAt = p.CreatedAt,
             UpdatedAt = p.UpdatedAt
         }).ToList();
-
-        _logger.LogInformation("Posts retrieved for creator with ID: {CreatorId}", creatorId);
 
         return new ServerResponse<IEnumerable<PostResponseDto>>
         {
@@ -1097,46 +1168,61 @@ public class CreatorService : ICreatorService
             IsSuccessful = true,
             ResponseCode = "00",
             ResponseMessage = "Creator's profile updated successfully.",
-            
+            Data = creatorProfileResponse
         };
        
     }
 
-    public async Task<ServerResponse<List<FilterCreatorDto>>> SearchCreatorsAsync(decimal? minPrice, decimal? maxPrice, string location, string industry)
+    public async Task<ServerResponse<List<FilterCreatorDto>>> SearchCreatorsAsync(decimal? minPrice, decimal? maxPrice, 
+        string? location, string? industry)
     {
-        _logger.LogInformation("Searching for creators with filters - MinPrice: {MinPrice}, MaxPrice: {MaxPrice}, Location: {Location}, Industry: {Industry}",
-                                minPrice, maxPrice, location, industry);
+        location = location?.Trim();
+        industry = industry?.Trim();
 
-        var query = _creatorRepository.GetCreators();
+        _logger.LogInformation(new EventId(), "Searching for creators with filters - MinPrice: {MinPrice}, MaxPrice: {MaxPrice}, Location: {Location}, Industry: {Industry}",
+                               minPrice, maxPrice, location, industry);
+
+        var query = _repository.GetAll<Creator>()
+            .Include(c => c.ApplicationUser) // Include related ApplicationUser
+            .Where(c => c.ApplicationUser != null);
+
+        // Log initial creator count
+        var initialCreators = await query.ToListAsync();
+        _logger.LogInformation("Total creators found before applying filters: {CreatorCount}", initialCreators.Count);
 
         if (minPrice.HasValue)
         {
             query = query.Where(c => c.Price >= minPrice.Value);
+            _logger.LogInformation("Filtered by min price: {MinPrice}. Remaining creators: {Count}", minPrice, await query.CountAsync());
         }
 
         if (maxPrice.HasValue)
         {
             query = query.Where(c => c.Price <= maxPrice.Value);
+            _logger.LogInformation("Filtered by max price: {MaxPrice}. Remaining creators: {Count}", maxPrice, await query.CountAsync());
         }
 
         if (!string.IsNullOrWhiteSpace(location))
         {
-            // Use Contains for keyword-based matching
-            query = query.Where(c => c.ApplicationUser.Location.Contains(location));
+            query = query.Where(c => c.ApplicationUser != null &&
+                                     !string.IsNullOrEmpty(c.ApplicationUser.Location) &&
+                                     c.ApplicationUser.Location.ToLower().Contains(location.ToLower()));
+            _logger.LogInformation("Filtered by location: {Location}. Remaining creators: {Count}", location, await query.CountAsync());
         }
 
         if (!string.IsNullOrWhiteSpace(industry))
         {
-            // Use Contains for keyword-based matching
-            query = query.Where(c => c.ApplicationUser.Occupation.Contains(industry));
+            query = query.Where(c => c.ApplicationUser != null &&
+                                     !string.IsNullOrEmpty(c.ApplicationUser.Occupation) &&
+                                     c.ApplicationUser.Occupation.ToLower().Contains(industry.ToLower()));
+            _logger.LogInformation("Filtered by industry: {Industry}. Remaining creators: {Count}", industry, await query.CountAsync());
         }
 
         var creators = await query.ToListAsync();
 
-        // Check if no creators were found
         if (creators == null || !creators.Any())
         {
-            _logger.LogInformation("No creators found matching the filters.");
+            _logger.LogInformation("No creators found after filtering for location: {Location}", location);
             return new ServerResponse<List<FilterCreatorDto>>
             {
                 IsSuccessful = false,
@@ -1145,7 +1231,8 @@ public class CreatorService : ICreatorService
                 ErrorResponse = new ErrorResponse
                 {
                     ResponseCode = "404",
-                    ResponseMessage = "No creators found."
+                    ResponseMessage = "No creators found matching the search criteria.",
+                    ResponseDescription = "No creators found."
                 }
             };
         }
@@ -1153,25 +1240,22 @@ public class CreatorService : ICreatorService
         var creatorDtos = creators.Select(c => new FilterCreatorDto
         {
             CreatorId = c.Id,
-            FullName = $"{c.ApplicationUser.FirstName} {c.ApplicationUser.LastName}",
+            FullName = $"{c.ApplicationUser?.FirstName ?? "N/A"} {c.ApplicationUser?.LastName ?? "N/A"}",
             Price = c.Price,
-            Location = c.ApplicationUser.Location,
-            Industry = c.ApplicationUser.Occupation
+            Location = c.ApplicationUser?.Location ?? "N/A",
+            Industry = c.ApplicationUser?.Occupation ?? "N/A"
         }).ToList();
 
-        _logger.LogInformation("Found {CreatorCount} creators matching the filters", creatorDtos.Count);
+        _logger.LogInformation(new EventId(), "Found {CreatorCount} creators matching the filters", creatorDtos.Count);
 
-        // Return the list of creator DTOs as a successful response
         return new ServerResponse<List<FilterCreatorDto>>
         {
             IsSuccessful = true,
             ResponseCode = "00",
             ResponseMessage = "Creators found successfully.",
-            Data = creatorDtos // Include the list of creator DTOs
+            Data = creatorDtos
         };
     }
-
-
 
 
 

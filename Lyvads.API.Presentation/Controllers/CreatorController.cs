@@ -12,6 +12,8 @@ using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Implementations;
 using Lyvads.Domain.Responses;
 using Lyvads.Application.Dtos;
+using System.Security.Claims;
+using Lyvads.Shared.DTOs;
 
 namespace Lyvads.API.Presentation.Controllers;
 
@@ -50,40 +52,104 @@ public class CreatorController : ControllerBase
 
         // Return the updated profile data
         return Ok(ResponseDto<CreatorProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
-    }    
-
-    [HttpPost("create-post")]
-    public async Task<IActionResult> CreatePost([FromBody] PostDto postDto)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        // Check if the user is null before proceeding
-        if (user == null)
-            return Unauthorized("User not found or unauthorized.");
-
-        var result = await _creatorService.CreatePostAsync(postDto, user.Id);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post Successfully Added"));
     }
 
-    [HttpPut("update-post")]
-    public async Task<IActionResult> UpdatePost([FromBody] UpdatePostDto postDto)
+    [HttpPost("CreatePost")]
+    [Authorize(Roles = "Creator")]
+    public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromForm] UploadImage photo)
     {
-        // Get the logged-in user's ID
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not logged in.");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Call the service to update the post
-        var result = await _creatorService.UpdatePostAsync(postDto, user.Id);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new ServerResponse<PostResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "Unauthorized. User ID not found."
+            });
+        }
 
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
+        // Validate the file (photo) if provided
+        if (photo.Image != null && !IsValidFile(photo.Image))  // Validate using the Image property
+        {
+            return BadRequest(new { message = "Invalid File Extension" });
+        }
 
-        return Ok(ResponseDto<PostResponseDto>.Success(result.Data, "Post successfully updated."));
+        // Convert IFormFile to byte array
+        byte[] fileBytes = null!;
+        if (photo.Image != null)
+        {
+            using (var stream = new MemoryStream())
+            {
+                await photo.Image.CopyToAsync(stream);  // Use the Image property for file operations
+                fileBytes = stream.ToArray();
+            }
+        }
+
+        // Call the service with the Image file and other post details
+        var response = await _creatorService.CreatePostAsync(postDto, userId, photo.Image!);
+
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+
+        return Ok(response);
     }
+
+
+    [HttpPut("update-post/{postId}")]
+    [Authorize(Roles = "Creator")]
+    public async Task<IActionResult> UpdatePost(string postId, [FromForm] UpdatePostDto postDto, [FromForm] UploadImage photo)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get user ID from claims
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new ServerResponse<PostResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "Unauthorized. User ID not found."
+            });
+        }
+
+        // Set PostId in DTO to match route parameter
+        // postDto.PostId = postId; // No longer needed
+
+        // Validate the file (photo) if provided
+        if (photo.Image != null && !IsValidFile(photo.Image))  // Validate using the Image property
+        {
+            return BadRequest(new { message = "Invalid File Extension" });
+        }
+
+        // Convert IFormFile to byte array
+        byte[] fileBytes = null!;
+        if (photo.Image != null)
+        {
+            using (var stream = new MemoryStream())
+            {
+                await photo.Image.CopyToAsync(stream);  // Use the Image property for file operations
+                fileBytes = stream.ToArray();
+            }
+        }
+
+        // Call the service with the Image file and other post details
+        var response = await _creatorService.UpdatePostAsync(postId, postDto, userId, photo.Image!); // Pass postId directly
+
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+
+        return Ok(response);
+    }
+
+
+    private bool IsValidFile(IFormFile file)
+    {
+        var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        return validExtensions.Contains(extension);
+    }
+
 
     [HttpDelete("deletePost/{postId}")]
     public async Task<IActionResult> DeletePost(string postId)
@@ -102,6 +168,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<object>.Success("Post successfully deleted."));
     }
 
+    
     [HttpPost("commentOnPost")]
     public async Task<IActionResult> CommentOnPost(string postId, string content)
     {
@@ -118,6 +185,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment added successfully."));
     }
 
+    
     [HttpPost("likeComment")]
     public async Task<IActionResult> LikeComment(string commentId)
     {
@@ -133,6 +201,7 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
     }
 
+
     [HttpPost("likePost")]
     public async Task<IActionResult> LikePost(string postId)
     {
@@ -146,6 +215,7 @@ public class CreatorController : ControllerBase
 
         return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
     }
+
 
     [HttpGet("posts")]
     public async Task<IActionResult> GetPostsByCreator()
@@ -162,12 +232,13 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<IEnumerable<PostResponseDto>>.Success(result.Data, "Posts retrieved successfully."));
     }
 
+
     [HttpGet("searchQuery")]
     public async Task<ActionResult<ServerResponse<List<FilterCreatorDto>>>> SearchCreators(
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice,
-            [FromQuery] string location,
-            [FromQuery] string industry)
+            [FromQuery] string? location,
+            [FromQuery] string? industry)
     {
         var result = await _creatorService.SearchCreatorsAsync(minPrice, maxPrice, location, industry);
 
@@ -177,22 +248,32 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<IEnumerable<FilterCreatorDto>>.Success(result.Data, "Creators retrieved successfully."));
     }
 
-    [HttpPost("handle-request")]
-    public async Task<IActionResult> HandleRequest(string requestId, RequestStatus status)
-    {
-        var result = await _creatorService.HandleRequestAsync(requestId, status);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(ResponseDto<RequestResponseDto>.Success(result.Data, "Request handled successfully."));
-    }
-
-
+    
     [HttpPost("send-video")]
-    public async Task<IActionResult> SendVideoToUser(string requestId, IFormFile videoUrl)
+    public async Task<IActionResult> SendVideoToUser(string requestId, [FromForm] UploadVideo videoDto)
     {
-        var result = await _creatorService.SendVideoToUserAsync(requestId, videoUrl);
+        // Check if the video is provided
+        if (videoDto.Video == null)
+        {
+            return BadRequest(new { message = "No video file provided." });
+        }
+
+        // Validate the file (video) if provided
+        if (!IsValidFile(videoDto.Video)) // Use the same validation logic as for images
+        {
+            return BadRequest(new { message = "Invalid File Extension" });
+        }
+
+        // Convert IFormFile to byte array
+        byte[] videoBytes;
+        using (var stream = new MemoryStream())
+        {
+            await videoDto.Video.CopyToAsync(stream);
+            videoBytes = stream.ToArray();
+        }
+
+        // Call the service with the video file and other post details
+        var result = await _creatorService.SendVideoToUserAsync(requestId, videoDto.Video); // Pass the byte array
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
@@ -213,6 +294,18 @@ public class CreatorController : ControllerBase
             return BadRequest(result.ErrorResponse);
 
         return Ok(ResponseDto<WalletBalanceDto>.Success(result.Data, "Wallet balance retrieved successfully."));
+    }
+
+
+    [HttpPost("handle-request")]
+    public async Task<IActionResult> HandleRequest(string requestId, RequestStatus status)
+    {
+        var result = await _creatorService.HandleRequestAsync(requestId, status);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(ResponseDto<RequestResponseDto>.Success(result.Data, "Request handled successfully."));
     }
 
 

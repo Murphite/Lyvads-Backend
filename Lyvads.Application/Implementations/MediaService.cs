@@ -2,35 +2,47 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Lyvads.Application.Interfaces;
+using Lyvads.Domain.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Lyvads.Application.Implementations;
 
 public class MediaService : IMediaService
 {
-    private readonly Cloudinary cloudinary;
+    private readonly Cloudinary _cloudinary;
 
-    public MediaService(IConfiguration config)
+    //public MediaService(IConfiguration config)
+    //{
+    //    var cloudName = config.GetSection("Cloudinary:CloudName").Value;
+    //    var apiKey = config.GetSection("Cloudinary:ApiKey").Value;
+    //    var apiSecret = config.GetSection("Cloudinary:ApiSecret").Value;
+
+    //    Account account = new Account
+    //    {
+    //        ApiKey = apiKey,
+    //        ApiSecret = apiSecret,
+    //        Cloud = cloudName
+    //    };
+
+    //    _cloudinary = new Cloudinary(account);
+    //}
+
+    public MediaService(IOptions<CloudinarySettings> cloudinarySettings)
     {
-        var cloudName = config.GetSection("Cloudinary:CloudName").Value;
-        var apiKey = config.GetSection("Cloudinary:ApiKey").Value;
-        var apiSecret = config.GetSection("Cloudinary:ApiSecret").Value;
+        var account = new Account(
+            cloudinarySettings.Value.CloudName,
+            cloudinarySettings.Value.ApiKey,
+            cloudinarySettings.Value.ApiSecret);
 
-        Account account = new Account
-        {
-            ApiKey = apiKey,
-            ApiSecret = apiSecret,
-            Cloud = cloudName
-        };
-
-        cloudinary = new Cloudinary(account);
+        _cloudinary = new Cloudinary(account);
     }
 
     public async Task<Dictionary<string, string>> UploadImageAsync(IFormFile photo, string folderName)
     {
         var response = new Dictionary<string, string>();
-        var defaultSize = 500000;
+        var defaultSize = 2000000;
         var allowedTypes = new List<string>() { "jpeg", "jpg", "png" };
         Console.WriteLine($"Allowed Types: {string.Join(", ", allowedTypes)}");
 
@@ -68,7 +80,7 @@ public class MediaService : IMediaService
                 Transformation = new Transformation().Width(500).Height(500).Crop("fill").Gravity("face"),
                 Folder = folderName
             };
-            uploadResult = await cloudinary.UploadAsync(uploadParams);
+            uploadResult = await _cloudinary.UploadAsync(uploadParams);
         }
 
         if (!string.IsNullOrEmpty(uploadResult.PublicId))
@@ -90,7 +102,7 @@ public class MediaService : IMediaService
     {
         var publicId = publicUrl.Split('/').Last().Split('.')[0];
         var deleteParams = new DeletionParams(publicId);
-        return await cloudinary.DestroyAsync(deleteParams);
+        return await _cloudinary.DestroyAsync(deleteParams);
     }
 
     public async Task<Dictionary<string, string>> UploadVideoAsync(IFormFile video, string folderName)
@@ -133,7 +145,7 @@ public class MediaService : IMediaService
                 Folder = folderName
                 // Additional video-specific parameters can be added here
             };
-            uploadResult = await cloudinary.UploadAsync(uploadParams); // Assuming cloudinary handles video uploads similarly
+            uploadResult = await _cloudinary.UploadAsync(uploadParams); // Assuming cloudinary handles video uploads similarly
         }
 
         if (!string.IsNullOrEmpty(uploadResult.PublicId))
@@ -157,7 +169,7 @@ public class MediaService : IMediaService
         var deleteParams = new DeletionParams(publicId);
 
         // Assuming your cloud provider uses the same API for deleting videos
-        return await cloudinary.DestroyAsync(deleteParams);
+        return await _cloudinary.DestroyAsync(deleteParams);
     }
 
     public async Task<Dictionary<string, string>> GetDownloadUrlAsync(string publicId, string folderName)
@@ -165,7 +177,7 @@ public class MediaService : IMediaService
         var response = new Dictionary<string, string>();
 
         // Construct the Cloudinary URL for the video
-        var downloadUrl = cloudinary.Api.UrlVideoUp
+        var downloadUrl = _cloudinary.Api.UrlVideoUp
                             .Action("download")
                             .ResourceType("video")
                             .Secure(true)

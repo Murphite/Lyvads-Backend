@@ -12,4 +12,5 @@ public interface IPostRepository
     Task AddAsync(Post entity);
     Task UpdateAsync(Post entity); 
     Task DeleteAsync(Post entity);
+    public IQueryable<Post> GetAllPosts();
 }

@@ -1,6 +1,7 @@
 using Lyvads.API.Extensions;
 using Lyvads.API.Presentation.Extensions;
 using Lyvads.API.Presentation.Middlewares;
+using Lyvads.Domain.Constants;
 using Lyvads.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -8,6 +9,8 @@ using Serilog;
 using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -18,11 +21,10 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lyvads API", Version = "v1" });
 
-    // Optional: Add custom OperationFilter to remove specific default responses
     c.OperationFilter<RemoveDefaultResponseFilter>();
+    c.OperationFilter<SwaggerFileUploadOperationFilter>();
 });
 
-// Add Serilog for logging
 builder.Logging.AddSerilog();
 builder.Host.UseSerilog((context, services, configuration) =>
 {
@@ -65,16 +67,14 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
-app.UseAuthorization();
 app.UseSession();
 
 // Custom middleware for exception handling
 app.UseMiddleware<ExceptionMiddleware>();
 
 // Enable CORS
-app.UseCors("AllowAllOrigins");
-
+app.UseCors();
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 

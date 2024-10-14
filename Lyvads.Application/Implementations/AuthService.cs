@@ -12,8 +12,6 @@ using Microsoft.Extensions.Logging;
 using Lyvads.Domain.Responses;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
-using System.Web.Helpers;
-
 namespace Lyvads.Application.Implementations;
 
 public class AuthService : IAuthService

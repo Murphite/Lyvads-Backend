@@ -12,7 +12,7 @@ public interface ICollaborationService
 {
     Task<ServerResponse<List<CollaborationDto>>> GetCollaborationsAsync();
     Task<ServerResponse<CollaborationDto>> GetCollaborationDetailsAsync(string collaborationId);
-    Task<ServerResponse<FileStreamResult>> DownloadReceiptAsync(string collaborationId);
+    //Task<ServerResponse<FileStreamResult>> DownloadReceiptAsync(string collaborationId);
     Task<ServerResponse<List<GetRequestDto>>> GetAllRequestsByUserAsync(string userId, string status);
     Task<ServerResponse<RequestDetailsDto>> GetRequestDetailsAsync(string requestId);
     //Task<ServerResponse<bool>> DownloadVideoAsync(string requestId, bool withWatermark);
