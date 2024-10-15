@@ -10,6 +10,7 @@ COPY Lyvads.API.Presentation/Lyvads.API.Presentation*.csproj ./Lyvads.API.Presen
 COPY Lyvads.Application/*.csproj ./Lyvads.Application/
 COPY Lyvads.Infrastructure/*.csproj ./Lyvads.Infrastructure/
 COPY Lyvads.Domain/*.csproj ./Lyvads.Domain/
+COPY Lyvads.Shared/*.csproj ./Lyvads.Shared/
 
 # Restore NuGet packages for all projects
 RUN dotnet restore
