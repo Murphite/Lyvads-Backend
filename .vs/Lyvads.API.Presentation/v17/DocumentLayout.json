@@ -3,12 +3,35 @@
   "WorkspaceRootPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Admin\\AppData\\Roaming\\Microsoft\\UserSecrets\\cb7bab31-ca6a-4f74-8a9b-12a60d8d863f\\secrets.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\controllers\\adminpromotioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\controllers\\adminpromotioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\controllers\\creatorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\controllers\\creatorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.application\\interfaces\\icreatorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|solutionrelative:lyvads.application\\interfaces\\icreatorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.application\\implementations\\creatorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|solutionrelative:lyvads.application\\implementations\\creatorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.application\\implementations\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|solutionrelative:lyvads.application\\implementations\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E7248779-90DC-4F06-BB3C-DD5D6C9B5A94}|Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.infrastructure\\repositories\\repository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -37,14 +60,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.domain\\entities\\applicationuser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|solutionrelative:lyvads.domain\\entities\\applicationuser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.application\\interfaces\\icreatorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|solutionrelative:lyvads.application\\interfaces\\icreatorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.application\\dtos\\creatordtos\\creatordto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -83,10 +98,6 @@
       "RelativeMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|solutionrelative:lyvads.application\\implementations\\mediaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.application\\implementations\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|solutionrelative:lyvads.application\\implementations\\authservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -117,10 +128,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.domain\\constants\\cloudinarysettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|solutionrelative:lyvads.domain\\constants\\cloudinarysettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.domain\\enums\\requesttype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -257,10 +264,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\controllers\\adminuseradcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\controllers\\adminuseradcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\controllers\\adminpromotioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|solutionrelative:lyvads.api.presentation\\controllers\\adminpromotioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{55D8FD1F-95F5-437C-ACA3-9C4DAB489C90}|Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.api.presentation\\controllers\\adminpostcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -755,8 +758,22 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 0,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "secrets.json",
+              "DocumentMoniker": "C:\\Users\\Admin\\AppData\\Roaming\\Microsoft\\UserSecrets\\cb7bab31-ca6a-4f74-8a9b-12a60d8d863f\\secrets.json",
+              "RelativeDocumentMoniker": "..\\..\\..\\AppData\\Roaming\\Microsoft\\UserSecrets\\cb7bab31-ca6a-4f74-8a9b-12a60d8d863f\\secrets.json",
+              "ToolTip": "C:\\Users\\Admin\\AppData\\Roaming\\Microsoft\\UserSecrets\\cb7bab31-ca6a-4f74-8a9b-12a60d8d863f\\secrets.json",
+              "RelativeToolTip": "..\\..\\..\\AppData\\Roaming\\Microsoft\\UserSecrets\\cb7bab31-ca6a-4f74-8a9b-12a60d8d863f\\secrets.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAnAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-10-15T07:42:03.314Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
@@ -779,25 +796,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "CreatorService.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CreatorService.cs",
-              "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\CreatorService.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CreatorService.cs",
-              "RelativeToolTip": "Lyvads.Application\\Implementations\\CreatorService.cs",
-              "ViewState": "AQIAAHIDAAAAAAAAAAAkwIwDAAAEAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T11:32:22.033Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
               "Title": "CreatorController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\CreatorController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\CreatorController.cs",
               "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\CreatorController.cs",
               "RelativeToolTip": "Lyvads.API.Presentation\\Controllers\\CreatorController.cs",
-              "ViewState": "AQIAABUAAAAAAAAAAAAwwAoAAAApAAAA",
+              "ViewState": "AQIAAD4BAAAAAAAAAAAQwFMBAAAYAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-19T07:02:24.376Z",
               "EditorCaption": ""
@@ -805,54 +810,84 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "Repository.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\Repository.cs",
-              "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\Repository.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\Repository.cs",
-              "RelativeToolTip": "Lyvads.Infrastructure\\Repositories\\Repository.cs",
-              "ViewState": "AQIAAA0AAAAAAAAAAAAAAB4AAAAIAAAA",
+              "Title": "AdminPromotionController.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminPromotionController.cs",
+              "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminPromotionController.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminPromotionController.cs",
+              "RelativeToolTip": "Lyvads.API.Presentation\\Controllers\\AdminPromotionController.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAAtAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-19T08:32:04.835Z"
+              "WhenOpened": "2024-09-16T22:50:41.369Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ExceptionMiddleware.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Middlewares\\ExceptionMiddleware.cs",
-              "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Middlewares\\ExceptionMiddleware.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Middlewares\\ExceptionMiddleware.cs",
-              "RelativeToolTip": "Lyvads.API.Presentation\\Middlewares\\ExceptionMiddleware.cs",
-              "ViewState": "AQIAABEAAAAAAAAAAAAawCIAAAAIAAAA",
+              "DocumentIndex": 7,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AuthController.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "Lyvads.API.Presentation\\Controllers\\AuthController.cs",
+              "ViewState": "AQIAAB4AAAAAAAAAAAAmwCsAAAAEAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-08T07:07:23.662Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Creator.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Creator.cs",
-              "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Creator.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Creator.cs",
-              "RelativeToolTip": "Lyvads.Domain\\Entities\\Creator.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAuwAkAAAAzAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T16:18:35.344Z"
+              "WhenOpened": "2024-09-19T07:02:23.858Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "AppDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
-              "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
-              "RelativeToolTip": "Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
-              "ViewState": "AQIAAA0AAAAAAAAAAAAuwBEAAAAYAAAA",
+              "Title": "CreatorService.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CreatorService.cs",
+              "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\CreatorService.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CreatorService.cs",
+              "RelativeToolTip": "Lyvads.Application\\Implementations\\CreatorService.cs",
+              "ViewState": "AQIAALABAAAAAAAAAAAAALkBAAAYAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T16:20:25.638Z"
+              "WhenOpened": "2024-09-16T11:32:22.033Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\appsettings.json",
+              "RelativeDocumentMoniker": "Lyvads.API.Presentation\\appsettings.json",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\appsettings.json",
+              "RelativeToolTip": "Lyvads.API.Presentation\\appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAkAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-09-15T19:20:44.877Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
+              "Title": "ICreatorService.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\ICreatorService.cs",
+              "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\ICreatorService.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\ICreatorService.cs",
+              "RelativeToolTip": "Lyvads.Application\\Interfaces\\ICreatorService.cs",
+              "ViewState": "AQIAAAUAAAAAAAAAAAAQwBQAAAAqAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-25T07:01:40.366Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "AuthService.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AuthService.cs",
+              "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AuthService.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AuthService.cs",
+              "RelativeToolTip": "Lyvads.Application\\Implementations\\AuthService.cs",
+              "ViewState": "AQIAADEAAAAAAAAAAAAQwEAAAAAEAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-16T11:32:16.958Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
               "Title": "CreatorRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\CreatorRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\CreatorRepository.cs",
@@ -864,7 +899,55 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
+              "RelativeToolTip": "Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
+              "ViewState": "AQIAAA0AAAAAAAAAAAAuwBEAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-16T16:20:25.638Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Creator.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Creator.cs",
+              "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Creator.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Creator.cs",
+              "RelativeToolTip": "Lyvads.Domain\\Entities\\Creator.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAuwAkAAAAzAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-16T16:18:35.344Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ExceptionMiddleware.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Middlewares\\ExceptionMiddleware.cs",
+              "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Middlewares\\ExceptionMiddleware.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Middlewares\\ExceptionMiddleware.cs",
+              "RelativeToolTip": "Lyvads.API.Presentation\\Middlewares\\ExceptionMiddleware.cs",
+              "ViewState": "AQIAABEAAAAAAAAAAAAawCIAAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-08T07:07:23.662Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 8,
+              "Title": "Repository.cs",
+              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\Repository.cs",
+              "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\Repository.cs",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\Repository.cs",
+              "RelativeToolTip": "Lyvads.Infrastructure\\Repositories\\Repository.cs",
+              "ViewState": "AQIAAA0AAAAAAAAAAAAAAB4AAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-19T08:32:04.835Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
               "Title": "ApplicationUser.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\ApplicationUser.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\ApplicationUser.cs",
@@ -876,7 +959,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 13,
               "Title": "UploadMedia.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\DTOs\\UploadMedia.cs",
               "RelativeDocumentMoniker": "Lyvads.Shared\\DTOs\\UploadMedia.cs",
@@ -888,31 +971,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "AuthController.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AuthController.cs",
-              "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AuthController.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AuthController.cs",
-              "RelativeToolTip": "Lyvads.API.Presentation\\Controllers\\AuthController.cs",
-              "ViewState": "AQIAAKQAAAAAAAAAAAApwLUAAAAEAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-19T07:02:23.858Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "ICreatorService.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\ICreatorService.cs",
-              "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\ICreatorService.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\ICreatorService.cs",
-              "RelativeToolTip": "Lyvads.Application\\Interfaces\\ICreatorService.cs",
-              "ViewState": "AQIAABQAAAAAAAAAAIA0wBwAAAAxAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-25T07:01:40.366Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 15,
               "Title": "CreatorDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\CreatorDtos\\CreatorDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\CreatorDtos\\CreatorDto.cs",
@@ -924,7 +983,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 16,
               "Title": "PostRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\PostRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\PostRepository.cs",
@@ -936,7 +995,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 17,
               "Title": "ICreatorRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\ICreatorRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\ICreatorRepository.cs",
@@ -948,7 +1007,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 18,
               "Title": "IPostRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IPostRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IPostRepository.cs",
@@ -960,7 +1019,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 20,
               "Title": "IRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IRepository.cs",
@@ -972,7 +1031,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 21,
               "Title": "CollaborationService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CollaborationService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\CollaborationService.cs",
@@ -984,7 +1043,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 19,
               "Title": "ServerResponse.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Responses\\ServerResponse.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Responses\\ServerResponse.cs",
@@ -996,7 +1055,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 22,
               "Title": "PostDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\CreatorDtos\\PostDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\CreatorDtos\\PostDto.cs",
@@ -1008,7 +1067,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 23,
               "Title": "MediaService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\MediaService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\MediaService.cs",
@@ -1020,7 +1079,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 24,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Program.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Program.cs",
@@ -1032,19 +1091,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
-              "Title": "AuthService.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AuthService.cs",
-              "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AuthService.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AuthService.cs",
-              "RelativeToolTip": "Lyvads.Application\\Implementations\\AuthService.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA4AAAAtAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T11:32:16.958Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 25,
               "Title": "ICollaborationService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\ICollaborationService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\ICollaborationService.cs",
@@ -1056,7 +1103,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 26,
               "Title": "AdminCollaborationController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminCollaborationController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminCollaborationController.cs",
@@ -1068,7 +1115,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 27,
               "Title": "SwaggerFileUploadOperationFilter.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Extensions\\SwaggerFileUploadOperationFilter.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Extensions\\SwaggerFileUploadOperationFilter.cs",
@@ -1080,7 +1127,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 29,
               "Title": "ServiceRegistration.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Extensions\\ServiceRegistration.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Extensions\\ServiceRegistration.cs",
@@ -1092,7 +1139,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 28,
               "Title": "RemoveDefaultResponseFilter.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Extensions\\RemoveDefaultResponseFilter.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Extensions\\RemoveDefaultResponseFilter.cs",
@@ -1104,7 +1151,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 30,
               "Title": "IMediaService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IMediaService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IMediaService.cs",
@@ -1116,7 +1163,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 31,
               "Title": "CloudinarySettings.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Constants\\CloudinarySettings.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Constants\\CloudinarySettings.cs",
@@ -1128,19 +1175,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\appsettings.json",
-              "RelativeDocumentMoniker": "Lyvads.API.Presentation\\appsettings.json",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\appsettings.json",
-              "RelativeToolTip": "Lyvads.API.Presentation\\appsettings.json",
-              "ViewState": "AQIAAA8AAAAAAAAAAAAAABUAAAAdAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2024-09-15T19:20:44.877Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 32,
               "Title": "RequestType.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\RequestType.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\RequestType.cs",
@@ -1152,7 +1187,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 33,
               "Title": "VerificationService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\VerificationService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\VerificationService.cs",
@@ -1164,7 +1199,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 34,
               "Title": "ForgotPasswordRequestDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\AuthDtos\\ForgotPasswordRequestDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\AuthDtos\\ForgotPasswordRequestDto.cs",
@@ -1176,7 +1211,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 35,
               "Title": "IAuthService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IAuthService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IAuthService.cs",
@@ -1188,7 +1223,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 36,
               "Title": "RegisterAdminDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\AuthDtos\\RegisterAdminDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\AuthDtos\\RegisterAdminDto.cs",
@@ -1200,7 +1235,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 39,
               "Title": "SuperAdmin.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\SuperAdmin.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\SuperAdmin.cs",
@@ -1212,7 +1247,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 38,
               "Title": "RegularUser.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\RegularUser.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\RegularUser.cs",
@@ -1224,7 +1259,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 37,
               "Title": "20241007212419_AddCreatorToApplicationUser.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Migrations\\20241007212419_AddCreatorToApplicationUser.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Migrations\\20241007212419_AddCreatorToApplicationUser.cs",
@@ -1236,7 +1271,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 40,
               "Title": "AdminDashboardController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminDashboardController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminDashboardController.cs",
@@ -1244,11 +1279,12 @@
               "RelativeToolTip": "Lyvads.API.Presentation\\Controllers\\AdminDashboardController.cs",
               "ViewState": "AQIAACcAAAAAAAAAAAAuwDgAAAAEAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-24T10:40:24.704Z"
+              "WhenOpened": "2024-09-24T10:40:24.704Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 41,
               "Title": "AdminDashboardService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminDashboardService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminDashboardService.cs",
@@ -1256,11 +1292,12 @@
               "RelativeToolTip": "Lyvads.Application\\Implementations\\AdminDashboardService.cs",
               "ViewState": "AQIAAP4AAAAAAAAAAAAawA0BAAAoAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T06:54:48.381Z"
+              "WhenOpened": "2024-09-16T06:54:48.381Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 42,
               "Title": "RegisterCreatorDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\AuthDtos\\RegisterCreatorDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\AuthDtos\\RegisterCreatorDto.cs",
@@ -1272,7 +1309,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 41,
+              "DocumentIndex": 43,
               "Title": "RegisterUserResponseDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\AuthDtos\\RegisterUserResponseDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\AuthDtos\\RegisterUserResponseDto.cs",
@@ -1284,7 +1321,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 42,
+              "DocumentIndex": 44,
               "Title": "UserInteractionController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\UserInteractionController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\UserInteractionController.cs",
@@ -1296,7 +1333,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 43,
+              "DocumentIndex": 45,
               "Title": "IUserInteractionService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IUserInteractionService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IUserInteractionService.cs",
@@ -1308,7 +1345,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 45,
+              "DocumentIndex": 47,
               "Title": "UserRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\UserRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\UserRepository.cs",
@@ -1320,7 +1357,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 44,
+              "DocumentIndex": 46,
               "Title": "UserInteractionService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\UserInteractionService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\UserInteractionService.cs",
@@ -1328,11 +1365,12 @@
               "RelativeToolTip": "Lyvads.Application\\Implementations\\UserInteractionService.cs",
               "ViewState": "AQIAAAEAAAAAAAAAAAAiwBQAAAA9AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T11:33:46.489Z"
+              "WhenOpened": "2024-09-16T11:33:46.489Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 46,
+              "DocumentIndex": 48,
               "Title": "UserInteractionDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\DTOs\\UserInteractionDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Shared\\DTOs\\UserInteractionDto.cs",
@@ -1344,7 +1382,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 47,
+              "DocumentIndex": 49,
               "Title": "IUserRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IUserRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IUserRepository.cs",
@@ -1356,7 +1394,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 48,
+              "DocumentIndex": 50,
               "Title": "Post.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Post.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Post.cs",
@@ -1368,7 +1406,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 49,
+              "DocumentIndex": 51,
               "Title": "UserInteractionDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\RegularUserDtos\\UserInteractionDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\RegularUserDtos\\UserInteractionDto.cs",
@@ -1380,7 +1418,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 50,
+              "DocumentIndex": 52,
               "Title": "Follow.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Follow.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Follow.cs",
@@ -1392,7 +1430,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 51,
+              "DocumentIndex": 53,
               "Title": "AdminChargeTransactionService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminChargeTransactionService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminChargeTransactionService.cs",
@@ -1404,7 +1442,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 52,
+              "DocumentIndex": 54,
               "Title": "Favorite.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Favorite.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Favorite.cs",
@@ -1416,7 +1454,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 53,
+              "DocumentIndex": 55,
               "Title": "AdminUserService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminUserService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminUserService.cs",
@@ -1428,7 +1466,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 54,
+              "DocumentIndex": 56,
               "Title": "ISuperAdminRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\ISuperAdminRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\ISuperAdminRepository.cs",
@@ -1440,7 +1478,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 55,
+              "DocumentIndex": 57,
               "Title": "RolesConstant.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Constants\\RolesConstant.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Constants\\RolesConstant.cs",
@@ -1452,7 +1490,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 56,
+              "DocumentIndex": 58,
               "Title": "RegisterUserDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\AuthDtos\\RegisterUserDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\AuthDtos\\RegisterUserDto.cs",
@@ -1464,7 +1502,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 57,
+              "DocumentIndex": 59,
               "Title": "AdminUsersController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminUsersController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminUsersController.cs",
@@ -1476,7 +1514,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 58,
+              "DocumentIndex": 60,
               "Title": "ISuperAdminService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\ISuperAdminService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\ISuperAdminService.cs",
@@ -1488,7 +1526,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 59,
+              "DocumentIndex": 61,
               "Title": "AdminUserAdService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminUserAdService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminUserAdService.cs",
@@ -1500,7 +1538,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 60,
+              "DocumentIndex": 62,
               "Title": "ProfileController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\ProfileController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\ProfileController.cs",
@@ -1512,7 +1550,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 61,
+              "DocumentIndex": 63,
               "Title": "NotificationController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\NotificationController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\NotificationController.cs",
@@ -1524,7 +1562,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 62,
+              "DocumentIndex": 64,
               "Title": "CollaborationController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\CollaborationController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\CollaborationController.cs",
@@ -1536,7 +1574,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 63,
+              "DocumentIndex": 65,
               "Title": "AdminUserAdController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminUserAdController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminUserAdController.cs",
@@ -1548,19 +1586,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 64,
-              "Title": "AdminPromotionController.cs",
-              "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminPromotionController.cs",
-              "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminPromotionController.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminPromotionController.cs",
-              "RelativeToolTip": "Lyvads.API.Presentation\\Controllers\\AdminPromotionController.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAIAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T22:50:41.369Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 65,
+              "DocumentIndex": 66,
               "Title": "AdminPostController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminPostController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminPostController.cs",
@@ -1572,7 +1598,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 66,
+              "DocumentIndex": 67,
               "Title": "AdminPermissionsController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminPermissionsController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminPermissionsController.cs",
@@ -1584,7 +1610,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 67,
+              "DocumentIndex": 68,
               "Title": "AdminDisputeController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminDisputeController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminDisputeController.cs",
@@ -1596,7 +1622,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 68,
+              "DocumentIndex": 69,
               "Title": "AdminChargeTransactionController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminChargeTransactionController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminChargeTransactionController.cs",
@@ -1608,7 +1634,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 69,
+              "DocumentIndex": 70,
               "Title": "AdminChargeController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminChargeController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminChargeController.cs",
@@ -1620,7 +1646,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 70,
+              "DocumentIndex": 71,
               "Title": "AdminActivityLogController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\AdminActivityLogController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\AdminActivityLogController.cs",
@@ -1632,7 +1658,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 71,
+              "DocumentIndex": 72,
               "Title": "ImpressionRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\ImpressionRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\ImpressionRepository.cs",
@@ -1644,7 +1670,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 72,
+              "DocumentIndex": 73,
               "Title": "IImpressionRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IImpressionRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IImpressionRepository.cs",
@@ -1656,7 +1682,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 73,
+              "DocumentIndex": 74,
               "Title": "WeatherForecastController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\WeatherForecastController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\WeatherForecastController.cs",
@@ -1668,7 +1694,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 74,
+              "DocumentIndex": 75,
               "Title": "WaitlistController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\WaitlistController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\WaitlistController.cs",
@@ -1680,7 +1706,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 75,
+              "DocumentIndex": 76,
               "Title": "RegularUserController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Controllers\\RegularUserController.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Controllers\\RegularUserController.cs",
@@ -1692,7 +1718,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 76,
+              "DocumentIndex": 77,
               "Title": "RequestRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\RequestRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\RequestRepository.cs",
@@ -1704,7 +1730,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 78,
+              "DocumentIndex": 79,
               "Title": "TransactionRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\TransactionRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\TransactionRepository.cs",
@@ -1716,7 +1742,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 77,
+              "DocumentIndex": 78,
               "Title": "DashboardSummaryDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\DashboardSummaryDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\DashboardSummaryDto.cs",
@@ -1728,7 +1754,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 185,
+              "DocumentIndex": 186,
               "Title": "20241005112120_addImpressionTable.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Migrations\\20241005112120_addImpressionTable.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Migrations\\20241005112120_addImpressionTable.cs",
@@ -1740,7 +1766,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 81,
+              "DocumentIndex": 82,
               "Title": "DbRegistration.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Extensions\\DbRegistration.cs",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\Extensions\\DbRegistration.cs",
@@ -1752,7 +1778,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 80,
+              "DocumentIndex": 81,
               "Title": "20241005110424_addImpressionTable.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Migrations\\20241005110424_addImpressionTable.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Migrations\\20241005110424_addImpressionTable.cs",
@@ -1763,7 +1789,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 79,
+              "DocumentIndex": 80,
               "Title": "Impression.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Impression.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Impression.cs",
@@ -1775,7 +1801,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 82,
+              "DocumentIndex": 83,
               "Title": "AdminActivityLogService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminActivityLogService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminActivityLogService.cs",
@@ -1787,7 +1813,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 83,
+              "DocumentIndex": 84,
               "Title": "IAdminActivityLogService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IAdminActivityLogService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IAdminActivityLogService.cs",
@@ -1799,7 +1825,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 84,
+              "DocumentIndex": 85,
               "Title": "IActivityLogRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IActivityLogRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IActivityLogRepository.cs",
@@ -1811,7 +1837,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 85,
+              "DocumentIndex": 86,
               "Title": "ActivityLogRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\ActivityLogRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\ActivityLogRepository.cs",
@@ -1823,7 +1849,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 86,
+              "DocumentIndex": 87,
               "Title": "IAdminChargeTransactionService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IAdminChargeTransactionService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IAdminChargeTransactionService.cs",
@@ -1835,7 +1861,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 87,
+              "DocumentIndex": 88,
               "Title": "IAdminUserService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IAdminUserService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IAdminUserService.cs",
@@ -1847,7 +1873,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 186,
+              "DocumentIndex": 187,
               "Title": "20241005082735_UpdatedAdminDds.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Migrations\\20241005082735_UpdatedAdminDds.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Migrations\\20241005082735_UpdatedAdminDds.cs",
@@ -1859,7 +1885,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 88,
+              "DocumentIndex": 89,
               "Title": "AdminUserDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\AdminUserDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\AdminUserDto.cs",
@@ -1871,7 +1897,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 89,
+              "DocumentIndex": 90,
               "Title": "AdminPermissionsService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminPermissionsService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminPermissionsService.cs",
@@ -1883,7 +1909,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 90,
+              "DocumentIndex": 91,
               "Title": "IAdminPermissionsService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IAdminPermissionsService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IAdminPermissionsService.cs",
@@ -1895,7 +1921,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 91,
+              "DocumentIndex": 92,
               "Title": "AdminPermissionsRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\AdminPermissionsRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\AdminPermissionsRepository.cs",
@@ -1907,7 +1933,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 92,
+              "DocumentIndex": 93,
               "Title": "AdminRole.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\AdminRole.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\AdminRole.cs",
@@ -1919,7 +1945,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 93,
+              "DocumentIndex": 94,
               "Title": "AdminPermission.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\AdminPermission.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\AdminPermission.cs",
@@ -1931,7 +1957,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 94,
+              "DocumentIndex": 95,
               "Title": "IAdminRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IAdminRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IAdminRepository.cs",
@@ -1943,7 +1969,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 95,
+              "DocumentIndex": 96,
               "Title": "AdminRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\AdminRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\AdminRepository.cs",
@@ -1955,7 +1981,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 96,
+              "DocumentIndex": 97,
               "Title": "Admin.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Admin.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Admin.cs",
@@ -1967,7 +1993,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 97,
+              "DocumentIndex": 98,
               "Title": "ChargeStatus.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\ChargeStatus.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\ChargeStatus.cs",
@@ -1979,7 +2005,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 98,
+              "DocumentIndex": 99,
               "Title": "AdminPostDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\AdminPostDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\AdminPostDto.cs",
@@ -1991,7 +2017,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 99,
+              "DocumentIndex": 100,
               "Title": "IAdminPermissionsRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IAdminPermissionsRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IAdminPermissionsRepository.cs",
@@ -2003,7 +2029,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 100,
+              "DocumentIndex": 101,
               "Title": "ActivityLog.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\ActivityLog.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\ActivityLog.cs",
@@ -2015,7 +2041,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 101,
+              "DocumentIndex": 102,
               "Title": "ActivityLogDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\ActivityLogDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\ActivityLogDto.cs",
@@ -2027,7 +2053,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 102,
+              "DocumentIndex": 103,
               "Title": "AdminPostService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminPostService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminPostService.cs",
@@ -2039,7 +2065,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 103,
+              "DocumentIndex": 104,
               "Title": "IAdminPostService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IAdminPostService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IAdminPostService.cs",
@@ -2051,7 +2077,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 104,
+              "DocumentIndex": 105,
               "Title": "Comment.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Comment.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Comment.cs",
@@ -2063,7 +2089,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 105,
+              "DocumentIndex": 106,
               "Title": "PostStatus.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\PostStatus.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\PostStatus.cs",
@@ -2075,7 +2101,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 106,
+              "DocumentIndex": 107,
               "Title": "CurrentUserService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CurrentUserService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\CurrentUserService.cs",
@@ -2087,7 +2113,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 107,
+              "DocumentIndex": 108,
               "Title": "IRequestRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IRequestRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IRequestRepository.cs",
@@ -2099,7 +2125,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 108,
+              "DocumentIndex": 109,
               "Title": "AdminPromotionService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminPromotionService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminPromotionService.cs",
@@ -2111,7 +2137,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 109,
+              "DocumentIndex": 110,
               "Title": "AdminDisputeService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\AdminDisputeService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\AdminDisputeService.cs",
@@ -2123,7 +2149,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 110,
+              "DocumentIndex": 111,
               "Title": "UpdateProfilePictureDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\RegularUserDtos\\UpdateProfilePictureDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\RegularUserDtos\\UpdateProfilePictureDto.cs",
@@ -2135,7 +2161,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 112,
+              "DocumentIndex": 113,
               "Title": "ProfileService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\ProfileService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\ProfileService.cs",
@@ -2147,7 +2173,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 111,
+              "DocumentIndex": 112,
               "Title": "IProfileService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IProfileService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IProfileService.cs",
@@ -2159,7 +2185,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 113,
+              "DocumentIndex": 114,
               "Title": "IAuditable.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\IAuditable.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\IAuditable.cs",
@@ -2171,7 +2197,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 114,
+              "DocumentIndex": 115,
               "Title": "IVerificationService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IVerificationService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IVerificationService.cs",
@@ -2183,7 +2209,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 115,
+              "DocumentIndex": 116,
               "Title": "AuthController.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\AppData\\Local\\SourceServer\\1478ef659228bc2e1b73de68bc0d72bf70d75e6e4a3afd2ea064b6f8968685b3\\Lyvads.API.Presentation\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "..\\..\\..\\AppData\\Local\\SourceServer\\1478ef659228bc2e1b73de68bc0d72bf70d75e6e4a3afd2ea064b6f8968685b3\\Lyvads.API.Presentation\\Controllers\\AuthController.cs",
@@ -2195,7 +2221,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 117,
+              "DocumentIndex": 118,
               "Title": "EmailContext.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\EmailContext.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\EmailContext.cs",
@@ -2207,7 +2233,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 116,
+              "DocumentIndex": 117,
               "Title": "AuthService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\AppData\\Local\\SourceServer\\ed3f340a362e42df37f44a527fedcd0f4a0a66aa219f6c7f9e33cf7b4526a6c4\\Lyvads.Application\\Implementations\\AuthService.cs",
               "RelativeDocumentMoniker": "..\\..\\..\\AppData\\Local\\SourceServer\\ed3f340a362e42df37f44a527fedcd0f4a0a66aa219f6c7f9e33cf7b4526a6c4\\Lyvads.Application\\Implementations\\AuthService.cs",
@@ -2215,11 +2241,12 @@
               "RelativeToolTip": "..\\..\\..\\AppData\\Local\\SourceServer\\ed3f340a362e42df37f44a527fedcd0f4a0a66aa219f6c7f9e33cf7b4526a6c4\\Lyvads.Application\\Implementations\\AuthService.cs",
               "ViewState": "AQIAAAgCAAAAAAAAAAAwwB4CAAA8AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-30T18:34:04.092Z"
+              "WhenOpened": "2024-09-30T18:34:04.092Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 119,
+              "DocumentIndex": 120,
               "Title": "VerificationRecord.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\VerificationRecord.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\VerificationRecord.cs",
@@ -2231,7 +2258,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 118,
+              "DocumentIndex": 119,
               "Title": "IEmailContext.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IEmailContext.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IEmailContext.cs",
@@ -2243,7 +2270,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 120,
+              "DocumentIndex": 121,
               "Title": "LoginUserDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\AuthDtos\\LoginUserDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\AuthDtos\\LoginUserDto.cs",
@@ -2255,7 +2282,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 132,
+              "DocumentIndex": 133,
               "Title": "GetRequestDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\RegularUserDtos\\GetRequestDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\RegularUserDtos\\GetRequestDto.cs",
@@ -2267,7 +2294,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 133,
+              "DocumentIndex": 134,
               "Title": "Request.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Request.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Request.cs",
@@ -2279,7 +2306,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 121,
+              "DocumentIndex": 122,
               "Title": "ChargeTransactionRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\ChargeTransactionRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\ChargeTransactionRepository.cs",
@@ -2291,7 +2318,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 131,
+              "DocumentIndex": 132,
               "Title": "development-20240928.log",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\logs\\development-20240928.log",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\logs\\development-20240928.log",
@@ -2303,7 +2330,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 130,
+              "DocumentIndex": 131,
               "Title": "log-20240928.txt",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\logs\\log-20240928.txt",
               "RelativeDocumentMoniker": "Lyvads.API.Presentation\\logs\\log-20240928.txt",
@@ -2315,7 +2342,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 134,
+              "DocumentIndex": 135,
               "Title": "PromotionRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\PromotionRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\PromotionRepository.cs",
@@ -2327,7 +2354,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 135,
+              "DocumentIndex": 136,
               "Title": "IPromotionRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IPromotionRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IPromotionRepository.cs",
@@ -2339,7 +2366,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 136,
+              "DocumentIndex": 137,
               "Title": "IPromotionService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IPromotionService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IPromotionService.cs",
@@ -2351,7 +2378,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 125,
+              "DocumentIndex": 126,
               "Title": "IUserAdService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IUserAdService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IUserAdService.cs",
@@ -2363,7 +2390,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 137,
+              "DocumentIndex": 138,
               "Title": "RequestCompletionService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\RequestCompletionService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\RequestCompletionService.cs",
@@ -2375,7 +2402,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 138,
+              "DocumentIndex": 139,
               "Title": "PaymentGatewayService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\PaymentGatewayService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\PaymentGatewayService.cs",
@@ -2387,7 +2414,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 139,
+              "DocumentIndex": 140,
               "Title": "NotificationService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\NotificationService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\NotificationService.cs",
@@ -2399,7 +2426,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 140,
+              "DocumentIndex": 141,
               "Title": "IDisputeService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IDisputeService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IDisputeService.cs",
@@ -2411,7 +2438,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 141,
+              "DocumentIndex": 142,
               "Title": "DisputeDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\DisputeDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\DisputeDto.cs",
@@ -2423,7 +2450,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 142,
+              "DocumentIndex": 143,
               "Title": "Dispute.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Dispute.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Dispute.cs",
@@ -2435,7 +2462,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 143,
+              "DocumentIndex": 144,
               "Title": "WalletService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\WalletService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\WalletService.cs",
@@ -2447,7 +2474,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 144,
+              "DocumentIndex": 145,
               "Title": "WaitlistService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\WaitlistService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\WaitlistService.cs",
@@ -2455,11 +2482,12 @@
               "RelativeToolTip": "Lyvads.Application\\Implementations\\WaitlistService.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAA0AAAAoAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-09-16T11:35:00.496Z"
+              "WhenOpened": "2024-09-16T11:35:00.496Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 145,
+              "DocumentIndex": 146,
               "Title": "RegularUserService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\RegularUserService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\RegularUserService.cs",
@@ -2471,7 +2499,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 146,
+              "DocumentIndex": 147,
               "Title": "CreateRequestDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\RegularUserDtos\\CreateRequestDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\RegularUserDtos\\CreateRequestDto.cs",
@@ -2483,7 +2511,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 147,
+              "DocumentIndex": 148,
               "Title": "IDisputeRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IDisputeRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IDisputeRepository.cs",
@@ -2495,7 +2523,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 148,
+              "DocumentIndex": 149,
               "Title": "DisputeRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\DisputeRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\DisputeRepository.cs",
@@ -2507,7 +2535,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 149,
+              "DocumentIndex": 150,
               "Title": "DisputeStatus.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\DisputeStatus.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\DisputeStatus.cs",
@@ -2519,7 +2547,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 150,
+              "DocumentIndex": 151,
               "Title": "DisputeResponseDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\RegularUserDtos\\DisputeResponseDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\RegularUserDtos\\DisputeResponseDto.cs",
@@ -2531,7 +2559,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 151,
+              "DocumentIndex": 152,
               "Title": "IRegularUserRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IRegularUserRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IRegularUserRepository.cs",
@@ -2543,7 +2571,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 152,
+              "DocumentIndex": 153,
               "Title": "MakeRequestResponseDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\CreatorDtos\\MakeRequestResponseDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\CreatorDtos\\MakeRequestResponseDto.cs",
@@ -2555,7 +2583,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 153,
+              "DocumentIndex": 154,
               "Title": "RequestResponseDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\CreatorDtos\\RequestResponseDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\CreatorDtos\\RequestResponseDto.cs",
@@ -2567,7 +2595,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 154,
+              "DocumentIndex": 155,
               "Title": "RequestStatus.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\RequestStatus.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\RequestStatus.cs",
@@ -2579,7 +2607,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 155,
+              "DocumentIndex": 156,
               "Title": "Deal.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Deal.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Deal.cs",
@@ -2591,7 +2619,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 156,
+              "DocumentIndex": 157,
               "Title": "IRegularUserService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IRegularUserService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IRegularUserService.cs",
@@ -2603,7 +2631,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 157,
+              "DocumentIndex": 158,
               "Title": "Pagination.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Utilities\\Pagination.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Utilities\\Pagination.cs",
@@ -2615,7 +2643,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 158,
+              "DocumentIndex": 159,
               "Title": "RegularDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\RegularUserDtos\\RegularDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\RegularUserDtos\\RegularDto.cs",
@@ -2627,7 +2655,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 159,
+              "DocumentIndex": 160,
               "Title": "RegularUserRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\RegularUserRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\RegularUserRepository.cs",
@@ -2639,7 +2667,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 160,
+              "DocumentIndex": 161,
               "Title": "Microsoft.NET.Sdk.DefaultItems.Shared.targets",
               "DocumentMoniker": "C:\\Program Files\\dotnet\\sdk\\8.0.300-preview.24203.14\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets",
               "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\Program Files\\dotnet\\sdk\\8.0.300-preview.24203.14\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets",
@@ -2651,7 +2679,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 161,
+              "DocumentIndex": 162,
               "Title": "Result.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\Result.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\Result.cs",
@@ -2663,7 +2691,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 162,
+              "DocumentIndex": 163,
               "Title": "CollaborationRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\CollaborationRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\CollaborationRepository.cs",
@@ -2675,7 +2703,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 123,
+              "DocumentIndex": 124,
               "Title": "Charge.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Charge.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Charge.cs",
@@ -2687,7 +2715,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 163,
+              "DocumentIndex": 164,
               "Title": "Collaboration.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Collaboration.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Collaboration.cs",
@@ -2699,7 +2727,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 164,
+              "DocumentIndex": 165,
               "Title": "ICollaborationRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\ICollaborationRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\ICollaborationRepository.cs",
@@ -2711,7 +2739,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 165,
+              "DocumentIndex": 166,
               "Title": "CollaborationDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\CollaborationDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\CollaborationDto.cs",
@@ -2723,7 +2751,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 166,
+              "DocumentIndex": 167,
               "Title": "WaitlistEntry.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\WaitlistEntry.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\WaitlistEntry.cs",
@@ -2735,7 +2763,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 168,
+              "DocumentIndex": 169,
               "Title": "Withdrawal.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Withdrawal.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Withdrawal.cs",
@@ -2747,7 +2775,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 126,
+              "DocumentIndex": 127,
               "Title": "IUserAdRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IUserAdRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IUserAdRepository.cs",
@@ -2759,7 +2787,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 127,
+              "DocumentIndex": 128,
               "Title": "UserAdRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\UserAdRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\UserAdRepository.cs",
@@ -2771,7 +2799,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 167,
+              "DocumentIndex": 168,
               "Title": "Wallet.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Wallet.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Wallet.cs",
@@ -2783,7 +2811,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 124,
+              "DocumentIndex": 125,
               "Title": "UserAdDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\UserAdDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\UserAdDto.cs",
@@ -2795,7 +2823,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 128,
+              "DocumentIndex": 129,
               "Title": "UserAd.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\UserAd.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\UserAd.cs",
@@ -2807,7 +2835,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 129,
+              "DocumentIndex": 130,
               "Title": "UserAdStatus.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\UserAdStatus.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\UserAdStatus.cs",
@@ -2819,7 +2847,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 169,
+              "DocumentIndex": 170,
               "Title": "WalletRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\WalletRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\WalletRepository.cs",
@@ -2831,7 +2859,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 171,
+              "DocumentIndex": 172,
               "Title": "SuperAdminRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\SuperAdminRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\SuperAdminRepository.cs",
@@ -2843,7 +2871,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 170,
+              "DocumentIndex": 171,
               "Title": "UnitOfWork.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\UnitOfWork.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\UnitOfWork.cs",
@@ -2855,7 +2883,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 172,
+              "DocumentIndex": 173,
               "Title": "BankAccountRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Repositories\\BankAccountRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Repositories\\BankAccountRepository.cs",
@@ -2867,7 +2895,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 122,
+              "DocumentIndex": 123,
               "Title": "IChargeTransactionRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\IChargeTransactionRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\IChargeTransactionRepository.cs",
@@ -2879,7 +2907,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 173,
+              "DocumentIndex": 174,
               "Title": "ChargeTransactionDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\ChargeTransactionDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\ChargeTransactionDto.cs",
@@ -2891,7 +2919,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 174,
+              "DocumentIndex": 175,
               "Title": "Transfer.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Transfer.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Transfer.cs",
@@ -2903,7 +2931,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 175,
+              "DocumentIndex": 176,
               "Title": "TransactionType.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\TransactionType.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\TransactionType.cs",
@@ -2915,7 +2943,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 176,
+              "DocumentIndex": 177,
               "Title": "IPaymentGatewayService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Interfaces\\IPaymentGatewayService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Interfaces\\IPaymentGatewayService.cs",
@@ -2927,7 +2955,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 182,
+              "DocumentIndex": 183,
               "Title": "Promotion.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Promotion.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Promotion.cs",
@@ -2939,7 +2967,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 177,
+              "DocumentIndex": 178,
               "Title": "PromotionDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\PromotionDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\PromotionDto.cs",
@@ -2951,7 +2979,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 183,
+              "DocumentIndex": 184,
               "Title": "ContentType.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\ContentType.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\ContentType.cs",
@@ -2963,7 +2991,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 184,
+              "DocumentIndex": 185,
               "Title": "ITransactionRepository.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Repositories\\ITransactionRepository.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Repositories\\ITransactionRepository.cs",
@@ -2975,7 +3003,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 178,
+              "DocumentIndex": 179,
               "Title": "Transaction.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Transaction.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Transaction.cs",
@@ -2987,7 +3015,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 179,
+              "DocumentIndex": 180,
               "Title": "BankAccount.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\BankAccount.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\BankAccount.cs",
@@ -2999,7 +3027,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 180,
+              "DocumentIndex": 181,
               "Title": "UpdateUserDto.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Dtos\\SuperAdminDtos\\UpdateUserDto.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Dtos\\SuperAdminDtos\\UpdateUserDto.cs",
@@ -3011,7 +3039,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 181,
+              "DocumentIndex": 182,
               "Title": "DealStatus.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Enums\\DealStatus.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Enums\\DealStatus.cs",
