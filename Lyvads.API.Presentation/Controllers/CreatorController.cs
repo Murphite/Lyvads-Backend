@@ -14,6 +14,7 @@ using Lyvads.Domain.Responses;
 using Lyvads.Application.Dtos;
 using System.Security.Claims;
 using Lyvads.Shared.DTOs;
+using Azure;
 
 namespace Lyvads.API.Presentation.Controllers;
 
@@ -165,7 +166,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success("Post successfully deleted."));
+        return Ok(result);
     }
 
     
@@ -182,7 +183,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment added successfully."));
+        return Ok(result);
     }
 
     
@@ -198,7 +199,7 @@ public class CreatorController : ControllerBase
             return BadRequest(result.ErrorResponse);
 
 
-        return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
+        return Ok(result);
     }
 
 
@@ -229,7 +230,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<IEnumerable<PostResponseDto>>.Success(result.Data, "Posts retrieved successfully."));
+        return Ok(result);
     }
 
 
@@ -245,7 +246,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<IEnumerable<FilterCreatorDto>>.Success(result.Data, "Creators retrieved successfully."));
+        return Ok(result);
     }
 
     
@@ -278,7 +279,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<VideoResponseDto>.Success(result.Data, result.ResponseMessage));
+        return Ok(result);
     }
 
 
@@ -293,7 +294,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<WalletBalanceDto>.Success(result.Data, "Wallet balance retrieved successfully."));
+        return Ok(result);
     }
 
 
@@ -305,7 +306,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<RequestResponseDto>.Success(result.Data, "Request handled successfully."));
+        return Ok(result);
     }
 
 
@@ -320,7 +321,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success());
+        return Ok(result);
     }
 
     
@@ -336,7 +337,7 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<IEnumerable<NotificationResponseDto>>.Success(result.Data, "Notifications retrieved successfully."));
+        return Ok(result);
     }
 
 
