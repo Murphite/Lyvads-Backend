@@ -118,9 +118,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(d => d.RequestId);
 
         modelBuilder.Entity<Request>()
-            .HasOne(r => r.User)
+            .HasOne(r => r.RegularUser)
             .WithMany(u => u.Requests)
-            .HasForeignKey(r => r.UserId)
+            .HasForeignKey(r => r.RegularUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Deal>()
@@ -136,13 +136,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         // Ignore the conflicting property 'Request.User' 
         modelBuilder.Entity<Request>()
-            .Ignore(r => r.User);
+            .Ignore(r => r.RegularUser);
 
         // Configure the relationship between 'Request' and 'RegularUser'
         modelBuilder.Entity<Request>()
             .HasOne(r => r.RegularUser)
             .WithMany(u => u.Requests)
-            .HasForeignKey(r => r.UserId)
+            .HasForeignKey(r => r.RegularUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<VerificationRecord>()

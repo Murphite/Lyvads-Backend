@@ -159,7 +159,7 @@ public class UserInteractionService : IUserInteractionService
                         Type = createRequestDto.Type,
                         Script = createRequestDto.Script,
                         CreatorId = createRequestDto.CreatorId,
-                        UserId = user.Id,
+                        RegularUserId = user.Id,
                         RequestType = createRequestDto.RequestType,
                         CreatedAt = DateTimeOffset.UtcNow,
                         UpdatedAt = DateTimeOffset.UtcNow,

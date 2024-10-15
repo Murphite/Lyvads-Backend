@@ -266,16 +266,16 @@ public class AdminDashboardService : IAdminUserService
         var requests = await _requestRepository.GetRequests()
             .Select(r => new
             {
-                r.UserId,
-                r.User.ApplicationUser!.FirstName,
-                r.User.ApplicationUser!.LastName,
+                r.RegularUserId,
+                r.RegularUser!.ApplicationUser!.FirstName,
+                r.RegularUser.ApplicationUser!.LastName,
                 r.RequestType,
                 TransactionAmount = r.Transactions.Sum(t => t.Amount)
             })
             .ToListAsync();
 
         var topRequests = requests
-            .GroupBy(r => new { r.UserId, r.RequestType })
+            .GroupBy(r => new { r.RegularUserId, r.RequestType })
             .Select(g => new TopRequestDto
             {
                 RegularUser = g.First().FirstName + " " + g.First().LastName,

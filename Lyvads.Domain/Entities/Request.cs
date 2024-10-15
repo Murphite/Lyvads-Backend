@@ -14,18 +14,17 @@ public class Request : Entity, IAuditable
     public decimal FastTrackFee { get; set; }
     public string? CreatorId { get; set; }
     public Creator Creator { get; set; } = default!;
-    public string? UserId { get; set; }
     public PaymentMethod PaymentMethod { get; set; }
-    public RegularUser User { get; set; } = default!;
     public RequestType RequestType { get; set; }
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public ICollection<Deal> Deals { get; set; } = new List<Deal>();
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
-    public string? RegularUserId { get; set; }
-    public RegularUser? RegularUser { get; set; }   
     public string? VideoUrl { get; set; }
+
+    public string? RegularUserId { get; set; }
+    public RegularUser? RegularUser { get; set; }
 
 
 }

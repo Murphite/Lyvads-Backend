@@ -15,8 +15,8 @@ public class AdminPermission : Entity
 
     public string ApplicationUserId { get; set; } = default!;
     public virtual ApplicationUser ApplicationUser { get; set; } = default!;
-    public string? RoleId { get; set; }  
-    public virtual AdminRole? AdminRole { get; set; }
+    public string? AdminRoleId { get; set; }  
+    public virtual AdminRole? AdminRole { get; set; } 
 }
 
 

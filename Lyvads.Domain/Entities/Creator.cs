@@ -61,4 +61,7 @@ public class CollaborationRate : Entity
     public RequestType RequestType { get; set; }
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Rate { get; set; } // Rate for the request
+
+    public string? CreatorId { get; set; }
+    public Creator? Creator { get; set; }
 }

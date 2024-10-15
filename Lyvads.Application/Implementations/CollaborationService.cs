@@ -244,7 +244,7 @@ public class CollaborationService : ICollaborationService
         var requestDtos = requests.Select(r => new GetUserRequestDto
         {
             RequestId = r.Id,
-            UserFullName = $"{r.User.ApplicationUser!.FirstName} {r.User.ApplicationUser.LastName}", // Full name of the Regular User who made the request
+            UserFullName = $"{r.RegularUser!.ApplicationUser!.FirstName} {r.RegularUser!.ApplicationUser.LastName}", // Full name of the Regular User who made the request
             Status = r.Status,
             CreatedAt = r.CreatedAt.UtcDateTime,
         }).ToList();
@@ -284,7 +284,7 @@ public class CollaborationService : ICollaborationService
                 IsSuccessful = false,
                 ResponseCode = "404",
                 ResponseMessage = "No requests found for the user.",
-                Data = null
+                Data = null!
             };
         }
 
@@ -426,7 +426,7 @@ public class CollaborationService : ICollaborationService
         }
 
         // Check if the user ID is not null or empty
-        if (string.IsNullOrEmpty(request.UserId))
+        if (string.IsNullOrEmpty(request.RegularUserId))
         {
             _logger.LogWarning("User ID for request with ID: {RequestId} is null or empty.", requestId);
             return new ServerResponse<VideoResponseDto>
@@ -443,10 +443,10 @@ public class CollaborationService : ICollaborationService
         }
 
         // Check if the user exists
-        var user = await _repository.GetById<ApplicationUser>(request.UserId);
+        var user = await _repository.GetById<ApplicationUser>(request.RegularUserId);
         if (user == null)
         {
-            _logger.LogWarning("User with ID: {UserId} not found.", request.UserId);
+            _logger.LogWarning("User with ID: {UserId} not found.", request.RegularUserId);
             return new ServerResponse<VideoResponseDto>
             {
                 IsSuccessful = false,
@@ -569,7 +569,7 @@ public class CollaborationService : ICollaborationService
         // Fetch disputes associated with the creator
         var disputes = await _disputeRepository.GetDisputesByCreator(user.Id)
             .Include(d => d.Request)
-            .ThenInclude(r => r.User)
+            .ThenInclude(r => r.RegularUser)
             .ToListAsync();
 
         if (disputes == null || !disputes.Any())
@@ -593,7 +593,7 @@ public class CollaborationService : ICollaborationService
         var disputeDtos = disputes.Select(d => new FetchDisputeDto
         {
             DisputeId = d.Id,
-            RegularUserFullName = $"{d.Request!.User.ApplicationUser!.FirstName} {d.Request.User.ApplicationUser.LastName}",
+            RegularUserFullName = $"{d.Request!.RegularUser!.ApplicationUser!.FirstName} {d.Request.RegularUser!.ApplicationUser.LastName}",
             CreatedAt = d.CreatedAt.UtcDateTime,
             DisputeType = DisputeType.DisputedVideo,
             Status = d.Status
@@ -668,7 +668,7 @@ public class CollaborationService : ICollaborationService
         var disputeDetailsDto = new DisputeDetailsDto
         {
             DisputeId = dispute.Id,
-            RegularUserFullName = $"{dispute.Request.User.ApplicationUser!.FirstName} {dispute.Request.User.ApplicationUser.LastName}",
+            RegularUserFullName = $"{dispute.Request.RegularUser!.ApplicationUser!.FirstName} {dispute.Request.RegularUser!.ApplicationUser.LastName}",
             CreatedAt = dispute.CreatedAt.UtcDateTime,
             DisputeReason = dispute.Reason,
             DisputeMessage = dispute.DisputeMessage

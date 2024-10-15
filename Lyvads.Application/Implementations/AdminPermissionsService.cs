@@ -191,7 +191,7 @@ public class AdminPermissionsService : IAdminPermissionsService
         // Create the new permissions for the role and associate them
         var newPermissions = new AdminPermission
         {
-            RoleId = newRole.Id,
+            AdminRoleId = newRole.Id,
             CanManageAdminRoles = permissionsDto.CanManageAdminRoles,
             CanManageUsers = permissionsDto.CanManageUsers,
             CanManageRevenue = permissionsDto.CanManageRevenue,

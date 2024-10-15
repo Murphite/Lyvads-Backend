@@ -675,7 +675,7 @@ public class CreatorService : ICreatorService
             };
         }
 
-        if (string.IsNullOrEmpty(request.UserId))
+        if (string.IsNullOrEmpty(request.RegularUserId))
         {
             _logger.LogWarning("User ID for request ID: {RequestId} is null or empty.", requestId);
             return new ServerResponse<RequestResponseDto>
@@ -692,10 +692,10 @@ public class CreatorService : ICreatorService
         }
 
         // Check if the user exists
-        var user = await _repository.GetById<ApplicationUser>(request.UserId);
+        var user = await _repository.GetById<ApplicationUser>(request.RegularUserId);
         if (user == null)
         {
-            _logger.LogWarning("User with ID: {UserId} not found for request ID: {RequestId}", request.UserId, requestId);
+            _logger.LogWarning("User with ID: {UserId} not found for request ID: {RequestId}", request.RegularUserId, requestId);
             return new ServerResponse<RequestResponseDto>
             {
                 IsSuccessful = false,
@@ -757,7 +757,7 @@ public class CreatorService : ICreatorService
         }
 
         // Check if the user ID is not null or empty
-        if (string.IsNullOrEmpty(request.UserId))
+        if (string.IsNullOrEmpty(request.RegularUserId))
         {
             _logger.LogWarning("User ID for request with ID: {RequestId} is null or empty.", requestId);
             return new ServerResponse<VideoResponseDto>
@@ -774,10 +774,10 @@ public class CreatorService : ICreatorService
         }
 
         // Check if the user exists
-        var user = await _repository.GetById<ApplicationUser>(request.UserId);
+        var user = await _repository.GetById<ApplicationUser>(request.RegularUserId);
         if (user == null)
         {
-            _logger.LogWarning("User with ID: {UserId} not found.", request.UserId);
+            _logger.LogWarning("User with ID: {UserId} not found.", request.RegularUserId);
             return new ServerResponse<VideoResponseDto>
             {
                 IsSuccessful = false,
