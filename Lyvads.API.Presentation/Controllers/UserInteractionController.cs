@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Lyvads.Domain.Entities;
 using Lyvads.Shared.DTOs;
 using Lyvads.Application.Dtos;
+using Lyvads.Domain.Responses;
 
 namespace Lyvads.API.Controllers;
 
@@ -32,16 +33,55 @@ public class UserInteractionController : ControllerBase
     }
 
     [HttpPost("Comment")]
-    public async Task<IActionResult> AddComment([FromBody] CommentDto commentDto)
+    public async Task<IActionResult> AddCommentOnPost(string postId, string content)
     {
-        var result = await _userInteractionService.AddCommentAsync(commentDto.UserId, commentDto.Content);
+        var user = await _userManager.GetUserAsync(User);
+        // Check if the user is null before proceeding
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
 
-        if(!result.IsSuccessful)
+        var result = await _userInteractionService.AddCommentOnPostAsync(postId, user.Id, content);
+
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(result.Data));
+        return Ok(result);
     }
 
+    [HttpPost("Reply")]
+    public async Task<IActionResult> ReplyToComment(string parentCommentId, string content)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        // Check if the user is null before proceeding
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+
+        var result = await _userInteractionService.ReplyToCommentAsync(parentCommentId, user.Id, content);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+    [HttpPut("edit-reply/{replyId}")]
+    public async Task<ActionResult<ServerResponse<CommentResponseDto>>> EditReply(
+        [FromRoute] string replyId,
+        [FromBody] EditReplyRequest request)
+    {
+        // Assuming the request body contains the user ID and new content.
+        var userId = request.UserId;
+        var newContent = request.NewContent;
+
+        var response = await _userInteractionService.EditReplyAsync(replyId, userId, newContent);
+
+        if (!response.IsSuccessful)
+        {
+            return StatusCode(int.Parse(response.ResponseCode), response);
+        }
+
+        return Ok(response);
+    }
 
     [HttpPut("EditComment/{commentId}")]
     public async Task<IActionResult> EditComment(string commentId, [FromBody] string newContent)
@@ -55,7 +95,7 @@ public class UserInteractionController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<CommentResponseDto>.Success(result.Data, "Comment updated successfully."));
+        return Ok(result);
     }
 
 
@@ -71,19 +111,19 @@ public class UserInteractionController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(result.Data, "Comment deleted successfully."));
+        return Ok(result);
     }
 
 
     [HttpPost("Like")]
     public async Task<IActionResult> LikeContent([FromBody] LikeDto likeDto)
     {
-        var result = await _userInteractionService.LikeContentAsync(likeDto.UserId, likeDto.ContentId);
+        var result = await _userInteractionService.LikeContentAsync(likeDto.UserId!, likeDto.ContentId!);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(result.Data));
+        return Ok(result);
     }
 
 
@@ -107,7 +147,7 @@ public class UserInteractionController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(result.Data, "Content unliked successfully."));
+        return Ok(result);
     }
 
 
@@ -115,12 +155,12 @@ public class UserInteractionController : ControllerBase
     [HttpPost("FundWallet")]
     public async Task<IActionResult> FundWallet([FromBody] FundWalletDto fundWalletDto)
     {
-        var result = await _userInteractionService.FundWalletAsync(fundWalletDto.UserId, fundWalletDto.Amount);
+        var result = await _userInteractionService.FundWalletAsync(fundWalletDto.UserId!, fundWalletDto.Amount);
 
         if(!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(result.Data));
+        return Ok(result);
     }   
 
    
@@ -136,7 +176,7 @@ public class UserInteractionController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<MakeRequestResponseDto>.Success(result.Data));
+        return Ok(result);
     }
 
     [HttpGet("posts/{postId}/likes")]
@@ -178,7 +218,7 @@ public class UserInteractionController : ControllerBase
     [HttpPost("favorites")]
     public async Task<IActionResult> AddCreatorToFavorites([FromBody] AddFavoriteDto favoriteDto)
     {
-        var response = await _userInteractionService.AddCreatorToFavoritesAsync(favoriteDto.UserId, favoriteDto.CreatorId);
+        var response = await _userInteractionService.AddCreatorToFavoritesAsync(favoriteDto.UserId!, favoriteDto.CreatorId!);
         if (!response.IsSuccessful)
             return BadRequest(response.ErrorResponse);
         return Ok(response);
@@ -262,5 +302,11 @@ public class UserInteractionController : ControllerBase
     {
         public string? UserId { get; set; }
         public string? CreatorId { get; set; }
+    }
+
+    public class EditReplyRequest
+    {
+        public string UserId { get; set; }
+        public string NewContent { get; set; }
     }
 }

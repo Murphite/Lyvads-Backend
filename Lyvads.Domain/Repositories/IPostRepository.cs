@@ -13,4 +13,6 @@ public interface IPostRepository
     Task UpdateAsync(Post entity); 
     Task DeleteAsync(Post entity);
     public IQueryable<Post> GetAllPosts();
+    Task<List<Comment>> GetCommentsByPostIdAsync(string postId);
+    Task<Post?> GetPostByIdAsync(string postId);
 }

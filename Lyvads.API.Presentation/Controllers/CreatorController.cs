@@ -57,7 +57,8 @@ public class CreatorController : ControllerBase
 
     [HttpPost("CreatePost")]
     [Authorize(Roles = "Creator")]
-    public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromForm] UploadImage photo)
+    public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromQuery] PostVisibility visibility,
+        [FromForm] UploadImage photo)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -89,7 +90,7 @@ public class CreatorController : ControllerBase
         }
 
         // Call the service with the Image file and other post details
-        var response = await _creatorService.CreatePostAsync(postDto, userId, photo.Image!);
+        var response = await _creatorService.CreatePostAsync(postDto, visibility, userId, photo.Image!);
 
         if (!response.IsSuccessful)
             return BadRequest(response.ErrorResponse);
@@ -100,7 +101,8 @@ public class CreatorController : ControllerBase
 
     [HttpPut("update-post/{postId}")]
     [Authorize(Roles = "Creator")]
-    public async Task<IActionResult> UpdatePost(string postId, [FromForm] UpdatePostDto postDto, [FromForm] UploadImage photo)
+    public async Task<IActionResult> UpdatePost(string postId, [FromForm] UpdatePostDto postDto, [FromQuery] PostVisibility visibility,
+        [FromForm] UploadImage photo)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get user ID from claims
 
@@ -135,7 +137,7 @@ public class CreatorController : ControllerBase
         }
 
         // Call the service with the Image file and other post details
-        var response = await _creatorService.UpdatePostAsync(postId, postDto, userId, photo.Image!); // Pass postId directly
+        var response = await _creatorService.UpdatePostAsync(postId, postDto, visibility, userId, photo.Image!); // Pass postId directly
 
         if (!response.IsSuccessful)
             return BadRequest(response.ErrorResponse);

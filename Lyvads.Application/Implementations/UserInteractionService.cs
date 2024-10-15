@@ -29,6 +29,7 @@ public class UserInteractionService : IUserInteractionService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IWalletService _walletService;
     private readonly IRequestRepository _requestRepository;
+    private readonly IPostRepository _postRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IConfiguration _configuration;
 
@@ -42,6 +43,7 @@ public class UserInteractionService : IUserInteractionService
         IUnitOfWork unitOfWork,
         IWalletService walletService,
         IRequestRepository requestRepository,
+        IPostRepository postRepository,
         IHttpContextAccessor httpContextAccessor)
     {
         _userRepository = userRepository;
@@ -55,6 +57,7 @@ public class UserInteractionService : IUserInteractionService
         _walletService = walletService;
         _requestRepository = requestRepository;
         _httpContextAccessor = httpContextAccessor;
+        _postRepository = postRepository;
     }
 
     public async Task<ServerResponse<string>> MakeRequestAsync(CreateRequestDto createRequestDto)
@@ -334,40 +337,241 @@ public class UserInteractionService : IUserInteractionService
         };
     }
 
-    public async Task<ServerResponse<object>> AddCommentAsync(string userId, string content)
+    public async Task<ServerResponse<CommentResponseDto>> AddCommentOnPostAsync(string postId, string userId, string content)
     {
-        var user = await _userRepository.GetUserByIdAsync(userId);
+        _logger.LogInformation("User {UserId} is adding a comment on post {PostId}", userId, postId);
+
+        // Check if user exists
+        var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            _logger.LogWarning("User not found for ID: {UserId}", userId);
-            return new ServerResponse<object>
+            _logger.LogWarning("User {UserId} not found.", userId);
+            return new ServerResponse<CommentResponseDto>
             {
                 IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found.",
                 ErrorResponse = new ErrorResponse
                 {
-                    ResponseCode = "Comment.Error",
-                    ResponseMessage = "User not found"
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found."
                 }
             };
         }
 
+        // Create new comment
         var comment = new Comment
         {
+            Id = Guid.NewGuid().ToString(),
+            PostId = postId,
+            CommentBy = $"{user.FirstName} {user.LastName}",
             ApplicationUserId = userId,
             Content = content,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        await _userRepository.AddCommentAsync(comment);
-        _logger.LogInformation("Comment added successfully for user ID: {UserId}", userId);
-        return new ServerResponse<object>
+        // Save the comment to the post
+        await _repository.Add(comment);
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogInformation("Comment added successfully to post {PostId} by user {UserId}", postId, userId);
+
+        // Prepare the response DTO
+        var commentResponse = new CommentResponseDto
         {
-            IsSuccessful = true
+            CommentId = comment.Id,
+            PostId = comment.PostId,
+            UserId = comment.ApplicationUserId,
+            Content = comment.Content,
+            CreatedAt = comment.CreatedAt,
+            CommentBy = comment.CommentBy
+        };
+
+        return new ServerResponse<CommentResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Comment added to post successfully.",
+            Data = commentResponse
+        };
+    }
+
+    public async Task<ServerResponse<CommentResponseDto>> ReplyToCommentAsync(string parentCommentId, string userId, string content)
+    {
+        _logger.LogInformation("User {UserId} is replying to comment {ParentCommentId}", userId, parentCommentId);
+
+        // Check if user exists
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning("User {UserId} not found.", userId);
+            return new ServerResponse<CommentResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        // Fetch the parent comment
+        var parentComment = await _repository.GetCommentByIdAsync(parentCommentId);
+        if (parentComment == null)
+        {
+            _logger.LogWarning("Parent comment {ParentCommentId} not found.", parentCommentId);
+            return new ServerResponse<CommentResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Parent comment not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Parent comment not found."
+                }
+            };
+        }
+
+        // Create new reply comment
+        var replyComment = new Comment
+        {
+            Id = Guid.NewGuid().ToString(),
+            CommentBy = $"{user.FirstName} {user.LastName}",
+            ApplicationUserId = userId,
+            Content = content,
+            CreatedAt = DateTimeOffset.UtcNow,
+            ParentCommentId = parentCommentId
+        };
+
+        // Add the reply to the parent comment's Replies collection
+        if (parentComment.Replies == null)
+        {
+            parentComment.Replies = new List<Comment>();
+        }
+        parentComment.Replies.Add(replyComment);
+
+        // Save the reply comment
+        await _repository.Add(replyComment);
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogInformation("Reply added successfully to comment {ParentCommentId} by user {UserId}", parentCommentId, userId);
+
+        // Prepare the response DTO
+        var replyResponse = new CommentResponseDto
+        {
+            CommentId = replyComment.Id,
+            PostId = parentComment.PostId,
+            UserId = replyComment.ApplicationUserId,
+            Content = replyComment.Content,
+            CreatedAt = replyComment.CreatedAt,
+            CommentBy = replyComment.CommentBy,
+            ParentCommentId = replyComment.ParentCommentId
+        };
+
+        return new ServerResponse<CommentResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Reply added successfully.",
+            Data = replyResponse
+        };
+    }
+
+    public async Task<ServerResponse<CommentResponseDto>> EditReplyAsync(string replyId, string userId, string newContent)
+    {
+        _logger.LogInformation("User {UserId} is editing reply {ReplyId}", userId, replyId);
+
+        // Check if user exists
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning("User {UserId} not found.", userId);
+            return new ServerResponse<CommentResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        // Fetch the reply comment
+        var replyComment = await _repository.GetCommentByIdAsync(replyId);
+        if (replyComment == null)
+        {
+            _logger.LogWarning("Reply comment {ReplyId} not found.", replyId);
+            return new ServerResponse<CommentResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Reply comment not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Reply comment not found."
+                }
+            };
+        }
+
+        // Check if the user is the owner of the reply comment
+        if (replyComment.ApplicationUserId != userId)
+        {
+            _logger.LogWarning("User {UserId} is not authorized to edit reply {ReplyId}", userId, replyId);
+            return new ServerResponse<CommentResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "403",
+                ResponseMessage = "You are not authorized to edit this reply.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "403",
+                    ResponseMessage = "Unauthorized."
+                }
+            };
+        }
+
+        // Update the content of the reply comment
+        replyComment.Content = newContent;
+        replyComment.UpdatedAt = DateTimeOffset.UtcNow; // Optional: You may want to track the update time
+
+        // Save the changes
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogInformation("Reply {ReplyId} edited successfully by user {UserId}", replyId, userId);
+
+        // Prepare the response DTO
+        var replyResponse = new CommentResponseDto
+        {
+            CommentId = replyComment.Id,
+            PostId = replyComment.PostId,
+            UserId = replyComment.ApplicationUserId,
+            Content = replyComment.Content,
+            CreatedAt = replyComment.CreatedAt,
+            UpdatedAt = replyComment.UpdatedAt, // Include updated date if needed
+            CommentBy = replyComment.CommentBy,
+            ParentCommentId = replyComment.ParentCommentId
+        };
+
+        return new ServerResponse<CommentResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Reply edited successfully.",
+            Data = replyResponse
         };
     }
 
     public async Task<ServerResponse<object>> DeleteCommentAsync(string userId, string commentId)
     {
+        // Check if the user exists
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
@@ -383,8 +587,9 @@ public class UserInteractionService : IUserInteractionService
             };
         }
 
+        // Fetch the comment
         var comment = await _repository.GetAll<Comment>()
-           .FirstOrDefaultAsync(x => x.Id == commentId && x.ApplicationUserId == user.Id);
+           .FirstOrDefaultAsync(x => x.Id == commentId && x.ApplicationUserId == user.Id && !x.IsDeleted);  // Ensure not deleted
         if (comment == null)
         {
             _logger.LogWarning("Comment with ID: {CommentId} not found.", commentId);
@@ -399,6 +604,7 @@ public class UserInteractionService : IUserInteractionService
             };
         }
 
+        // Check if the user is authorized to delete the comment
         if (comment.ApplicationUserId != userId)
         {
             _logger.LogWarning("User with ID: {UserId} is not authorized to delete comment with ID: {CommentId}", userId, commentId);
@@ -413,13 +619,17 @@ public class UserInteractionService : IUserInteractionService
             };
         }
 
-        _repository.Remove(comment);
+        // Soft delete by setting the IsDeleted flag to true
+        comment.IsDeleted = true;
+        _repository.Update(comment);  // Use update method for soft deletion
+
         await _unitOfWork.SaveChangesAsync();
 
-        _logger.LogInformation("Comment with ID: {CommentId} deleted successfully by user with ID: {UserId}", commentId, userId);
+        _logger.LogInformation("Comment with ID: {CommentId} soft deleted successfully by user with ID: {UserId}", commentId, userId);
         return new ServerResponse<object>
         {
-            IsSuccessful = true
+            IsSuccessful = true,
+            ResponseMessage = "Comment deleted successfully."
         };
     }
 
@@ -565,6 +775,33 @@ public class UserInteractionService : IUserInteractionService
             Data = commentResponses
         };
     }
+
+    public async Task<ServerResponse<List<Comment>>> GetCommentsByPostIdAsync(string postId)
+    {
+        var post = await _postRepository.GetPostByIdAsync(postId);
+        if (post == null)
+        {
+            _logger.LogWarning("Post not found for ID: {PostId}", postId);
+            return new ServerResponse<List<Comment>>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Post.Error",
+                    ResponseMessage = "Post not found"
+                }
+            };
+        }
+
+        var comments = await _postRepository.GetCommentsByPostIdAsync(postId);
+
+        return new ServerResponse<List<Comment>>
+        {
+            IsSuccessful = true,
+            Data = comments
+        };
+    }
+
 
     public async Task<ServerResponse<object>> AddCreatorToFavoritesAsync(string userId, string creatorId)
     {

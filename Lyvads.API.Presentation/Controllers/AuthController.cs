@@ -55,7 +55,7 @@ public class AuthController : ControllerBase
             return BadRequest(result.ErrorResponse);
         }
 
-        return Ok(ResponseDto<RegistrationResponseDto>.Success(result.Data, "Verification code sent. Please check your email."));
+        return Ok(result);
     }
 
 
@@ -69,7 +69,7 @@ public class AuthController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<EmailVerificationResponseDto>.Success(result.Data, "Email verification successful."));
+        return Ok(result);
     }
 
 
@@ -105,7 +105,7 @@ public class AuthController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "User registered successfully."));
+        return Ok(result);
     }
 
 
@@ -139,7 +139,7 @@ public class AuthController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "Creator registered successfully."));
+        return Ok(result);
     }
 
 
@@ -173,7 +173,7 @@ public class AuthController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<RegisterUserResponseDto>.Success(result.Data, "Super admin registered successfully."));
+        return Ok(result);
     }
 
 
@@ -207,7 +207,7 @@ public class AuthController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(result.Data, "Password reset email sent successfully."));
+        return Ok(result);
     }
 
 
@@ -228,7 +228,7 @@ public class AuthController : ControllerBase
             Message = "Password reset was successful"
         };
 
-        return Ok(ResponseDto<PasswordResetResponseDto>.Success(passwordResetResponse, "Password reset was successful."));
+        return Ok(result);
     }
 
 

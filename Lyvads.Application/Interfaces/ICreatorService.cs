@@ -11,8 +11,8 @@ namespace Lyvads.Application.Interfaces;
 public interface ICreatorService
 {
     Task<ServerResponse<PaginatorDto<IEnumerable<CreatorDto>>>> GetCreators(PaginationFilter paginationFilter);
-    Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, string userId, IFormFile photo);
-    Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, string userId, IFormFile photo);
+    Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, PostVisibility visibility, string userId, IFormFile photo);
+    Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo);
     Task<ServerResponse<CreatorProfileResponseDto>> UpdateCreatorSetUpRatesAsync(UpdateCreatorProfileDto dto, string userId);
     //Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, string userId);
     Task<ServerResponse<object>> DeletePostAsync(string postId, string userId);

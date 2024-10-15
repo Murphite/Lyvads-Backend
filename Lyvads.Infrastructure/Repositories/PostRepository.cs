@@ -51,7 +51,7 @@ public class PostRepository : IPostRepository
                 {
                     ResponseDescription = "The post with the specified ID does not exist."
                 },
-                Data = null
+                Data = null!
             };
         }
 
@@ -62,6 +62,20 @@ public class PostRepository : IPostRepository
             ResponseMessage = "Post retrieved successfully",
             Data = post
         };
+    }
+
+    public async Task<List<Comment>> GetCommentsByPostIdAsync(string postId)
+    {
+        return await _context.Comments
+            .Where(c => c.PostId == postId && !c.IsDeleted)
+            .OrderByDescending(c => c.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<Post?> GetPostByIdAsync(string postId)
+    {
+        return await _context.Posts
+            .FirstOrDefaultAsync(p => p.Id == postId && !p.IsDeleted);
     }
 
 

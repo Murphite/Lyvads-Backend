@@ -11,6 +11,8 @@ public class Post : Entity
     public string MediaUrl { get; set; } = default!;
     public string Location { get; set; } = default!;
     public string CreatorId { get; set; } = default!;
+    public bool IsDeleted { get; set; }
+
 
     public Creator Creator { get; set; } = default!;
     public PostVisibility Visibility { get; set; }

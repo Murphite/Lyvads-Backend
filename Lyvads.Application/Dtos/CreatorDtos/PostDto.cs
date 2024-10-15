@@ -11,7 +11,7 @@ public class PostDto
 {
     public string Caption { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
-    public PostVisibility Visibility { get; set; }
+    //public PostVisibility Visibility { get; set; }
 }
 
 public class UpdatePostDto
@@ -19,5 +19,5 @@ public class UpdatePostDto
     //public string? PostId { get; set; }
     public string Caption { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
-    public PostVisibility? Visibility { get; set; }
+    //public PostVisibility? Visibility { get; set; }
 }

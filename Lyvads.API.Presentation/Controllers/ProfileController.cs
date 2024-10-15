@@ -39,36 +39,54 @@ public class ProfileController : ControllerBase
         // Call the service to update the creator profile
         var result = await _profileService.EditProfileAsync(dto, user.Id);
 
-        if (!!result.IsSuccessful)
+        if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
         // Return the updated profile data
-        return Ok(ResponseDto<EditProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
+        return Ok(result);
     }
 
     [HttpPut("UpdateProfilePicture")]
-    public async Task<IActionResult> UpdateProfilePicture([FromBody] UpdateProfilePictureDto dto)
+    public async Task<IActionResult> UpdateProfilePicture([FromForm] UpdateProfilePictureDto dto)
     {
         // Get the logged-in user
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return NotFound("User not found.");
 
-        // Convert the new profile picture URL to an IFormFile (you can adjust this based on your actual input)
-        var formFile = dto.NewProfilePictureUrl;
+        // Validate the file (photo) if provided
+        if (dto.NewProfilePictureUrl != null && !IsValidFile(dto.NewProfilePictureUrl))  // Validate using the Image property
+        {
+            return BadRequest(new { message = "Invalid File Extension" });
+        }
 
-        if (formFile == null)
-            return BadRequest("Profile picture cannot be null.");
+        // Convert IFormFile to byte array
+        byte[] fileBytes = null!;
+        if (dto.NewProfilePictureUrl != null)
+        {
+            using (var stream = new MemoryStream())
+            {
+                await dto.NewProfilePictureUrl.CopyToAsync(stream);  // Use the Image property for file operations
+                fileBytes = stream.ToArray();
+            }
+        }
 
         // Update the profile picture for the logged-in user (no need to pass folderName)
-        var result = await _profileService.UpdateProfilePictureAsync(user.Id, formFile);
+        var result = await _profileService.UpdateProfilePictureAsync(user.Id, dto.NewProfilePictureUrl!);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<UpdateProfilePicResponseDto>.Success(result.Data, "Profile picture updated successfully."));
+        return Ok(result);
     }
 
+
+    private bool IsValidFile(IFormFile file)
+    {
+        var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        return validExtensions.Contains(extension);
+    }
 
 
     [HttpPost("InitiateEmailUpdate")]
@@ -91,7 +109,7 @@ public class ProfileController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<UpdateEmailResponseDto>.Success(result.Data, "Verification code sent to the new email. Please check your email."));
+        return Ok(result);
     }
 
     
@@ -116,7 +134,7 @@ public class ProfileController : ControllerBase
             return BadRequest(result.ErrorResponse);
 
 
-        return Ok(ResponseDto<EmailVerificationResponseDto>.Success(result.Data, result.ResponseMessage));
+        return Ok(result);
     }
 
 
@@ -135,7 +153,7 @@ public class ProfileController : ControllerBase
             return BadRequest(result.ErrorResponse);
 
         // Return the updated location data
-        return Ok(ResponseDto<UpdateLocationResponseDto>.Success(result.Data, result.ResponseMessage));
+        return Ok(result);
     }
 
    
@@ -154,7 +172,7 @@ public class ProfileController : ControllerBase
             return BadRequest(result.ErrorResponse);
 
         // Return the updated phone number data
-        return Ok(ResponseDto<UpdatePhoneNumberResponseDto>.Success(result.Data, result.ResponseMessage));
+        return Ok(result);
     }
 
 

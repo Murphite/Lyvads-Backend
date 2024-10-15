@@ -11,7 +11,9 @@ public interface IUserInteractionService
 {
     Task<ServerResponse<string>> MakeRequestAsync(CreateRequestDto createRequestDto);
     Task<ServerResponse<CommentResponseDto>> EditCommentAsync(string commentId, string userId, string newContent);
-    Task<ServerResponse<object>> AddCommentAsync(string userId, string content);
+    Task<ServerResponse<CommentResponseDto>> AddCommentOnPostAsync(string postId, string userId, string content);
+    Task<ServerResponse<CommentResponseDto>> ReplyToCommentAsync(string parentCommentId, string userId, string content);
+    Task<ServerResponse<CommentResponseDto>> EditReplyAsync(string replyId, string userId, string newContent);
     Task<ServerResponse<object>> DeleteCommentAsync(string userId, string commentId);
     Task<ServerResponse<object>> LikeContentAsync(string userId, string contentId);
     Task<ServerResponse<object>> UnlikeContentAsync(string userId, string contentId);

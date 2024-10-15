@@ -135,7 +135,7 @@ public class CreatorService : ICreatorService
         }
     }
 
-    public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, string userId, IFormFile photo)
+    public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
     {
         _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
 
@@ -186,7 +186,7 @@ public class CreatorService : ICreatorService
             Caption = postDto.Caption,
             MediaUrl = mediaUrl,  // Use the uploaded image URL
             Location = postDto.Location,
-            Visibility = postDto.Visibility,
+            Visibility = visibility,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
         };
@@ -239,7 +239,7 @@ public class CreatorService : ICreatorService
         }
     }
 
-    public async Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, string userId, IFormFile photo)
+    public async Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
     {
         _logger.LogInformation("Updating post with Post ID: {PostId} for User ID: {UserId}", postId, userId);
 
@@ -316,7 +316,7 @@ public class CreatorService : ICreatorService
 
         post.Caption = postDto.Caption ?? post.Caption;
         post.Location = postDto.Location ?? post.Location;
-        post.Visibility = postDto.Visibility ?? post.Visibility;
+        post.Visibility = visibility;
         post.UpdatedAt = DateTimeOffset.UtcNow;
 
         _logger.LogInformation("Post object updated: {Post}", post);
@@ -367,8 +367,9 @@ public class CreatorService : ICreatorService
 
     public async Task<ServerResponse<object>> DeletePostAsync(string postId, string userId)
     {
-        _logger.LogInformation("Deleting post with Post ID: {PostId} for User ID: {UserId}", postId, userId);
+        _logger.LogInformation("Attempting to soft delete post with Post ID: {PostId} for User ID: {UserId}", postId, userId);
 
+        // Check if the user exists
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
@@ -385,27 +386,29 @@ public class CreatorService : ICreatorService
             };
         }
 
-        var post = _repository.GetAll<Post>().FirstOrDefault(x => x.Id == postId);
+        // Fetch the post
+        var post = await _repository.GetAll<Post>().FirstOrDefaultAsync(x => x.Id == postId && !x.IsDeleted); // Ensure the post is not already soft deleted
         if (post == null)
         {
-            _logger.LogWarning("Post with ID: {PostId} not found.", postId);
+            _logger.LogWarning("Post with ID: {PostId} not found or already deleted.", postId);
             return new ServerResponse<object>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
-                ResponseMessage = "Post not found.",
+                ResponseMessage = "Post not found or already deleted.",
                 ErrorResponse = new ErrorResponse
                 {
                     ResponseCode = "404",
-                    ResponseMessage = "Post not found."
+                    ResponseMessage = "Post not found or already deleted."
                 }
             };
         }
 
+        // Check if the user is the creator of the post
         var creator = await _repository.FindByCondition<Creator>(c => c.Id == post.CreatorId && c.ApplicationUserId == userId);
         if (creator == null)
         {
-            _logger.LogWarning("Creator with User ID: {UserId} not authorized to delete this post.", userId);
+            _logger.LogWarning("User with ID: {UserId} is not authorized to delete this post.", userId);
             return new ServerResponse<object>
             {
                 IsSuccessful = false,
@@ -421,10 +424,13 @@ public class CreatorService : ICreatorService
 
         try
         {
-            _repository.Remove(post);
+            // Perform soft delete by setting the IsDeleted flag
+            post.IsDeleted = true;
+            _repository.Update(post); // Update the post entity with the IsDeleted flag
+
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Post deleted successfully for User ID: {UserId}", userId);
+            _logger.LogInformation("Post with ID: {PostId} soft deleted successfully for User ID: {UserId}", postId, userId);
             return new ServerResponse<object>
             {
                 IsSuccessful = true,
@@ -434,7 +440,7 @@ public class CreatorService : ICreatorService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting post with Post ID: {PostId}", postId);
+            _logger.LogError(ex, "Error soft deleting post with Post ID: {PostId}", postId);
             return new ServerResponse<object>
             {
                 IsSuccessful = false,

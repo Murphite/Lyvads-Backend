@@ -3,6 +3,7 @@ using Lyvads.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Storage;
+using Lyvads.Domain.Entities;
 
 namespace Lyvads.Infrastructure.Repositories;
 
@@ -50,6 +51,13 @@ public class Repository : IRepository
     public async Task<IDbContextTransaction> BeginTransactionAsync()
     {
         return await _context.Database.BeginTransactionAsync();
+    }
+
+    public async Task<Comment?> GetCommentByIdAsync(string commentId)
+    {
+        return await _context.Comments
+            .Include(c => c.Replies)
+            .FirstOrDefaultAsync(c => c.Id == commentId);
     }
 
 }

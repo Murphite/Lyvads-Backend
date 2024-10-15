@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Lyvads.Domain.Entities;
 
 namespace Lyvads.Domain.Repositories;
 
@@ -16,4 +17,5 @@ public interface IRepository
     public Task<T?> FindByCondition<T>(Expression<Func<T, bool>> expression) where T : class;
 
     Task<IDbContextTransaction> BeginTransactionAsync();
+    Task<Comment?> GetCommentByIdAsync(string commentId);
 }

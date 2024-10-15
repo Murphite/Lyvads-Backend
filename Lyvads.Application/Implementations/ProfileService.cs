@@ -93,7 +93,8 @@ public class ProfileService : IProfileService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Profile Edited successfully."
+            ResponseMessage = "Profile Edited successfully.",
+            Data = editProfileResponse
         };
     }
 
@@ -194,7 +195,8 @@ public class ProfileService : IProfileService
                 ErrorResponse = new ErrorResponse
                 {
                     ResponseCode = "404",
-                    ResponseMessage = "Email already in use."
+                    ResponseMessage = "Email already in use.",
+                    ResponseDescription = "Email already in use, try out another!."
                 }
             };
 
@@ -247,7 +249,8 @@ public class ProfileService : IProfileService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Verification code email sent successfully."
+            ResponseMessage = "Verification code email sent successfully.",
+            Data = updateEmailResponse
         };
     }
 
@@ -332,7 +335,8 @@ public class ProfileService : IProfileService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Email updated and verified successfully."
+            ResponseMessage = "Email updated and verified successfully.",
+            Data = verificationResponse
         };
     }
 
@@ -386,7 +390,8 @@ public class ProfileService : IProfileService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Location updated successfully."
+            ResponseMessage = "Location updated successfully.",
+            Data = updateLocationResponse
         };
     }
 
@@ -440,7 +445,8 @@ public class ProfileService : IProfileService
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "Phone number updated successfully."
+            ResponseMessage = "Phone number updated successfully.",
+            Data = updatePhoneNumberResponse
         };
     }
 
