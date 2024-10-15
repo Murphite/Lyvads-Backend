@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.domain\\entities\\request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|solutionrelative:lyvads.domain\\entities\\request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{E7248779-90DC-4F06-BB3C-DD5D6C9B5A94}|Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.infrastructure\\persistence\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E7248779-90DC-4F06-BB3C-DD5D6C9B5A94}|Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj|solutionrelative:lyvads.infrastructure\\persistence\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.domain\\entities\\request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F522E5BB-238A-4692-98B4-8F38482B9855}|Lyvads.Domain\\Lyvads.Domain.csproj|solutionrelative:lyvads.domain\\entities\\request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8585D4D5-6B44-47DB-B19C-97EC1E0EFBF0}|Lyvads.Application\\Lyvads.Application.csproj|c:\\users\\admin\\source\\repos\\lyvads.api.presentation\\lyvads.application\\implementations\\collaborationservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -758,7 +758,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 9,
           "Children": [
             {
               "$type": "Document",
@@ -796,13 +796,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Request.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Request.cs",
               "RelativeDocumentMoniker": "Lyvads.Domain\\Entities\\Request.cs",
               "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Domain\\Entities\\Request.cs",
               "RelativeToolTip": "Lyvads.Domain\\Entities\\Request.cs",
-              "ViewState": "AQIAAAkAAAAAAAAAAAAmwBQAAAAiAAAA",
+              "ViewState": "AQIAAAkAAAAAAAAAAAAmwA8AAAA0AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-16T16:07:33.221Z",
               "EditorCaption": ""
@@ -813,8 +813,8 @@
               "Title": "CollaborationService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CollaborationService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\CollaborationService.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CollaborationService.cs*",
-              "RelativeToolTip": "Lyvads.Application\\Implementations\\CollaborationService.cs*",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CollaborationService.cs",
+              "RelativeToolTip": "Lyvads.Application\\Implementations\\CollaborationService.cs",
               "ViewState": "AQIAAC4CAAAAAAAAAAAWwDkCAAAtAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-27T10:08:11.999Z",
@@ -826,8 +826,8 @@
               "Title": "CreatorService.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CreatorService.cs",
               "RelativeDocumentMoniker": "Lyvads.Application\\Implementations\\CreatorService.cs",
-              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CreatorService.cs*",
-              "RelativeToolTip": "Lyvads.Application\\Implementations\\CreatorService.cs*",
+              "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Implementations\\CreatorService.cs",
+              "RelativeToolTip": "Lyvads.Application\\Implementations\\CreatorService.cs",
               "ViewState": "AQIAAPsCAAAAAAAAAAAAAAgDAABOAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-16T11:32:22.033Z",
@@ -835,13 +835,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "AppDbContext.cs",
               "DocumentMoniker": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
               "RelativeDocumentMoniker": "Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
               "ToolTip": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
               "RelativeToolTip": "Lyvads.Infrastructure\\Persistence\\AppDbContext.cs",
-              "ViewState": "AQIAAGkAAAAAAAAAAAAswHcAAAAmAAAA",
+              "ViewState": "AQIAAHUAAAAAAAAAAAAswIgAAAA6AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-09-16T16:20:25.638Z",
               "EditorCaption": ""

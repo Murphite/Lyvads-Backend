@@ -135,8 +135,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
          .HasForeignKey(collab => collab.CreatorId);
 
         // Ignore the conflicting property 'Request.User' 
-        modelBuilder.Entity<Request>()
-            .Ignore(r => r.RegularUser);
+        //modelBuilder.Entity<Request>()
+        //    .Ignore(r => r.RegularUser);
 
         // Configure the relationship between 'Request' and 'RegularUser'
         modelBuilder.Entity<Request>()
