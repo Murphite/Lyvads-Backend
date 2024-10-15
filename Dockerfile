@@ -20,7 +20,7 @@ COPY . .
 
 # Build the application
 RUN dotnet build -c Release
-RUN curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 RUN pwsh -Command "Install-Module -Name Az -AllowClobber -Force"
 
 # Publish the application
