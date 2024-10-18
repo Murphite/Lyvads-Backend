@@ -4,8 +4,6 @@ using Lyvads.Domain.Entities;
 using Lyvads.Domain.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Domain.Enums;
 using Lyvads.Domain.Responses;
@@ -236,7 +234,7 @@ public class CollaborationService : ICollaborationService
                 IsSuccessful = false,
                 ResponseCode = "404",
                 ResponseMessage = "No requests found for the creator.",
-                Data = null
+                Data = null!
             };
         }
 
@@ -569,7 +567,7 @@ public class CollaborationService : ICollaborationService
         // Fetch disputes associated with the creator
         var disputes = await _disputeRepository.GetDisputesByCreator(user.Id)
             .Include(d => d.Request)
-            .ThenInclude(r => r.RegularUser)
+            .ThenInclude(r => r!.RegularUser)
             .ToListAsync();
 
         if (disputes == null || !disputes.Any())
@@ -647,7 +645,7 @@ public class CollaborationService : ICollaborationService
 
         // Fetch dispute details by disputeId and creatorId
         var dispute = await _disputeRepository.GetDisputeById(disputeId);
-        if (dispute == null || dispute.Request.CreatorId != user.Id)
+        if (dispute == null || dispute.Request!.CreatorId != user.Id)
         {
             _logger.LogWarning("Dispute with DisputeId: {DisputeId} not found for CreatorId: {CreatorId}", disputeId, user.Id);
             return new ServerResponse<DisputeDetailsDto>

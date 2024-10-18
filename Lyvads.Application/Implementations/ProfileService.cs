@@ -86,7 +86,7 @@ public class ProfileService : IProfileService
         {
             FullName = $"{user.FirstName} {user.LastName}",
             Bio = user.Bio,
-            Username = user.UserName,
+            AppUsername = user.AppUserName,
         };
         
         return new ServerResponse<EditProfileResponseDto>
@@ -95,6 +95,48 @@ public class ProfileService : IProfileService
             ResponseCode = "00",
             ResponseMessage = "Profile Edited successfully.",
             Data = editProfileResponse
+        };
+    }
+
+    public async Task<ServerResponse<UserProfileDto>> GetProfileAsync(string userId)
+    {
+        // Find the user by ID
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user == null)
+        {
+            return new ServerResponse<UserProfileDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        // Prepare the response DTO
+        var userProfileDto = new UserProfileDto
+        {
+            FullName = $"{user.FirstName} {user.LastName}",
+            Bio = user.Bio!,
+            Username = user.UserName!,
+            AppUsername = user.AppUserName!,
+            Email = user.Email!,
+            ProfilePic = user.ImageUrl!,
+            PhoneNumber = user.PhoneNumber!,
+            Location = user.Location!
+        };
+
+        return new ServerResponse<UserProfileDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "User profile retrieved successfully.",
+            Data = userProfileDto
         };
     }
 
@@ -450,6 +492,54 @@ public class ProfileService : IProfileService
         };
     }
 
+    public async Task<ServerResponse<bool>> ValidatePasswordAsync(string email, ValidatePasswordDto validatePasswordDto)
+    {
+        _logger.LogInformation("******* Inside the ValidatePasswordAsync Method ********");
+
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user is null)
+        {
+            _logger.LogWarning("User not found for email: {email}", email);
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "User not found"
+                }
+            };
+        }
+
+        var isValidPassword = await _userManager.CheckPasswordAsync(user, validatePasswordDto.Password!);
+
+        if (!isValidPassword)
+        {
+            _logger.LogWarning("Invalid password for user: {email}", user.Email);
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Incorrect password"
+                }
+            };
+        }
+
+        _logger.LogInformation("Password validation successful for user: {email}", user.Email);
+
+        return new ServerResponse<bool>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Password is correct",
+            Data = true
+        };
+    }
 
 
 

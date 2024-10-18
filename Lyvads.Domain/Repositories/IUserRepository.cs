@@ -17,10 +17,13 @@ public interface IUserRepository
     Task FollowCreatorAsync(string userId, string creatorId);
     Task<CreatorProfileDto> GetCreatorByIdAsync(string creatorId);
     //Task<Creator?> GetCreatorByIdAsync(string creatorId);
-    Task<List<CreatorResponseDto>> GetCreatorsWithMostEngagementAndFollowersAsync(int count);
+    IQueryable<CreatorResponseDto> GetCreatorsWithMostEngagementAndFollowersAsync();
     Task<List<CreatorResponseDto>> GetFavoriteCreatorsAsync(string userId);
     Task<int> GetFollowerCountAsync(string creatorId);
     Task<int> GetLikesCountAsync(string postId);
     Task<List<string>> GetUserIdsWhoLikedPostAsync(string postId);
     Task UnfollowCreatorAsync(string userId, string creatorId);
+    Task<Favorite?> GetFavoriteAsync(string userId, string creatorId);
+    Task RemoveFavoriteAsync(string userId, string creatorId);
+    Task<bool> IsUserFollowingCreatorAsync(string userId, string creatorId);
 }

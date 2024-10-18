@@ -89,14 +89,21 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
             var username = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Name);
 
-            // Log the admin activity
-            await _adminActivityLogService.LogActivityAsync(
-                userId, 
-                username,
-                RolesConstant.Admin,
-                "Added new charge: " + chargeDto.ChargeName,
-                "Charge Management");
-
+            // Ensure userId and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username))
+            {
+                _logger.LogWarning("User ID or Username is null. Activity log will not be recorded.");
+            }
+            else
+            {
+                // Log the admin activity
+                await _adminActivityLogService.LogActivityAsync(
+                    userId,
+                    username,
+                    RolesConstant.Admin,
+                    "Added new charge: " + chargeDto.ChargeName,
+                    "Charge Management");
+            }
 
             return new ServerResponse<string>
             {

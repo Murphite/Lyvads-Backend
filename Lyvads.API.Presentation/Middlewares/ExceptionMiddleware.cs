@@ -1,11 +1,13 @@
-﻿using System.Net;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Net;
 using System.Text.Json;
 using Lyvads.API.Presentation.Dtos;
 using Lyvads.Application.Dtos;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace Lyvads.API.Presentation.Middlewares;
 
-public class ExceptionMiddleware
+public class ExceptionMiddleware : IExceptionHandler
 {
     private readonly RequestDelegate _next;
     private readonly ILogger _logger;
@@ -56,5 +58,19 @@ public class ExceptionMiddleware
             new Error[] { new("Server.Error", errorDetails) }, (int)statusCode));
 
         await response.WriteAsync(result);
+    }
+
+    public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is ValidationException validationException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(validationException.ValidationResult, cancellationToken);
+
+            return true;
+        }
+
+        return false;
     }
 }

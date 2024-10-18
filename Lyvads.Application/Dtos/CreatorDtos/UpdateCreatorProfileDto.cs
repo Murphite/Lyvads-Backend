@@ -34,3 +34,15 @@ public class EditProfileDto
     public string? Username { get; set; }
     public string? Bio { get; set; }
 }
+
+public class UserProfileDto
+{
+    public string FullName { get; set; } = default!;
+    public string Bio { get; set; } = default!;
+    public string Username { get; set; } = default!;
+    public string AppUsername { get; set; } = default!;
+    public string Email { get; set; } = default!;
+    public string ProfilePic { get; set; } = default!;
+    public string PhoneNumber { get; set; } = default!;
+    public string Location { get; set; } = default!;
+}

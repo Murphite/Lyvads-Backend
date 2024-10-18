@@ -44,20 +44,29 @@ public class AdminPermissionsService : IAdminPermissionsService
                 IsSuccessful = false,
                 ResponseCode = "404",
                 ResponseMessage = "No admin users found.",
-                Data = null
+                Data = null!
             };
         }
 
-        var adminUserDtos = admins.Select(a => new AdminUserDto
+        var adminUserDtos = new List<AdminUserDto>();
+
+        foreach (var a in admins)
         {
-            Id = a.Id,
-            FirstName = a.FirstName,
-            LastName = a.LastName,
-            Email = a.Email,
-            Role = a is SuperAdmin ? AdminRoleType.SuperAdmin : AdminRoleType.Admin,
-            LastActive = a.UpdatedAt,
-            IsActive = a.IsActive
-        }).ToList();
+            // Assuming you're fetching the role from Identity or some other method
+            var roles = await _userManager.GetRolesAsync(a);  // or from the repository
+            var role = roles.Contains("SuperAdmin") ? AdminRoleType.SuperAdmin : AdminRoleType.Admin;
+
+            adminUserDtos.Add(new AdminUserDto
+            {
+                Id = a.Id,
+                FirstName = a.FirstName,
+                LastName = a.LastName,
+                Email = a.Email,
+                Role = role,
+                LastActive = a.UpdatedAt,
+                IsActive = a.IsActive
+            });
+        }
 
         return new ServerResponse<List<AdminUserDto>>
         {
@@ -67,6 +76,7 @@ public class AdminPermissionsService : IAdminPermissionsService
             Data = adminUserDtos
         };
     }
+
 
     public async Task<ServerResponse<AdminPermissionsDto>> GrantPermissionsToAdminAsync(string adminUserId,
         AdminPermissionsDto permissionsDto, string requestingAdminId)
@@ -80,7 +90,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 IsSuccessful = false,
                 ResponseCode = "403",
                 ResponseMessage = "Only SuperAdmins can grant permissions.",
-                Data = null
+                Data = null!
             };
         }
 
@@ -93,7 +103,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 IsSuccessful = false,
                 ResponseCode = "404",
                 ResponseMessage = "Admin user not found.",
-                Data = null
+                Data = null!
             };
         }
 
@@ -104,7 +114,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 IsSuccessful = false,
                 ResponseCode = "403",
                 ResponseMessage = "Cannot assign permissions to an inactive user.",
-                Data = null
+                Data = null!
             };
         }
 
@@ -119,7 +129,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 IsSuccessful = false,
                 ResponseCode = "403",
                 ResponseMessage = "User is not an Admin or SuperAdmin.",
-                Data = null
+                Data = null!
             };
         }
 
@@ -162,7 +172,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 IsSuccessful = false,
                 ResponseCode = "400",
                 ResponseMessage = "Invalid role name.",
-                Data = null
+                Data = null!
             };
         }
 
@@ -175,7 +185,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 IsSuccessful = false,
                 ResponseCode = "400",
                 ResponseMessage = "Role already exists.",
-                Data = null
+                Data = null!
             };
         }
 
@@ -218,15 +228,21 @@ public class AdminPermissionsService : IAdminPermissionsService
 
     public async Task<EditAdminUserDto> EditAdminUserAsync(EditAdminUserDto editAdminUserDto)
     {
+        // Check if the editAdminUserDto.Id is null or empty
+        if (string.IsNullOrEmpty(editAdminUserDto.Id))
+        {
+            return null!; // Handle the error by returning null or throwing an exception based on your design
+        }
+
         var adminUser = await _userManager.FindByIdAsync(editAdminUserDto.Id);
         if (adminUser == null)
         {
-            return null; // Return null if user is not found, or handle the error appropriately
+            return null!; // Return null if user is not found, or handle the error appropriately
         }
 
         // Update basic user information
-        adminUser.FirstName = editAdminUserDto.FirstName;
-        adminUser.LastName = editAdminUserDto.LastName;
+        adminUser.FirstName = editAdminUserDto.FirstName!;
+        adminUser.LastName = editAdminUserDto.LastName!;
 
         // Get current roles of the admin user
         var currentRoles = await _userManager.GetRolesAsync(adminUser);
@@ -261,17 +277,17 @@ public class AdminPermissionsService : IAdminPermissionsService
     {
         var newAdminUser = new ApplicationUser
         {
-            FirstName = addAdminUserDto.FirstName,
-            LastName = addAdminUserDto.LastName,
+            FirstName = addAdminUserDto.FirstName!,
+            LastName = addAdminUserDto.LastName!,
             Email = addAdminUserDto.Email,
             IsActive = true,
             CreatedAt = DateTime.Now
         };
 
-        var result = await _userManager.CreateAsync(newAdminUser, addAdminUserDto.Password);
+        var result = await _userManager.CreateAsync(newAdminUser, addAdminUserDto.Password!);
         if (!result.Succeeded)
         {
-            return null;
+            return null!;
         }
 
         // Assign the initial role (Admin or SuperAdmin) after creation

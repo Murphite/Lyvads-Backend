@@ -46,7 +46,7 @@ public class AdminUserService : ISuperAdminService
         _superAdminRepository = superAdminRepository;
     }
 
-    public async Task<ServerResponse<List<UserDto>>> GetUsers(string role = null, bool sortByDate = true)
+    public async Task<ServerResponse<List<UserDto>>> GetUsers(string role = null!, bool sortByDate = true)
     {
         try
         {
@@ -103,11 +103,27 @@ public class AdminUserService : ISuperAdminService
     {
         var currentUserId = _currentUserService.GetCurrentUserId();
         var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+        if (currentUser == null)
+        {
+            _logger.LogWarning("Current user not found: {UserId}", currentUserId);
+            return new ServerResponse<AddUserResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found",
+                    ResponseDescription = "The current user does not exist."
+                }
+            };
+        }
+
         var isSuperAdmin = await _userManager.IsInRoleAsync(currentUser, RolesConstant.SuperAdmin);
 
         if (!isSuperAdmin)
         {
-            _logger.LogWarning("Unauthorized user registration attempt");
+            _logger.LogWarning("Unauthorized user registration attempt by user: {UserId}", currentUserId);
             return new ServerResponse<AddUserResponseDto>
             {
                 IsSuccessful = false,
@@ -204,36 +220,39 @@ public class AdminUserService : ISuperAdminService
         switch (role)
         {
             case RolesConstant.Admin:
-                await _adminRepository.AddAsync(new Admin 
+                await _adminRepository.AddAsync(new Admin
                 {
-                    ApplicationUserId = applicationUser.Id, 
-                    CreatedAt = DateTimeOffset.UtcNow, 
+                    ApplicationUserId = applicationUser.Id,
+                    CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow,
-                    ApplicationUser = applicationUser 
+                    ApplicationUser = applicationUser
                 });
                 break;
             case RolesConstant.SuperAdmin:
-                await _superAdminRepository.AddAsync(new SuperAdmin 
-                { ApplicationUserId = applicationUser.Id, 
+                await _superAdminRepository.AddAsync(new SuperAdmin
+                {
+                    ApplicationUserId = applicationUser.Id,
                     CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow, 
-                    ApplicationUser = applicationUser 
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    ApplicationUser = applicationUser
                 });
                 break;
             case RolesConstant.Creator:
-                await _creatorRepository.AddAsync(new Creator 
-                { ApplicationUserId = applicationUser.Id, 
-                    CreatedAt = DateTimeOffset.UtcNow, 
+                await _creatorRepository.AddAsync(new Creator
+                {
+                    ApplicationUserId = applicationUser.Id,
+                    CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow,
-                    ApplicationUser = applicationUser 
+                    ApplicationUser = applicationUser
                 });
                 break;
             case RolesConstant.RegularUser:
-                await _regularUserRepository.AddAsync(new RegularUser 
-                { ApplicationUserId = applicationUser.Id, 
-                    CreatedAt = DateTimeOffset.UtcNow, 
-                    UpdatedAt = DateTimeOffset.UtcNow, 
-                    ApplicationUser = applicationUser 
+                await _regularUserRepository.AddAsync(new RegularUser
+                {
+                    ApplicationUserId = applicationUser.Id,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    ApplicationUser = applicationUser
                 });
                 break;
         }

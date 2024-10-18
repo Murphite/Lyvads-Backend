@@ -69,7 +69,7 @@ public class RegularUserService : IRegularUserService
                 .Select(u => new RegularUserDto
                 {
                     UserId = u.Id,
-                    FullName = u.ApplicationUser.FullName, 
+                    FullName = u.ApplicationUser!.FullName, 
                     AppUserName = u.ApplicationUser.AppUserName
                 })
                 .AsQueryable();

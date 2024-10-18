@@ -10,4 +10,5 @@ public class Content : Entity
     public string? RequestId { get; set; }
     public Request Request { get; set; } = default!;
     public DateTimeOffset CreatedAt { get; set; }
+    public ICollection<Like>? Likes { get; set; } = new List<Like>();
 }

@@ -34,6 +34,8 @@ public class PromotionRepository : IPromotionRepository
 
     public async Task<Promotion> GetByIdAsync(string id)
     {
-        return await _context.Promotions.FindAsync(id);
+        return await _context.Promotions.FindAsync(id) ?? new Promotion();
     }
+
 }
+

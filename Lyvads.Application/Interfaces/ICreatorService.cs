@@ -26,5 +26,6 @@ public interface ICreatorService
     Task<ServerResponse<WithdrawResponseDto>> WithdrawToBankAccountAsync(string creatorId, decimal amount, string currency);
     Task<ServerResponse<IEnumerable<NotificationResponseDto>>> GetNotificationsAsync(string creatorId);
     Task<ServerResponse<IEnumerable<PostResponseDto>>> GetPostsByCreatorAsync(string creatorId);
-    Task<ServerResponse<List<FilterCreatorDto>>> SearchCreatorsAsync(decimal? minPrice, decimal? maxPrice, string location, string industry);
+    Task<ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>> SearchCreatorsAsync(
+    decimal? minPrice, decimal? maxPrice, string? location, string? industry, string? keyword, PaginationFilter paginationFilter);
 }

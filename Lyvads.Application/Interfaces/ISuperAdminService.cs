@@ -8,7 +8,7 @@ namespace Lyvads.Application.Interfaces;
 
 public interface ISuperAdminService
 {
-    Task<ServerResponse<List<UserDto>>> GetUsers(string role = null, bool sortByDate = true);
+    Task<ServerResponse<List<UserDto>>> GetUsers(string role = null!, bool sortByDate = true);
     Task<ServerResponse<AddUserResponseDto>> AddUser(RegisterUserDto registerUserDto);  
     Task<ServerResponse<string>> UpdateUser(UpdateUserDto updateUserDto, string userId);
     Task<ServerResponse<string>> DeleteUser(string userId);

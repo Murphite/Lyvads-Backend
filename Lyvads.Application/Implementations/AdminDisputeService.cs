@@ -29,8 +29,8 @@ public class AdminDisputeService : IDisputeService
             var disputeDtos = disputes.Select(d => new DisputeDto
             {
                 Id = d.Id,
-                RegularUserName = $"{d.RegularUser.ApplicationUser.FirstName} {d.RegularUser.ApplicationUser.LastName}",
-                CreatorName = $"{d.Creator.ApplicationUser.FirstName} {d.Creator.ApplicationUser.LastName}",
+                RegularUserName = $"{d.RegularUser.ApplicationUser!.FirstName} {d.RegularUser.ApplicationUser.LastName}",
+                CreatorName = $"{d.Creator.ApplicationUser!.FirstName} {d.Creator.ApplicationUser.LastName}",
                 Amount = d.Amount,
                 Reason = d.Reason,
                 FlaggedDate = d.CreatedAt,
@@ -82,8 +82,8 @@ public class AdminDisputeService : IDisputeService
             var disputeDto = new DisputeDto
             {
                 Id = dispute.Id,
-                RegularUserName = $"{dispute.RegularUser.ApplicationUser.FirstName} {dispute.RegularUser.ApplicationUser.LastName}",
-                CreatorName = $"{dispute.Creator.ApplicationUser.FirstName} {dispute.Creator.ApplicationUser.LastName}",
+                RegularUserName = $"{dispute.RegularUser.ApplicationUser!.FirstName} {dispute.RegularUser.ApplicationUser.LastName}",
+                CreatorName = $"{dispute.Creator.ApplicationUser!.FirstName} {dispute.Creator.ApplicationUser.LastName}",
                 Amount = dispute.Amount,
                 Reason = dispute.Reason,
                 FlaggedDate = dispute.CreatedAt,

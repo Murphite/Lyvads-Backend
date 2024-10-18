@@ -54,6 +54,16 @@ public class AdminPermissionsController : Controller
     [HttpPost("create-custom-role")]
     public async Task<IActionResult> CreateCustomRoleAsync([FromBody] CreateCustomRoleRequestDto requestDto)
     {
+        if (string.IsNullOrWhiteSpace(requestDto?.RoleName))
+        {
+            return BadRequest("Role name is required.");
+        }
+
+        if (requestDto?.Permissions == null)
+        {
+            return BadRequest("Permissions are required.");
+        }
+
         var result = await _adminPermissionsService.CreateCustomRoleAsync(requestDto.RoleName, requestDto.Permissions);
 
         if (!result.IsSuccessful)
@@ -63,6 +73,7 @@ public class AdminPermissionsController : Controller
 
         return Ok(result.ResponseMessage);
     }
+
 
 
     [HttpPut("edit-admin-user")]

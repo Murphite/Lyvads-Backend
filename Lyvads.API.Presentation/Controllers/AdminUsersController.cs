@@ -23,7 +23,7 @@ public class AdminUsersController : Controller
 
 
     [HttpGet("get-users")]
-    public async Task<IActionResult> GetUsers([FromQuery] string role = null, [FromQuery] bool sortByDate = true)
+    public async Task<IActionResult> GetUsers([FromQuery] string role = null!, [FromQuery] bool sortByDate = true)
     {
         var response = await _superAdminService.GetUsers(role, sortByDate);
         if (!response.IsSuccessful)

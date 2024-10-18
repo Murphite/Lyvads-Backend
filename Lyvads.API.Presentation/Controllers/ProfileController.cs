@@ -44,7 +44,8 @@ public class ProfileController : ControllerBase
 
         // Return the updated profile data
         return Ok(result);
-    }
+    }    
+
 
     [HttpPut("UpdateProfilePicture")]
     public async Task<IActionResult> UpdateProfilePicture([FromForm] UpdateProfilePictureDto dto)
@@ -94,17 +95,15 @@ public class ProfileController : ControllerBase
     {
         _logger.LogInformation("******* Initiating Email Update ********");
 
-        if (string.IsNullOrEmpty(dto.UserId))
-        {
-            return BadRequest("User ID cannot be null or empty");
-        }
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound("User not found.");
 
         if (string.IsNullOrEmpty(dto.NewEmail))
-        {
             return BadRequest("New Email cannot be null or empty");
-        }
 
-        var result = await _profileService.InitiateEmailUpdateAsync(dto.UserId, dto.NewEmail);
+        var result = await _profileService.InitiateEmailUpdateAsync(user.Id, dto.NewEmail);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
@@ -118,17 +117,17 @@ public class ProfileController : ControllerBase
     {
         _logger.LogInformation("******* Verifying Email Update ********");
 
-        if (string.IsNullOrEmpty(dto.UserId))
-        {
-            return BadRequest("User ID cannot be null or empty");
-        }
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound("User not found.");
 
         if (string.IsNullOrEmpty(dto.VerificationCode))
         {
             return BadRequest("Verification Code cannot be null or empty");
         }
 
-        var result = await _profileService.VerifyEmailUpdateAsync(dto.UserId, dto.VerificationCode);
+        var result = await _profileService.VerifyEmailUpdateAsync(user.Id, dto.VerificationCode);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
@@ -175,11 +174,54 @@ public class ProfileController : ControllerBase
         return Ok(result);
     }
 
+    
+    [HttpGet("GetProfile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound("User not found.");
+
+        // Call the service to get the user profile
+        var result = await _profileService.GetProfileAsync(user.Id);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        // Return the profile data
+        return Ok(result.Data);
+    }
+
+    [HttpPost("ValidatePassword")]
+    public async Task<IActionResult> ValidatePassword([FromBody] ValidatePasswordDto validatePasswordDto)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound("User not found.");
+
+        _logger.LogInformation($"******* Inside the ValidatePassword Controller Method ********");
+
+        var result = await _profileService.ValidatePasswordAsync(user.Email!, validatePasswordDto);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
 
 
+
+
+
+
+
+
+
+  
     public class EmailUpdateVerificationDto
     {
-        public string? UserId { get; set; } 
         public string? VerificationCode { get; set; } 
     }
 
@@ -187,7 +229,6 @@ public class ProfileController : ControllerBase
 
     public class UpdateEmailDto
     {
-        public string? UserId { get; set; }
         public string? NewEmail { get; set; }  
     }
 

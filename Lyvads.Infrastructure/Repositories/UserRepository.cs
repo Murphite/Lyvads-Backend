@@ -119,24 +119,51 @@ public class UserRepository : IUserRepository
     //        .FirstOrDefaultAsync(c => c.Id == creatorId);
     //}
 
-
-    public async Task<List<CreatorResponseDto>> GetCreatorsWithMostEngagementAndFollowersAsync(int count)
+    public async Task<Favorite?> GetFavoriteAsync(string userId, string creatorId)
     {
-        return await _context.Creators
+        return await _context.Favorites
+            .FirstOrDefaultAsync(f => f.UserId == userId && f.CreatorId == creatorId);
+    }
+
+
+    //public async Task<List<CreatorResponseDto>> GetCreatorsWithMostEngagementAndFollowersAsync(int count)
+    //{
+    //    return await _context.Creators
+    //        .Select(c => new CreatorResponseDto
+    //        {
+    //            Id = c.Id,
+    //            // Use a conditional expression to handle null values explicitly
+    //            Name = c.ApplicationUser != null ? c.ApplicationUser.FullName! : "Unknown",
+    //            EngagementCount = c.Posts.Sum(p => p.Likes.Count + p.Comments.Count),
+    //            FollowersCount = _context.Follows.Count(f => f.CreatorId == c.Id) // Count followers from the Follow entity
+    //        })
+    //        .OrderByDescending(c => c.FollowersCount) // Sort by FollowerCount
+    //        .ThenByDescending(c => c.EngagementCount) // Sort by EngagementCount
+    //        .Take(count)
+    //        .ToListAsync();
+    //}
+
+    public IQueryable<CreatorResponseDto> GetCreatorsWithMostEngagementAndFollowersAsync()
+    {
+        // Precompute EngagementCount and FollowersCount before projection
+        return _context.Creators
+            .Select(c => new
+            {
+                c.Id,
+                Name = c.ApplicationUser != null ? c.ApplicationUser.FullName! : "Unknown",
+                EngagementCount = c.Posts.SelectMany(p => p.Likes).Count() + c.Posts.SelectMany(p => p.Comments).Count(), // Flatten Likes and Comments first, then count
+                FollowersCount = _context.Follows.Count(f => f.CreatorId == c.Id) // Count followers
+            })
+            .OrderByDescending(c => c.FollowersCount)
+            .ThenByDescending(c => c.EngagementCount)
             .Select(c => new CreatorResponseDto
             {
                 Id = c.Id,
-                // Use a conditional expression to handle null values explicitly
-                Name = c.ApplicationUser != null ? c.ApplicationUser.FullName : "Unknown",
-                EngagementCount = c.Posts.Sum(p => p.Likes.Count + p.Comments.Count),
-                FollowersCount = _context.Follows.Count(f => f.CreatorId == c.Id) // Count followers from the Follow entity
-            })
-            .OrderByDescending(c => c.FollowersCount) // Sort by FollowerCount
-            .ThenByDescending(c => c.EngagementCount) // Sort by EngagementCount
-            .Take(count)
-            .ToListAsync();
+                Name = c.Name,
+                EngagementCount = c.EngagementCount,
+                FollowersCount = c.FollowersCount
+            });
     }
-
 
 
     public async Task<List<CreatorResponseDto>> GetFavoriteCreatorsAsync(string userId)
@@ -148,12 +175,29 @@ public class UserRepository : IUserRepository
 
         return favorites.Select(c => new CreatorResponseDto
         {
-            Id = c.Id,
-            Name = c.ApplicationUser?.FullName,
+            Id = c!.Id,
+            Name = c.ApplicationUser?.FullName!,
             EngagementCount = c.EngagementCount,
             // Add other relevant properties
         }).ToList();
     }
+
+    public async Task RemoveFavoriteAsync(string userId, string creatorId)
+    {
+        // Fetch the favorite entry from the database
+        var favorite = await _context.Favorites
+            .FirstOrDefaultAsync(f => f.UserId == userId && f.CreatorId == creatorId);
+
+        if (favorite != null)
+        {
+            // Remove the favorite entry
+            _context.Favorites.Remove(favorite);
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+        }
+    }
+
 
     public async Task<int> GetFollowerCountAsync(string creatorId)
     {
@@ -188,5 +232,9 @@ public class UserRepository : IUserRepository
         }
     }
 
-
+    public async Task<bool> IsUserFollowingCreatorAsync(string userId, string creatorId)
+    {
+        return await _context.Follows
+            .AnyAsync(f => f.UserId == userId && f.CreatorId == creatorId);
+    }
 }

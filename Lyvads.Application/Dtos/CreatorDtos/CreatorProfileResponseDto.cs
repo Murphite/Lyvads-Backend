@@ -26,7 +26,12 @@ public class RegularUserProfileResponseDto
 public class EditProfileResponseDto
 {
     public string? FullName { get; set; }
-    public string? Username { get; set; }
+    public string? AppUsername { get; set; }
     public string? Bio { get; set; }
 
+}
+
+public class ValidatePasswordDto
+{
+    public string? Password { get; set; }
 }

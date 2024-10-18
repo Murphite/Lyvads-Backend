@@ -23,9 +23,11 @@ public interface IUserInteractionService
     Task<ServerResponse<List<string>>> GetUsersWhoLikedPostAsync(string postId);
     Task<ServerResponse<List<CommentResponseDto>>> GetAllCommentsOnPostAsync(string postId);
     Task<ServerResponse<object>> AddCreatorToFavoritesAsync(string userId, string creatorId);
+    Task<ServerResponse<object>> RemoveCreatorFromFavoritesAsync(string userId, string creatorId);
+    Task<ServerResponse<object>> ToggleFavoriteAsync(string userId, string creatorId);
     Task<ServerResponse<List<CreatorResponseDto>>> GetFavoriteCreatorsAsync(string userId);
     Task<ServerResponse<List<ViewPostResponseDto>>> GetAllPostsOfCreatorAsync(string creatorId);
-    Task<ServerResponse<List<FeaturedCreatorDto>>> GetFeaturedCreatorsAsync(int count);
+    Task<ServerResponse<PaginatorDto<IEnumerable<FeaturedCreatorDto>>>> GetFeaturedCreatorsAsync(PaginationFilter paginationFilter);
     Task<ServerResponse<CreatorProfileDto>> ViewCreatorProfileAsync(string creatorId);
     Task<ServerResponse<object>> FollowCreatorAsync(string userId, string creatorId);
     Task<ServerResponse<object>> UnfollowCreatorAsync(string userId, string creatorId);

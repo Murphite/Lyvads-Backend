@@ -10,7 +10,7 @@ public class CreatePromotionDto
     public required string Title { get; set; }
     public required string ShortDescription { get; set; }
     public decimal Price { get; set; }
-    public IFormFile Media { get; set; } // Media can be a photo or video file uploaded
+    public IFormFile? Media { get; set; } // Media can be a photo or video file uploaded
 }
 
 public class UpdatePromotionDto

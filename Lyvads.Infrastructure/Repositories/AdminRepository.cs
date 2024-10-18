@@ -34,8 +34,16 @@ public class AdminRepository : IAdminRepository
 
     public async Task<ApplicationUser> GetByIdAsync(int id)
     {
-        return await _context.Set<ApplicationUser>().FindAsync(id);
+        var user = await _context.Set<ApplicationUser>().FindAsync(id);
+
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User with ID {id} not found.");
+        }
+
+        return user;
     }
+
 
     public async Task AddAsync(ApplicationUser adminUser)
     {
@@ -74,7 +82,7 @@ public class AdminRepository : IAdminRepository
     {
         var roles =  await _context.AdminRoles.FirstOrDefaultAsync(r => r.RoleName == roleName);
         
-        return roles;        
+        return roles!;        
     }
 
     // Add a new role to the database

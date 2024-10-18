@@ -15,6 +15,9 @@ using Lyvads.Domain.Responses;
 using Lyvads.Application.Dtos.AuthDtos;
 using Microsoft.EntityFrameworkCore;
 using Lyvads.Shared.DTOs;
+using Lyvads.Domain.Constants;
+using Lyvads.Application.Utilities;
+
 
 namespace Lyvads.Application.Implementations;
 
@@ -629,7 +632,9 @@ public class UserInteractionService : IUserInteractionService
         return new ServerResponse<object>
         {
             IsSuccessful = true,
-            ResponseMessage = "Comment deleted successfully."
+            ResponseCode = "00",
+            ResponseMessage = "Comment deleted successfully.",
+            Data = comment
         };
     }
 
@@ -644,7 +649,7 @@ public class UserInteractionService : IUserInteractionService
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
                 {
-                    ResponseCode = "Like.Error",
+                    ResponseCode = "06",
                     ResponseMessage = "User not found"
                 }
             };
@@ -662,7 +667,9 @@ public class UserInteractionService : IUserInteractionService
 
         return new ServerResponse<object>
         {
-            IsSuccessful = true
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = contentId
         };
     }
 
@@ -677,7 +684,7 @@ public class UserInteractionService : IUserInteractionService
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
                 {
-                    ResponseCode = "Unlike.Error",
+                    ResponseCode = "06",
                     ResponseMessage = "Like not found."
                 }
             };
@@ -690,7 +697,9 @@ public class UserInteractionService : IUserInteractionService
 
         return new ServerResponse<object>
         {
-            IsSuccessful = true
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = contentId
         };
     }
 
@@ -705,7 +714,7 @@ public class UserInteractionService : IUserInteractionService
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
                 {
-                    ResponseCode = "Wallet.Error",
+                    ResponseCode = "06",
                     ResponseMessage = "User not found"
                 }
             };
@@ -716,7 +725,9 @@ public class UserInteractionService : IUserInteractionService
 
         return new ServerResponse<object>
         {
-            IsSuccessful = true
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = amount
         };
     }
 
@@ -726,6 +737,7 @@ public class UserInteractionService : IUserInteractionService
         return new ServerResponse<int>
         {
             IsSuccessful = true,
+            ResponseCode = "00",
             Data = likesCount
         };
     }
@@ -738,6 +750,7 @@ public class UserInteractionService : IUserInteractionService
         return new ServerResponse<int>
         {
             IsSuccessful = true,
+            ResponseCode = "00",
             Data = commentsCount
         };
     }
@@ -749,6 +762,7 @@ public class UserInteractionService : IUserInteractionService
         return new ServerResponse<List<string>>
         {
             IsSuccessful = true,
+            ResponseCode = "00",
             Data = userIds
         };
     }
@@ -772,6 +786,7 @@ public class UserInteractionService : IUserInteractionService
         return new ServerResponse<List<CommentResponseDto>>
         {
             IsSuccessful = true,
+            ResponseCode = "00",
             Data = commentResponses
         };
     }
@@ -803,8 +818,34 @@ public class UserInteractionService : IUserInteractionService
     }
 
 
+    //public async Task<ServerResponse<object>> AddCreatorToFavoritesAsync(string userId, string creatorId)
+    //{
+    //    var user = await _userRepository.GetUserByIdAsync(userId);
+    //    if (user == null)
+    //    {
+    //        return new ServerResponse<object>
+    //        {
+    //            IsSuccessful = false,
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "User.Error",
+    //                ResponseMessage = "User not found."
+    //            }
+    //        };
+    //    }
+
+    //    await _userRepository.AddFavoriteAsync(userId, creatorId);
+
+    //    return new ServerResponse<object>
+    //    {
+    //        IsSuccessful = true
+    //    };
+    //}
+
     public async Task<ServerResponse<object>> AddCreatorToFavoritesAsync(string userId, string creatorId)
     {
+        // Fetch the user by ID
+        var currentUser = await _userManager.FindByIdAsync(userId);
         var user = await _userRepository.GetUserByIdAsync(userId);
         if (user == null)
         {
@@ -819,12 +860,179 @@ public class UserInteractionService : IUserInteractionService
             };
         }
 
+        // Ensure the user is a RegularUser (you may need to adjust this check based on your user structure)
+        if (await _userManager.IsInRoleAsync(currentUser!, RolesConstant.Creator))
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.RoleError",
+                    ResponseMessage = "Only regular users can add creators to favorites."
+                }
+            };
+        }
+
+        // Ensure the creator exists
+        var creator = await _creatorRepository.GetCreatorByIdAsync(creatorId);
+        if (creator == null)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Creator.Error",
+                    ResponseMessage = "Creator not found."
+                }
+            };
+        }
+
+        // Add creator to favorites
         await _userRepository.AddFavoriteAsync(userId, creatorId);
 
         return new ServerResponse<object>
         {
-            IsSuccessful = true
+            IsSuccessful = true,
+            ResponseCode =  "00",
+            ResponseMessage = "Creator successfully added as favorite.",
+            Data = creatorId
         };
+    }
+    
+    public async Task<ServerResponse<object>> RemoveCreatorFromFavoritesAsync(string userId, string creatorId)
+    {
+        // Fetch the user by ID
+        var currentUser = await _userManager.FindByIdAsync(userId);
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.Error",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        // Ensure the user is a RegularUser (adjust this check based on your roles structure)
+        if (await _userManager.IsInRoleAsync(currentUser!, RolesConstant.Creator))
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.RoleError",
+                    ResponseMessage = "Only regular users can remove creators from favorites."
+                }
+            };
+        }
+
+        // Ensure the creator exists in the user's favorites
+        var favorite = await _userRepository.GetFavoriteAsync(userId, creatorId);
+        if (favorite == null)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Favorite.Error",
+                    ResponseMessage = "Creator not found in your favorites."
+                }
+            };
+        }
+
+        // Remove the creator from favorites
+        await _userRepository.RemoveFavoriteAsync(userId, creatorId);
+
+        return new ServerResponse<object>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = "Creator successfully removed from favorites.",
+        };
+    }
+
+    public async Task<ServerResponse<object>> ToggleFavoriteAsync(string userId, string creatorId)
+    {
+        // Fetch the user by ID
+        var currentUser = await _userManager.FindByIdAsync(userId);
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.Error",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        // Ensure the user is a RegularUser (adjust this check based on your roles structure)
+        if (await _userManager.IsInRoleAsync(currentUser!, RolesConstant.Creator))
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.RoleError",
+                    ResponseMessage = "Only regular users can favorite or unfavorite creators."
+                }
+            };
+        }
+
+        // Ensure the creator exists
+        var creator = await _creatorRepository.GetCreatorByIdAsync(creatorId);
+        if (creator == null)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Creator.Error",
+                    ResponseMessage = "Creator not found."
+                }
+            };
+        }
+
+        // Check if the creator is already in the user's favorites
+        var favorite = await _userRepository.GetFavoriteAsync(userId, creatorId);
+        if (favorite != null)
+        {
+            // If the creator is already a favorite, remove them from favorites
+            await _userRepository.RemoveFavoriteAsync(userId, creatorId);
+
+            return new ServerResponse<object>
+            {
+                IsSuccessful = true,
+                ResponseCode = "06",
+                ResponseMessage = "Creator successfully removed from favorites.",
+            };
+        }
+        else
+        {
+            // If the creator is not a favorite, add them to favorites
+            await _userRepository.AddFavoriteAsync(userId, creatorId);
+
+            return new ServerResponse<object>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Creator successfully added as favorite.",
+                Data = creatorId
+            };
+        }
     }
 
     public async Task<ServerResponse<List<CreatorResponseDto>>> GetFavoriteCreatorsAsync(string userId)
@@ -843,10 +1051,10 @@ public class UserInteractionService : IUserInteractionService
         return new ServerResponse<List<CreatorResponseDto>>
         {
             IsSuccessful = true,
+            ResponseCode = "00",
             Data = creatorResponses
         };
     }
-
   
     public async Task<ServerResponse<List<ViewPostResponseDto>>> GetAllPostsOfCreatorAsync(string creatorId)
     {
@@ -864,31 +1072,44 @@ public class UserInteractionService : IUserInteractionService
         return new ServerResponse<List<ViewPostResponseDto>>
         {
             IsSuccessful = true,
+            ResponseCode = "00",
             Data = postResponses
         };
     }
 
-    public async Task<ServerResponse<List<FeaturedCreatorDto>>> GetFeaturedCreatorsAsync(int count)
+    public async Task<ServerResponse<PaginatorDto<IEnumerable<FeaturedCreatorDto>>>> GetFeaturedCreatorsAsync(PaginationFilter paginationFilter)
     {
-        var creators = await _userRepository.GetCreatorsWithMostEngagementAndFollowersAsync(count); // Pass count here
+        // Fetch creators from the repository as IQueryable, applying pagination
+        var paginatedCreators = await _userRepository.GetCreatorsWithMostEngagementAndFollowersAsync()
+                                                     .PaginateAsync(paginationFilter);
 
-        var featuredCreators = creators.Select(c => new FeaturedCreatorDto
+        // Map the paginated results to FeaturedCreatorDto
+        var featuredCreators = paginatedCreators.PageItems!.Select(c => new FeaturedCreatorDto
         {
             Id = c.Id,
             Name = c.Name,
             ProfilePicture = c.ProfilePicture,
             Industry = c.Industry,
             EngagementCount = c.EngagementCount,
-            FollowersCount = c.FollowersCount 
+            FollowersCount = c.FollowersCount
         }).ToList();
 
-        return new ServerResponse<List<FeaturedCreatorDto>>
+        // Create a paginated response DTO
+        var paginatedResult = new PaginatorDto<IEnumerable<FeaturedCreatorDto>>
+        {
+            CurrentPage = paginatedCreators.CurrentPage,
+            PageSize = paginatedCreators.PageSize,
+            NumberOfPages = paginatedCreators.NumberOfPages,
+            PageItems = featuredCreators
+        };
+
+        return new ServerResponse<PaginatorDto<IEnumerable<FeaturedCreatorDto>>>
         {
             IsSuccessful = true,
-            Data = featuredCreators
+            ResponseCode = "00",
+            Data = paginatedResult
         };
     }
-
 
     public async Task<ServerResponse<CreatorProfileDto>> ViewCreatorProfileAsync(string creatorId)
     {
@@ -900,7 +1121,7 @@ public class UserInteractionService : IUserInteractionService
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
                 {
-                    ResponseCode = "Creator.Error",
+                    ResponseCode = "06",
                     ResponseMessage = "Creator not found."
                 }
             };
@@ -911,7 +1132,7 @@ public class UserInteractionService : IUserInteractionService
          .GroupBy(c => c.RequestType)
          .Select(group => new CollabRateDto
          {
-             RequestType = group.Key.ToString(), // RequestType from CollaborationRate
+             RequestType = group.Key!.ToString(), // RequestType from CollaborationRate
              TotalAmount = group.Sum(c => c.TotalAmount) // Summing Rate from CollaborationRate entity
          })
          .ToList();
@@ -940,19 +1161,44 @@ public class UserInteractionService : IUserInteractionService
         return new ServerResponse<CreatorProfileDto>
         {
             IsSuccessful = true,
+            ResponseCode = "00",
             Data = creatorProfile
         };
     }
 
     public async Task<ServerResponse<object>> FollowCreatorAsync(string userId, string creatorId)
     {
-        await _userRepository.FollowCreatorAsync(userId, creatorId);
+        // Check if the user is already following the creator
+        var isFollowing = await _userRepository.IsUserFollowingCreatorAsync(userId, creatorId);
 
-        return new ServerResponse<object>
+        if (isFollowing)
         {
-            IsSuccessful = true
-        };
+            // Unfollow the creator
+            await _userRepository.UnfollowCreatorAsync(userId, creatorId);
+
+            return new ServerResponse<object>
+            {
+                ResponseCode = "00",
+                IsSuccessful = true,
+                ResponseMessage = "Successfully unfollowed the creator.",
+                Data = creatorId
+            };
+        }
+        else
+        {
+            // Follow the creator
+            await _userRepository.FollowCreatorAsync(userId, creatorId);
+
+            return new ServerResponse<object>
+            {
+                ResponseCode = "00",
+                IsSuccessful = true,
+                ResponseMessage = "Successfully followed the creator.",
+                Data = creatorId
+            };
+        }
     }
+
 
 
     public async Task<ServerResponse<object>> UnfollowCreatorAsync(string userId, string creatorId)
@@ -961,7 +1207,9 @@ public class UserInteractionService : IUserInteractionService
 
         return new ServerResponse<object>
         {
-            IsSuccessful = true
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = creatorId
         };
     }
 

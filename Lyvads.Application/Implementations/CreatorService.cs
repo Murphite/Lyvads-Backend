@@ -158,7 +158,7 @@ public class CreatorService : ICreatorService
         }
 
         // Upload image to Cloudinary if a photo is provided
-        string mediaUrl = null;
+        string mediaUrl = null!;
         if (photo != null)
         {
             var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
@@ -184,7 +184,7 @@ public class CreatorService : ICreatorService
         {
             CreatorId = creator.Id,
             Caption = postDto.Caption,
-            MediaUrl = mediaUrl,  // Use the uploaded image URL
+            MediaUrl = mediaUrl!,  // Use the uploaded image URL
             Location = postDto.Location,
             Visibility = visibility,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -1179,57 +1179,62 @@ public class CreatorService : ICreatorService
        
     }
 
-    public async Task<ServerResponse<List<FilterCreatorDto>>> SearchCreatorsAsync(decimal? minPrice, decimal? maxPrice, 
-        string? location, string? industry)
+    public async Task<ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>> SearchCreatorsAsync(
+    decimal? minPrice, decimal? maxPrice, string? location, string? industry, string? keyword, PaginationFilter paginationFilter)
     {
         location = location?.Trim();
         industry = industry?.Trim();
+        keyword = keyword?.Trim();
 
-        _logger.LogInformation(new EventId(), "Searching for creators with filters - MinPrice: {MinPrice}, MaxPrice: {MaxPrice}, Location: {Location}, Industry: {Industry}",
-                               minPrice, maxPrice, location, industry);
+        _logger.LogInformation(new EventId(),
+            "Searching for creators with filters - MinPrice: {MinPrice}, MaxPrice: {MaxPrice}, Location: {Location}, Industry: {Industry}, Keyword: {Keyword}",
+            minPrice, maxPrice, location, industry, keyword);
 
         var query = _repository.GetAll<Creator>()
-            .Include(c => c.ApplicationUser) // Include related ApplicationUser
+            .Include(c => c.ApplicationUser)
             .Where(c => c.ApplicationUser != null);
 
         // Log initial creator count
-        var initialCreators = await query.ToListAsync();
-        _logger.LogInformation("Total creators found before applying filters: {CreatorCount}", initialCreators.Count);
+        _logger.LogInformation("Total creators found before applying filters: {CreatorCount}", await query.CountAsync());
 
+        // Apply filters
         if (minPrice.HasValue)
         {
             query = query.Where(c => c.Price >= minPrice.Value);
-            _logger.LogInformation("Filtered by min price: {MinPrice}. Remaining creators: {Count}", minPrice, await query.CountAsync());
         }
 
         if (maxPrice.HasValue)
         {
             query = query.Where(c => c.Price <= maxPrice.Value);
-            _logger.LogInformation("Filtered by max price: {MaxPrice}. Remaining creators: {Count}", maxPrice, await query.CountAsync());
         }
 
         if (!string.IsNullOrWhiteSpace(location))
         {
-            query = query.Where(c => c.ApplicationUser != null &&
-                                     !string.IsNullOrEmpty(c.ApplicationUser.Location) &&
-                                     c.ApplicationUser.Location.ToLower().Contains(location.ToLower()));
-            _logger.LogInformation("Filtered by location: {Location}. Remaining creators: {Count}", location, await query.CountAsync());
+            query = query.Where(c => c.ApplicationUser!.Location!.ToLower().Contains(location.ToLower()));
         }
 
         if (!string.IsNullOrWhiteSpace(industry))
         {
-            query = query.Where(c => c.ApplicationUser != null &&
-                                     !string.IsNullOrEmpty(c.ApplicationUser.Occupation) &&
-                                     c.ApplicationUser.Occupation.ToLower().Contains(industry.ToLower()));
-            _logger.LogInformation("Filtered by industry: {Industry}. Remaining creators: {Count}", industry, await query.CountAsync());
+            query = query.Where(c => c.ApplicationUser!.Occupation!.ToLower().Contains(industry.ToLower()));
         }
 
-        var creators = await query.ToListAsync();
-
-        if (creators == null || !creators.Any())
+        if (!string.IsNullOrWhiteSpace(keyword))
         {
-            _logger.LogInformation("No creators found after filtering for location: {Location}", location);
-            return new ServerResponse<List<FilterCreatorDto>>
+            query = query.Where(c =>
+                (c.ApplicationUser!.FirstName.ToLower().Contains(keyword.ToLower()) ||
+                 c.ApplicationUser!.LastName.ToLower().Contains(keyword.ToLower()) ||
+                 c.ApplicationUser.Location!.ToLower().Contains(keyword.ToLower()) ||
+                 c.ApplicationUser.Occupation!.ToLower().Contains(keyword.ToLower()) ||
+                 c.Price.ToString().Contains(keyword)));
+        }
+
+        // Apply pagination
+        var paginatedCreators = await query.PaginateAsync(paginationFilter);
+
+        if (!paginatedCreators.PageItems.Any())
+        {
+            _logger.LogInformation("No creators found after applying filters");
+            return new ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
@@ -1243,7 +1248,7 @@ public class CreatorService : ICreatorService
             };
         }
 
-        var creatorDtos = creators.Select(c => new FilterCreatorDto
+        var creatorDtos = paginatedCreators.PageItems.Select(c => new FilterCreatorDto
         {
             CreatorId = c.Id,
             FullName = $"{c.ApplicationUser?.FirstName ?? "N/A"} {c.ApplicationUser?.LastName ?? "N/A"}",
@@ -1252,19 +1257,22 @@ public class CreatorService : ICreatorService
             Industry = c.ApplicationUser?.Occupation ?? "N/A"
         }).ToList();
 
-        _logger.LogInformation(new EventId(), "Found {CreatorCount} creators matching the filters", creatorDtos.Count);
+        _logger.LogInformation("Found {CreatorCount} creators matching the filters", creatorDtos.Count);
 
-        return new ServerResponse<List<FilterCreatorDto>>
+        return new ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>
         {
             IsSuccessful = true,
             ResponseCode = "00",
             ResponseMessage = "Creators found successfully.",
-            Data = creatorDtos
+            Data = new PaginatorDto<IEnumerable<FilterCreatorDto>>
+            {
+                CurrentPage = paginatedCreators.CurrentPage,
+                PageSize = paginatedCreators.PageSize,
+                NumberOfPages = paginatedCreators.NumberOfPages,
+                PageItems = creatorDtos
+            }
         };
     }
-
-
-
 
 
 

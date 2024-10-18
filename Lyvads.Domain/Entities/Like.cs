@@ -11,7 +11,7 @@ public class Like : Entity
     public string? LikedBy { get; set; } = default!;
 
     public Post? Post { get; set; }
-    public ApplicationUser? User { get; set; }
+    public ApplicationUser? ApplicationUser { get; set; }
     public Content? Content { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }

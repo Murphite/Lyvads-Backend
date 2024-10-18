@@ -6,7 +6,7 @@ namespace Lyvads.Application.Dtos.SuperAdminDtos;
 
 public class UserAdDto
 {
-    public string Id { get; set; }
+    public string? Id { get; set; }
     public string? UserName { get; set; }
     public string? Description { get; set; }
     public decimal? Amount { get; set; }

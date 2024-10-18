@@ -55,7 +55,7 @@ public class AdminPromotionService : IPromotionService
         try
         {
             // Determine the media type
-            var mediaType = createPromotionDto.Media.ContentType.ToLower();
+            var mediaType = createPromotionDto.Media!.ContentType.ToLower();
             Dictionary<string, string> mediaResponse;
 
             if (mediaType.Contains("image"))
@@ -171,7 +171,7 @@ public class AdminPromotionService : IPromotionService
             }
 
             // Determine the media type
-            var mediaType = updatePromotionDto.Media.ContentType.ToLower();
+            var mediaType = updatePromotionDto.Media!.ContentType.ToLower();
             Dictionary<string, string> mediaResponse;
 
             if (mediaType.Contains("image"))

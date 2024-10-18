@@ -53,6 +53,22 @@ public class AdminDashboardService : IAdminUserService
     {
         var currentUserId = _currentUserService.GetCurrentUserId();
         var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+        // Check if the current user exists
+        if (currentUser == null)
+        {
+            _logger.LogWarning("User not found: {UserId}", currentUserId);
+            return new ServerResponse<AddUserResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Authorization.Error",
+                    ResponseMessage = "Current user not found"
+                }
+            };
+        }
+
         var isSuperAdmin = await _userManager.IsInRoleAsync(currentUser, RolesConstant.SuperAdmin);
 
         if (!isSuperAdmin)
@@ -162,6 +178,7 @@ public class AdminDashboardService : IAdminUserService
             ResponseMessage = "Admin registration successful."
         };
     }
+
 
     public async Task<ServerResponse<DashboardSummaryDto>> GetDashboardSummary()
     {
@@ -301,7 +318,7 @@ public class AdminDashboardService : IAdminUserService
             .Include(c => c.Collaborations)
             .GroupBy(c => new
             {
-                c.ApplicationUser.FirstName,
+                c.ApplicationUser!.FirstName,
                 c.ApplicationUser.LastName,
                 c.ApplicationUser.Occupation
             })

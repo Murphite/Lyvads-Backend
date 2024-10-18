@@ -14,7 +14,8 @@ public interface IAuthService
     Task<ServerResponse<RegisterUserResponseDto>> RegisterSuperAdmin(RegisterSuperAdminDto registerSuperAdminDto);
     Task<ServerResponse<LoginResponseDto>> Login(LoginUserDto loginUserDto);
     Task<ServerResponse<RegistrationResponseDto>> ForgotPassword(ForgotPasswordRequestDto forgotPasswordDto);
-    Task<ServerResponse<PasswordResetResponseDto>> VerifyCodeAndResetPassword(ResetPasswordWithCodeDto resetPasswordDto);
+    Task<ServerResponse<string>> VerifyVerificationCode(string verificationCode);
+    Task<ServerResponse<PasswordResetResponseDto>> ResetPassword(ResetPasswordWithCodeDto resetPasswordDto, string email);
     Task<ServerResponse<RegistrationResponseDto>> AdminForgotPassword(ForgotPasswordRequestDto forgotPasswordDto);
     Task<ServerResponse<string>> VerifyAdminVerificationCode(string verificationCode);
     Task<ServerResponse<PasswordResetResponseDto>> ResetAdminPassword(AdminResetPasswordWithCodeDto resetPasswordDto, string email);

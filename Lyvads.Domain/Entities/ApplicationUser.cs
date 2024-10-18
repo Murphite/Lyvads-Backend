@@ -27,6 +27,7 @@ public class ApplicationUser : IdentityUser, IAuditable
     public string? WalletId { get; set; } = default!;
     public Wallet Wallet { get; set; } = default!;
     public ICollection<Notification>? Notifications { get; set; } = new List<Notification>();
+    public ICollection<Like>? Likes { get; set; } = new List<Like>();
     public string? StripeAccountId { get; set; } = default!;
     public bool IsActive { get; set; } = true;
 

@@ -108,7 +108,7 @@ public class VerificationService : IVerificationService
             };
         }
 
-        _logger.LogInformation($"Verified email found: {emailRecord.Email}");
+        _logger.LogInformation($"Verified email found: {emailRecord!.Email}");
         //result.Data = emailRecord;
         result.IsSuccessful = true;
         result.ResponseMessage = "Verification found for email.";

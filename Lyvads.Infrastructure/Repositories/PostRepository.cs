@@ -37,7 +37,7 @@ public class PostRepository : IPostRepository
             .Include(p => p.Comments)
             .ThenInclude(c => c.ApplicationUser)
             .Include(p => p.Likes)
-            .ThenInclude(l => l.User)
+            .ThenInclude(l => l.ApplicationUser)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (post == null)

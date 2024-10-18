@@ -193,6 +193,26 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(c => c.ExclusiveDeals)
             .HasForeignKey(ed => ed.CreatorId);
 
+        modelBuilder.Entity<Like>()
+            .HasOne(l => l.Post)
+            .WithMany(p => p.Likes)
+            .HasForeignKey(l => l.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Like>()
+            .HasOne(l => l.ApplicationUser)
+            .WithMany(u => u.Likes)
+            .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Like>()
+            .HasOne(l => l.Content)
+            .WithMany(c => c.Likes)
+            .HasForeignKey(l => l.ContentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
+
     }
 
 }

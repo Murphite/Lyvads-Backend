@@ -20,8 +20,16 @@ public class AdminPermissionsRepository : IAdminPermissionsRepository
 
     public async Task<AdminPermission> GetByAdminUserIdAsync(string adminUserId)
     {
-        return await _context.Set<AdminPermission>().FirstOrDefaultAsync(p => p.ApplicationUser.Id == adminUserId);
+        var permission = await _context.Set<AdminPermission>().FirstOrDefaultAsync(p => p.ApplicationUser.Id == adminUserId);
+
+        if (permission == null)
+        {
+            throw new KeyNotFoundException($"AdminPermission for user {adminUserId} was not found.");
+        }
+
+        return permission;
     }
+
 
     public async Task UpdateAsync(AdminPermission permissions)
     {

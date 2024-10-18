@@ -172,7 +172,7 @@ public class MediaService : IMediaService
         return await _cloudinary.DestroyAsync(deleteParams);
     }
 
-    public async Task<Dictionary<string, string>> GetDownloadUrlAsync(string publicId, string folderName)
+    public Task<Dictionary<string, string>> GetDownloadUrlAsync(string publicId, string folderName)
     {
         var response = new Dictionary<string, string>();
 
@@ -196,7 +196,9 @@ public class MediaService : IMediaService
             response.Add("Message", "Failed to generate download URL");
         }
 
-        return response;
+        // Return the dictionary wrapped in a completed Task
+        return Task.FromResult(response);
     }
+
 
 }

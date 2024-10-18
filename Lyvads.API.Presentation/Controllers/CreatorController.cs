@@ -237,13 +237,22 @@ public class CreatorController : ControllerBase
 
 
     [HttpGet("searchQuery")]
-    public async Task<ActionResult<ServerResponse<List<FilterCreatorDto>>>> SearchCreators(
-            [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice,
-            [FromQuery] string? location,
-            [FromQuery] string? industry)
+    public async Task<ActionResult<ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>>> SearchCreators(
+    [FromQuery] decimal? minPrice,
+    [FromQuery] decimal? maxPrice,
+    [FromQuery] string? location,
+    [FromQuery] string? industry,
+    [FromQuery] string? keyword,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10)
     {
-        var result = await _creatorService.SearchCreatorsAsync(minPrice, maxPrice, location, industry);
+        var paginationFilter = new PaginationFilter
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+
+        var result = await _creatorService.SearchCreatorsAsync(minPrice, maxPrice, location, industry, keyword, paginationFilter);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
@@ -251,7 +260,10 @@ public class CreatorController : ControllerBase
         return Ok(result);
     }
 
-    
+
+
+
+
     [HttpPost("send-video")]
     public async Task<IActionResult> SendVideoToUser(string requestId, [FromForm] UploadVideo videoDto)
     {

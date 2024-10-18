@@ -185,15 +185,9 @@ public class AuthController : ControllerBase
         var result = await _authService.Login(loginUserDto);
 
         if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
+             return BadRequest(result.ErrorResponse);
 
-        return Ok(ResponseDto<object>.Success(new
-        {
-            Token = result.Data.Token,
-            FullName = result.Data.FullName,
-            Roles = result.Data.Roles,
-            Email = result.Data.Email
-        }, "Login successful."));
+        return Ok(result);
     }
 
 
@@ -211,28 +205,54 @@ public class AuthController : ControllerBase
     }
 
 
-    [HttpPost("VerifyCodeAndResetPassword")]
-    public async Task<IActionResult> VerifyCodeAndResetPassword([FromBody] ResetPasswordWithCodeDto resetPasswordDto)
+    [HttpPost("verifyCode")]
+    public async Task<ActionResult<string>> VerifyVerificationCode([FromBody] EmailVerificationDto verificationCode)
     {
-        _logger.LogInformation("******* Inside the VerifyCodeAndResetPassword Controller Method ********");
-
-        var result = await _authService.VerifyCodeAndResetPassword(resetPasswordDto);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        var passwordResetResponse = new PasswordResetResponseDto
-        {
-            Email = result.Data.Email,
-            NewPassword = result.Data.NewPassword,
-            Message = "Password reset was successful"
-        };
-
-        return Ok(result);
+        var response = await _authService.VerifyVerificationCode(verificationCode.VerificationCode);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
     }
 
 
-    // POST: api/admin/forgot-password
+    [HttpPost("resetPassword")]
+    public async Task<ActionResult<ResetPasswordWithCodeDto>> ResetPassword([FromBody] ResetPasswordWithCodeDto resetPasswordDto)
+    {
+        if (resetPasswordDto == null)
+        {
+            return BadRequest(new ServerResponse<ResetPasswordWithCodeDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Request body is null"
+                }
+            });
+        }
+
+        // Retrieve the email from the session or another mechanism, if applicable
+        var email = HttpContext.Session.GetString("VerifiedEmail");
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest(new ServerResponse<ResetPasswordWithCodeDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Email not found in session"
+                }
+            });
+        }
+
+        var response = await _authService.ResetPassword(resetPasswordDto, email);
+        return Ok(response);
+    }
+
+
     [HttpPost("admin-forgotPassword")]
     public async Task<ActionResult<RegistrationResponseDto>> AdminForgotPassword([FromBody] ForgotPasswordRequestDto forgotPasswordDto)
     {
@@ -244,7 +264,7 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-    // POST: api/admin/verify-code
+
     [HttpPost("admin-verifyCode")]
     public async Task<ActionResult<string>> VerifyAdminVerificationCode([FromBody] EmailVerificationDto verificationCode)
     {
@@ -254,7 +274,7 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-    // POST: api/admin/reset-password
+
     [HttpPost("admin-resetPassword")]
     public async Task<ActionResult<AdminResetPasswordWithCodeDto>> AdminResetAdminPassword([FromBody] AdminResetPasswordWithCodeDto 
         resetPasswordDto)

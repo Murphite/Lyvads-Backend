@@ -75,7 +75,7 @@ public class AdminPostService : IAdminPostService
 
             Likes = post.Likes.Select(l => new AdminLikeDto
             {
-                UserName = l.User.FirstName + " " + l.User.LastName
+                UserName = l.ApplicationUser!.FirstName + " " + l.ApplicationUser.LastName
             }).ToList()
         };
 

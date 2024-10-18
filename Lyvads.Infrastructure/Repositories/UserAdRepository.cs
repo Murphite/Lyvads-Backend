@@ -48,7 +48,7 @@ public class UserAdRepository : IUserAdRepository
             {
                 _logger.LogWarning("User ad not found with ID: {AdId}", adId);
             }
-            return ad;
+            return ad!;
         }
         catch (Exception ex)
         {
