@@ -17,6 +17,7 @@ public class RequestRepository : IRequestRepository
         _context = context;
         _logger = logger;
     }
+
     public async Task<(bool IsSuccess, string ErrorMessage)> CreateRequestAsync(Request request)
     {
         try
@@ -48,7 +49,8 @@ public class RequestRepository : IRequestRepository
     public IQueryable<Request> GetRequestsForCreator(string creatorId)
     {
         return _context.Requests
-                       .Include(r => r.RegularUser) // Include the Regular User who made the request
+                       .Include(r => r.RegularUser)
+                            .ThenInclude(c => c.ApplicationUser)// Include the Regular User who made the request
                        .Include(r => r.Creator) // Include the Creator
                        .Where(r => r.CreatorId == creatorId);
     }
@@ -57,8 +59,11 @@ public class RequestRepository : IRequestRepository
     public IQueryable<Request> GetRequestsByUser(string userId)
     {
         return _context.Requests
-                       .Include(r => r.Creator) // Include Creator details if needed
-                       .Where(r => r.RegularUserId == userId); // Filter by UserId
+                       .Include(r => r.RegularUser) // Include RegularUser for navigation
+                       .Include(r => r.Creator)
+                            .ThenInclude(c => c.ApplicationUser)// Include Creator if needed
+                       .Where(r => r.RegularUserId == userId); // Filter by RegularUserId
     }
+
 
 }

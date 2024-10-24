@@ -4,6 +4,7 @@ using Lyvads.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Stripe.Checkout;
 using Lyvads.Application.Dtos.RegularUserDtos;
+using static Lyvads.Application.Implementations.WalletService;
 
 namespace Lyvads.Application.Implementations;
 
@@ -49,6 +50,7 @@ public class PaymentGatewayService : IPaymentGatewayService
         }
     }
 
+    
     public async Task<Result> ProcessPaymentAsync(decimal amount, string currency, string source, string description)
     {
         try

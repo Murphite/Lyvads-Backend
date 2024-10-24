@@ -128,12 +128,14 @@ public class MediaService : IMediaService
             return response;
         }
 
-        if (!allowedTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+        var extension = Path.GetExtension(file.FileName).ToLower().TrimStart('.');
+        if (!allowedTypes.Contains(extension) && !allowedTypes.Contains(file.ContentType))
         {
             response.Add("Code", "400");
             response.Add("Message", "Invalid type");
             return response;
         }
+
 
         var uploadResult = new VideoUploadResult(); // Assuming a separate result class for videos
 

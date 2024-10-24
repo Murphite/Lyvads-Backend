@@ -17,6 +17,8 @@ using Microsoft.EntityFrameworkCore;
 using Lyvads.Shared.DTOs;
 using Lyvads.Domain.Constants;
 using Lyvads.Application.Utilities;
+using Microsoft.AspNetCore.Mvc;
+using Stripe;
 
 
 namespace Lyvads.Application.Implementations;
@@ -35,6 +37,7 @@ public class UserInteractionService : IUserInteractionService
     private readonly IPostRepository _postRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IConfiguration _configuration;
+    private readonly IRegularUserRepository _regularUserRepository;
 
     public UserInteractionService(IUserRepository userRepository, 
         IConfiguration configuration,
@@ -47,7 +50,8 @@ public class UserInteractionService : IUserInteractionService
         IWalletService walletService,
         IRequestRepository requestRepository,
         IPostRepository postRepository,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IRegularUserRepository regularUserRepository)
     {
         _userRepository = userRepository;
         _configuration = configuration;
@@ -61,18 +65,220 @@ public class UserInteractionService : IUserInteractionService
         _requestRepository = requestRepository;
         _httpContextAccessor = httpContextAccessor;
         _postRepository = postRepository;
+        _regularUserRepository = regularUserRepository;
     }
 
-    public async Task<ServerResponse<string>> MakeRequestAsync(CreateRequestDto createRequestDto)
+    //public async Task<ServerResponse<string>> MakeRequestAsync(string creatorId, CreateRequestDto createRequestDto)
+    //{
+    //    try
+    //    {
+    //        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+
+    //        if (user == null)
+    //        {
+    //            _logger.LogWarning("User not found.");
+    //            return new ServerResponse<string>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "User.Error",
+    //                    ResponseMessage = "User not found"
+    //                }
+    //            };
+    //        }
+
+    //        var isRegularUser = await _userManager.IsInRoleAsync(user, "RegularUser");
+    //        if (!isRegularUser)
+    //        {
+    //            _logger.LogWarning("User is not a regular user.");
+    //            return new ServerResponse<string>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "RegularUser.Error",
+    //                    ResponseMessage = "Regular User not found"
+    //                }
+    //            };
+    //        }
+
+    //        var creator = await _creatorRepository.GetCreatorByIdAsync(creatorId);
+    //        if (creator == null)
+    //        {
+    //            _logger.LogWarning("Creator not found.");
+    //            return new ServerResponse<string>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "Creator.Error",
+    //                    ResponseMessage = "Creator not found"
+    //                }
+    //            };
+    //        }
+
+    //        string? domain = _configuration.GetValue<string>("Lyvads_Client_URL");
+    //        if (string.IsNullOrEmpty(domain))
+    //        {
+    //            _logger.LogError("Client URL is not configured.");
+    //            return new ServerResponse<string>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "Configuration.Error",
+    //                    ResponseMessage = "Client URL is not configured."
+    //                }
+    //            };
+    //        }
+
+    //        Session session;
+
+    //        if (createRequestDto.PaymentMethod == PaymentMethod.ATMCard)
+    //        {
+    //            var paymentDto = new PaymentDTO
+    //            {
+    //                Amount = (int)(createRequestDto.Amount * 100),
+    //                ProductName = "Request Payment",
+    //                ReturnUrl = "/return-url"
+    //            };
+    //            session = await _paymentGatewayService.CreateCardPaymentSessionAsync(paymentDto, domain);
+    //        }
+    //        else if (createRequestDto.PaymentMethod == PaymentMethod.Wallet)
+    //        {
+    //            var walletBalance = await _walletService.GetBalanceAsync(user.Id);
+    //            if (walletBalance < createRequestDto.Amount)
+    //            {
+    //                _logger.LogWarning("Insufficient wallet balance.");
+    //                return new ServerResponse<string>
+    //                {
+    //                    IsSuccessful = false,
+    //                    ErrorResponse = new ErrorResponse
+    //                    {
+    //                        ResponseCode = "WalletBalance.Error",
+    //                        ResponseMessage = "Insufficient wallet balance."
+    //                    }
+    //                };
+    //            }
+
+    //            var result = await _walletService.DeductBalanceAsync(user.Id, createRequestDto.Amount);
+    //            if (result)
+    //            {
+    //                var request = new Request
+    //                {
+    //                    Script = createRequestDto.Script,
+    //                    CreatorId = creatorId,
+    //                    RegularUserId = user.Id,
+    //                    RequestType = createRequestDto.RequestType,
+    //                    CreatedAt = DateTimeOffset.UtcNow,
+    //                    UpdatedAt = DateTimeOffset.UtcNow,
+    //                    PaymentMethod = PaymentMethod.Wallet
+    //                };
+
+    //                var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
+    //                if (requestResultIsSuccess)
+    //                {
+    //                    _logger.LogInformation("Wallet payment successful and request created.");
+    //                    return new ServerResponse<string>
+    //                    {
+    //                        IsSuccessful = true,
+    //                        Data = "Wallet payment successful and request created"
+    //                    };
+    //                }
+
+    //                _logger.LogWarning("Failed to create request after wallet payment.");
+    //                return new ServerResponse<string>
+    //                {
+    //                    IsSuccessful = false,
+    //                    ErrorResponse = new ErrorResponse
+    //                    {
+    //                        ResponseCode = "CreateRequest.Error",
+    //                        ResponseMessage = "Failed to create request after wallet payment."
+    //                    }
+    //                };
+    //            }
+
+    //            _logger.LogWarning("Failed to process wallet payment.");
+    //            return new ServerResponse<string>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "WalletPayment.Error",
+    //                    ResponseMessage = "Failed to process wallet payment."
+    //                }
+    //            };
+    //        }
+    //        else if (createRequestDto.PaymentMethod == PaymentMethod.Online)
+    //        {
+    //            var paymentDto = new PaymentDTO
+    //            {
+    //                Amount = (int)(createRequestDto.Amount * 100),
+    //                ProductName = "Request Payment",
+    //                ReturnUrl = "/return-url"
+    //            };
+    //            session = await _paymentGatewayService.CreateOnlinePaymentSessionAsync(paymentDto, domain);
+    //        }
+    //        else
+    //        {
+    //            _logger.LogWarning("Unsupported payment method.");
+    //            return new ServerResponse<string>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "Payment.Error",
+    //                    ResponseMessage = "Unsupported payment method."
+    //                }
+    //            };
+    //        }
+
+    //        if (session == null)
+    //        {
+    //            _logger.LogWarning("Failed to create payment session.");
+    //            return new ServerResponse<string>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "Session.Error",
+    //                    ResponseMessage = "Failed to create payment session."
+    //                }
+    //            };
+    //        }
+
+    //        return new ServerResponse<string>
+    //        {
+    //            IsSuccessful = true,
+    //            Data = session.Id
+    //        };
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        _logger.LogError(e, "Error occurred while making request.");
+    //        return new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "Exception.Error",
+    //                ResponseMessage = e.Message
+    //            }
+    //        };
+    //    }
+    //}
+
+    public async Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId,
+     AppPaymentMethod payment, RequestType requestType, CreateRequestDto createRequestDto)
     {
         try
         {
             var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
-
             if (user == null)
             {
                 _logger.LogWarning("User not found.");
-                return new ServerResponse<string>
+                return new ServerResponse<MakeRequestDetailsDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -83,11 +289,14 @@ public class UserInteractionService : IUserInteractionService
                 };
             }
 
-            var isRegularUser = await _userManager.IsInRoleAsync(user, "RegularUser");
-            if (!isRegularUser)
+            // Check if the user is a regular user
+            var roles = await _userManager.GetRolesAsync(user);
+            _logger.LogInformation("User roles for {UserId}: {Roles}", user.Id, string.Join(", ", roles));
+
+            if (!roles.Contains("RegularUser"))
             {
                 _logger.LogWarning("User is not a regular user.");
-                return new ServerResponse<string>
+                return new ServerResponse<MakeRequestDetailsDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -98,11 +307,11 @@ public class UserInteractionService : IUserInteractionService
                 };
             }
 
-            var creator = await _creatorRepository.GetCreatorByIdAsync(createRequestDto.CreatorId);
+            var creator = await _creatorRepository.GetCreatorByIdAsync(creatorId);
             if (creator == null)
             {
                 _logger.LogWarning("Creator not found.");
-                return new ServerResponse<string>
+                return new ServerResponse<MakeRequestDetailsDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -113,11 +322,46 @@ public class UserInteractionService : IUserInteractionService
                 };
             }
 
+            var regularUser = await _regularUserRepository.GetRegularUserByApplicationUserIdAsync(user.Id);
+            if (regularUser == null)
+            {
+                _logger.LogWarning("Regular user not found.");
+                return new ServerResponse<MakeRequestDetailsDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "RegularUser.Error",
+                        ResponseMessage = "Regular user not found."
+                    }
+                };
+            }
+
+            // Base amount from the request
+            decimal baseAmount = createRequestDto.Amount;
+
+            // Additional charges
+            decimal fastTrackFee = createRequestDto.FastTrack ? 5000 : 0;
+            decimal removeWatermarkFee = createRequestDto.RemoveWatermark ? 4000 : 0;
+            decimal creatorPostFee = createRequestDto.CreatorPost ? 3000 : 0;
+
+            // Calculate the total amount
+            decimal totalAmount = baseAmount + fastTrackFee + removeWatermarkFee + creatorPostFee;
+
+            // Generate the summary
+            var paymentSummary = $"Subtotal: {baseAmount:C}\n" +
+                                 $"Fast Track Fee: {fastTrackFee:C}\n" +
+                                 $"Remove Watermark Fee: {removeWatermarkFee:C}\n" +
+                                 $"Creator Post Fee: {creatorPostFee:C}\n" +
+                                 $"Total Amount: {totalAmount:C}";
+
+            _logger.LogInformation("Payment Summary: {PaymentSummary}", paymentSummary);
+
             string? domain = _configuration.GetValue<string>("Lyvads_Client_URL");
             if (string.IsNullOrEmpty(domain))
             {
                 _logger.LogError("Client URL is not configured.");
-                return new ServerResponse<string>
+                return new ServerResponse<MakeRequestDetailsDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -128,25 +372,25 @@ public class UserInteractionService : IUserInteractionService
                 };
             }
 
+            // Process payment based on the selected payment method
             Session session;
-
-            if (createRequestDto.PaymentMethod == PaymentMethod.ATMCard)
+            if (payment == AppPaymentMethod.ATMCard)
             {
                 var paymentDto = new PaymentDTO
                 {
-                    Amount = (int)(createRequestDto.Amount * 100),
+                    Amount = (int)(totalAmount * 100),
                     ProductName = "Request Payment",
                     ReturnUrl = "/return-url"
                 };
                 session = await _paymentGatewayService.CreateCardPaymentSessionAsync(paymentDto, domain);
             }
-            else if (createRequestDto.PaymentMethod == PaymentMethod.Wallet)
+            else if (payment == AppPaymentMethod.Wallet)
             {
                 var walletBalance = await _walletService.GetBalanceAsync(user.Id);
-                if (walletBalance < createRequestDto.Amount)
+                if (walletBalance < totalAmount)
                 {
                     _logger.LogWarning("Insufficient wallet balance.");
-                    return new ServerResponse<string>
+                    return new ServerResponse<MakeRequestDetailsDto>
                     {
                         IsSuccessful = false,
                         ErrorResponse = new ErrorResponse
@@ -157,34 +401,50 @@ public class UserInteractionService : IUserInteractionService
                     };
                 }
 
-                var result = await _walletService.DeductBalanceAsync(user.Id, createRequestDto.Amount);
+                var result = await _walletService.DeductBalanceAsync(user.Id, totalAmount);
                 if (result)
                 {
                     var request = new Request
                     {
-                        Type = createRequestDto.Type,
-                        Script = createRequestDto.Script,
-                        CreatorId = createRequestDto.CreatorId,
-                        RegularUserId = user.Id,
-                        RequestType = createRequestDto.RequestType,
+                        Script = createRequestDto.Script!,
+                        CreatorId = creatorId,
+                        RegularUserId = regularUser.Id,
+                        RequestType = requestType,
                         CreatedAt = DateTimeOffset.UtcNow,
                         UpdatedAt = DateTimeOffset.UtcNow,
-                        PaymentMethod = PaymentMethod.Wallet
+                        PaymentMethod = AppPaymentMethod.Wallet,
+                        Amount = totalAmount
                     };
+                    // Ensure that FirstName and LastName are not null before concatenation
+                    var creatorName = $"{creator.ApplicationUser?.FirstName} {creator.ApplicationUser?.LastName}";
 
                     var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
                     if (requestResultIsSuccess)
                     {
                         _logger.LogInformation("Wallet payment successful and request created.");
-                        return new ServerResponse<string>
+
+                        // Return both payment summary and request details
+                        var requestDetails = new MakeRequestDetailsDto
+                        {
+                            CreatorId = creatorId,
+                            CreatorName = creatorName,
+                            RequestType = requestType.ToString(),
+                            Script = request.Script,
+                            CreatedAt = request.CreatedAt,
+                            PaymentMethod = request.ToString(),
+                            Amount = totalAmount,
+                            PaymentSummary = paymentSummary
+                        };
+
+                        return new ServerResponse<MakeRequestDetailsDto>
                         {
                             IsSuccessful = true,
-                            Data = "Wallet payment successful and request created"
+                            Data = requestDetails
                         };
                     }
 
                     _logger.LogWarning("Failed to create request after wallet payment.");
-                    return new ServerResponse<string>
+                    return new ServerResponse<MakeRequestDetailsDto>
                     {
                         IsSuccessful = false,
                         ErrorResponse = new ErrorResponse
@@ -196,7 +456,7 @@ public class UserInteractionService : IUserInteractionService
                 }
 
                 _logger.LogWarning("Failed to process wallet payment.");
-                return new ServerResponse<string>
+                return new ServerResponse<MakeRequestDetailsDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -206,11 +466,11 @@ public class UserInteractionService : IUserInteractionService
                     }
                 };
             }
-            else if (createRequestDto.PaymentMethod == PaymentMethod.Online)
+            else if (payment == AppPaymentMethod.Online)
             {
                 var paymentDto = new PaymentDTO
                 {
-                    Amount = (int)(createRequestDto.Amount * 100),
+                    Amount = (int)(totalAmount * 100),
                     ProductName = "Request Payment",
                     ReturnUrl = "/return-url"
                 };
@@ -219,7 +479,7 @@ public class UserInteractionService : IUserInteractionService
             else
             {
                 _logger.LogWarning("Unsupported payment method.");
-                return new ServerResponse<string>
+                return new ServerResponse<MakeRequestDetailsDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -233,7 +493,7 @@ public class UserInteractionService : IUserInteractionService
             if (session == null)
             {
                 _logger.LogWarning("Failed to create payment session.");
-                return new ServerResponse<string>
+                return new ServerResponse<MakeRequestDetailsDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -244,16 +504,29 @@ public class UserInteractionService : IUserInteractionService
                 };
             }
 
-            return new ServerResponse<string>
+            // Return the payment session ID and request details
+            var requestDetailsWithSession = new MakeRequestDetailsDto
+            {
+                CreatorId = creatorId,
+                CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
+                RequestType = requestType.ToString(),
+                Script = createRequestDto.Script,
+                CreatedAt = DateTimeOffset.UtcNow,
+                PaymentMethod = payment.ToString(),
+                Amount = totalAmount,
+                PaymentSummary = paymentSummary
+            };
+
+            return new ServerResponse<MakeRequestDetailsDto>
             {
                 IsSuccessful = true,
-                Data = session.Id
+                Data = requestDetailsWithSession
             };
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error occurred while making request.");
-            return new ServerResponse<string>
+            return new ServerResponse<MakeRequestDetailsDto>
             {
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
@@ -264,6 +537,7 @@ public class UserInteractionService : IUserInteractionService
             };
         }
     }
+
 
     public async Task<ServerResponse<CommentResponseDto>> EditCommentAsync(string commentId, string userId, string newContent)
     {
@@ -703,8 +977,9 @@ public class UserInteractionService : IUserInteractionService
         };
     }
 
-    public async Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount)
+    public async Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string currency)
     {
+        // Check if the user exists
         var user = await _userRepository.GetUserByIdAsync(userId);
         if (user == null)
         {
@@ -720,14 +995,213 @@ public class UserInteractionService : IUserInteractionService
             };
         }
 
-        await _userRepository.UpdateWalletBalanceAsync(userId, amount);
-        _logger.LogInformation("User with ID: {UserId} funded wallet by amount: {Amount}", userId, amount);
+        // Validate the currency if needed
+        if (string.IsNullOrEmpty(currency))
+        {
+            _logger.LogWarning("Currency is not specified.");
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ResponseCode = "Currency.Error",
+                ResponseMessage = "Currency must be specified.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Currency.Error",
+                    ResponseMessage = "Currency must be specified."
+                }
+            };
+        }
 
+        // Check if the user is a regular user
+        var roles = await _userManager.GetRolesAsync(user);
+        _logger.LogInformation("User roles for {UserId}: {Roles}", user.Id, string.Join(", ", roles));
+        if (!roles.Contains("RegularUser"))
+        {
+            _logger.LogWarning("User is not a regular user.");
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "RegularUser.Error",
+                    ResponseMessage = "Regular User not found",
+                    ResponseDescription = "Only Regular Users can fund their wallets.",
+                }
+            };
+        }
+
+        // Fund the wallet via card and check if the payment is successful
+        var fundingResult = await _walletService.FundWalletViaCardAsync(userId, amount, paymentMethodId, currency);
+        if (!fundingResult.IsSuccessful)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "Failed to fund wallet via card.",
+                ErrorResponse = fundingResult.ErrorResponse
+            };
+        }
+
+        // Update the wallet balance after successful payment
+        await _userRepository.UpdateWalletBalanceAsync(userId, amount);
+        _logger.LogInformation("User with ID: {UserId} funded wallet by amount: {Amount} in currency: {Currency}", userId, amount, currency);
+
+        // Return success response including the amount funded, the card token, and user information
         return new ServerResponse<object>
         {
             IsSuccessful = true,
             ResponseCode = "00",
-            Data = amount
+            ResponseMessage = "Wallet funded successfully",
+            Data = new
+            {
+                UserId = userId,
+                Amount = amount,
+                Currency = currency,
+                CardToken = paymentMethodId,
+                UserName = user.UserName
+            }
+        };
+    }
+
+    public async Task<ServerResponse<string>> FundWalletViaOnlinePaymentAsync(string userId, decimal amount, string paymentMethodId, string currency)
+    {
+        // Validate the currency if needed
+        if (string.IsNullOrEmpty(currency))
+        {
+            _logger.LogWarning("Currency is not specified.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "Currency.Error",
+                ResponseMessage = "Currency must be specified.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Currency.Error",
+                    ResponseMessage = "Currency must be specified."
+                }
+            };
+        }
+
+        // Create options for PaymentIntent
+        var options = new PaymentIntentCreateOptions
+        {
+            Amount = (long)(amount * 100),  // Convert amount to cents
+            Currency = currency,
+            PaymentMethod = paymentMethodId,  // PaymentMethodId from frontend
+            ConfirmationMethod = "manual",   // Set to manual for frontend confirmation
+            CaptureMethod = "automatic",
+        };
+
+        var service = new PaymentIntentService();
+        try
+        {
+            // Create the payment intent via Stripe
+            PaymentIntent intent = await service.CreateAsync(options);
+
+            // Check if further action is required
+            if (intent.Status == "requires_action" || intent.Status == "requires_confirmation")
+            {
+                return new ServerResponse<string>
+                {
+                    IsSuccessful = true,
+                    ResponseCode = "200",
+                    ResponseMessage = "Authentication required.",
+                    Data = intent.ClientSecret  // Frontend will use this to complete payment authentication
+                };
+            }
+
+            // Return success response if no further action is required
+            return new ServerResponse<string>
+            {
+                IsSuccessful = true,
+                ResponseCode = "200",
+                ResponseMessage = "Payment intent created successfully.",
+                Data = intent.ClientSecret  // Return the client secret for frontend
+            };
+        }
+        catch (StripeException stripeEx)
+        {
+            _logger.LogError(stripeEx, "Online payment failed.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Failed to process online payment",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "StripeError",
+                    ResponseDescription = stripeEx.Message
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Online payment failed.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "An error occurred while processing your payment.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "PaymentError",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
+    }
+
+    public async Task<ServerResponse<object>> ConfirmPaymentAsync(string paymentIntentId, string userId, decimal amount)
+    {
+        // Check if the user exists
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning("User not found for ID: {UserId}", userId);
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "06",
+                    ResponseMessage = "User not found"
+                }
+            };
+        }
+
+        // Confirm the payment
+        var confirmationResult = await _walletService.ConfirmPaymentAsync(paymentIntentId, userId, amount);
+        if (!confirmationResult.IsSuccessful)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ResponseCode = confirmationResult.ResponseCode,
+                ResponseMessage = confirmationResult.ResponseMessage,
+                ErrorResponse = confirmationResult.ErrorResponse
+            };
+        }
+
+        // If payment succeeded, update the wallet balance
+        await _userRepository.UpdateWalletBalanceAsync(userId, amount);
+        _logger.LogInformation("User with ID: {UserId} funded wallet by amount: {Amount}", userId, amount);
+
+        // Return success response including payment details
+        return new ServerResponse<object>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Wallet funded successfully after payment confirmation.",
+            Data = new
+            {
+                UserId = userId,
+                Amount = amount,
+                PaymentIntentId = paymentIntentId,
+                UserName = user.UserName
+            }
         };
     }
 
@@ -1077,6 +1551,38 @@ public class UserInteractionService : IUserInteractionService
         };
     }
 
+    public async Task<ServerResponse<PaginatorDto<IEnumerable<ViewPostResponseDto>>>> GetAllPostsOfCreatorAsync(string creatorId, PaginationFilter paginationFilter)
+    {
+        // Get the queryable list of posts for the creator
+        var postsQuery = _repository.GetAll<Post>()
+            .Where(p => p.CreatorId == creatorId);
+
+        // Apply pagination
+        var paginatedPosts = await postsQuery.PaginateAsync(paginationFilter);
+
+        // Map the paginated posts to ViewPostResponseDto
+        var postResponses = paginatedPosts.PageItems!.Select(p => new ViewPostResponseDto
+        {
+            PostId = p.Id,
+            Caption = p.Caption,
+            CreatedAt = p.CreatedAt
+        }).ToList();
+
+        // Return paginated data with the pagination info
+        return new ServerResponse<PaginatorDto<IEnumerable<ViewPostResponseDto>>>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = new PaginatorDto<IEnumerable<ViewPostResponseDto>>
+            {
+                CurrentPage = paginatedPosts.CurrentPage,
+                PageSize = paginatedPosts.PageSize,
+                NumberOfPages = paginatedPosts.NumberOfPages,
+                PageItems = postResponses
+            }
+        };
+    }
+
     public async Task<ServerResponse<PaginatorDto<IEnumerable<FeaturedCreatorDto>>>> GetFeaturedCreatorsAsync(PaginationFilter paginationFilter)
     {
         // Fetch creators from the repository as IQueryable, applying pagination
@@ -1213,6 +1719,172 @@ public class UserInteractionService : IUserInteractionService
         };
     }
 
+    public async Task<ServerResponse<LikeResponseDto>> ToggleLikeCommentAsync(string commentId, string userId)
+    {
+        _logger.LogInformation("User {UserId} is toggling like on comment {CommentId}", userId, commentId);
+
+        var comment = await _repository.FindByCondition<Comment>(c => c.Id == commentId);
+        if (comment == null)
+        {
+            return new ServerResponse<LikeResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Comment does not exist.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Comment does not exist."
+                }
+            };
+        }
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<LikeResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User does not exist.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User does not exist."
+                }
+            };
+        }
+
+        // Check if the user has already liked the comment
+        var existingLike = await _repository.FindByCondition<Like>(l => l.CommentId == commentId && l.UserId == userId);
+        if (existingLike != null)
+        {
+            // If a like exists, remove it (unlike)
+            _repository.Remove(existingLike);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new ServerResponse<LikeResponseDto>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Comment unliked successfully."
+            };
+        }
+
+        // If no like exists, add a new one
+        var like = new Like
+        {
+            Id = Guid.NewGuid().ToString(),
+            CommentId = commentId,
+            UserId = userId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            LikedBy = $"{user.FirstName} {user.LastName}"
+        };
+
+        await _repository.Add(like);
+        await _unitOfWork.SaveChangesAsync();
+
+        var likeResponse = new LikeResponseDto
+        {
+            LikeId = like.Id,
+            CommentId = like.CommentId,
+            UserId = like.UserId,
+            CreatedAt = like.CreatedAt,
+            LikedBy = like.LikedBy
+        };
+
+        return new ServerResponse<LikeResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Comment liked successfully.",
+            Data = likeResponse
+        };
+    }
+
+
+    public async Task<ServerResponse<LikeResponseDto>> ToggleLikePostAsync(string postId, string userId)
+    {
+        _logger.LogInformation("User {UserId} is toggling like on post {PostId}", userId, postId);
+
+        var post = await _repository.FindByCondition<Post>(p => p.Id == postId);
+        if (post == null)
+        {
+            return new ServerResponse<LikeResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Post does not exist.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Post does not exist."
+                }
+            };
+        }
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<LikeResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User does not exist.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User does not exist."
+                }
+            };
+        }
+
+        // Check if the user has already liked the post
+        var existingLike = await _repository.FindByCondition<Like>(l => l.PostId == postId && l.UserId == userId);
+        if (existingLike != null)
+        {
+            // If a like exists, remove it (unlike)
+            _repository.Remove(existingLike);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new ServerResponse<LikeResponseDto>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Post unliked successfully."
+            };
+        }
+
+        // If no like exists, add a new one
+        var like = new Like
+        {
+            Id = Guid.NewGuid().ToString(),
+            PostId = postId,
+            UserId = userId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            LikedBy = $"{user.FirstName} {user.LastName}"
+        };
+
+        await _repository.Add(like);
+        await _unitOfWork.SaveChangesAsync();
+
+        var likeResponse = new LikeResponseDto
+        {
+            LikeId = like.Id,
+            PostId = like.PostId,
+            UserId = like.UserId,
+            CreatedAt = like.CreatedAt,
+            LikedBy = like.LikedBy
+        };
+
+        return new ServerResponse<LikeResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Post liked successfully.",
+            Data = likeResponse
+        };
+    }
 
 
 

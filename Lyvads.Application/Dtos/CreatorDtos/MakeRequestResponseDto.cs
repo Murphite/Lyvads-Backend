@@ -11,7 +11,7 @@ public class MakeRequestResponseDto
     public string? Type { get; set; } = default!;
     public string? Script { get; set; } = default!;
     public string? UserId { get; set; }
-    public PaymentMethod PaymentMethod { get; set; }
+    public AppPaymentMethod PaymentMethod { get; set; }
     public RequestStatus Status { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

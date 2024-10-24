@@ -23,7 +23,7 @@ public class CreatorRepository : ICreatorRepository
     public async Task<Creator?> GetCreatorByIdAsync(string creatorId)
     {
         return await _context.Creators
-            .AsNoTracking()
+            .Include(c => c.ApplicationUser)
             .FirstOrDefaultAsync(c => c.Id == creatorId);
     }
 
@@ -35,5 +35,10 @@ public class CreatorRepository : ICreatorRepository
     public IQueryable<Creator> GetCreatorsWithDetails()
     {
         return _context.Creators.Include(c => c.Collaborations);
+    }
+
+    public async Task<Creator?> GetCreatorByApplicationUserIdAsync(string applicationUserId)
+    {
+        return await _context.Creators.FirstOrDefaultAsync(r => r.ApplicationUserId == applicationUserId);
     }
 }

@@ -21,6 +21,9 @@ namespace Lyvads.Application.Implementations;
 public class CreatorService : ICreatorService
 {
     private readonly IRepository _repository;
+    private readonly IUserRepository _userRepository;
+    private readonly IRegularUserRepository _regularUserRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IPostRepository _postRepository;
     private readonly ICreatorRepository _creatorRepository;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -31,6 +34,7 @@ public class CreatorService : ICreatorService
     private readonly IEmailService _emailService;
     private readonly IVerificationService _verificationService;
     private readonly IMediaService _mediaService;
+    private readonly IWalletService _walletService;
 
     public CreatorService(IRepository repository,
         ICreatorRepository creatorRepository,
@@ -42,7 +46,11 @@ public class CreatorService : ICreatorService
         IEmailService emailService,
         IVerificationService verificationService,
         IMediaService mediaService,
-        IPostRepository postRepository)
+        IPostRepository postRepository,
+        IUserRepository userRepository,
+        IRegularUserRepository regularUserRepository,
+        IWalletService walletService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _repository = repository;
         _creatorRepository = creatorRepository;
@@ -55,6 +63,10 @@ public class CreatorService : ICreatorService
         _verificationService = verificationService;
         _mediaService = mediaService;
         _postRepository = postRepository;
+        _userRepository = userRepository;
+        _regularUserRepository = regularUserRepository;
+        _walletService = walletService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ServerResponse<PaginatorDto<IEnumerable<CreatorDto>>>> GetCreators(PaginationFilter paginationFilter)
@@ -238,6 +250,133 @@ public class CreatorService : ICreatorService
             };
         }
     }
+
+    //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo, IFormFile video)
+    //{
+    //    _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
+
+    //    // Check if the creator exists in the database by UserId
+    //    var creator = await _repository.FindByCondition<Creator>(c => c.ApplicationUserId == userId);
+    //    if (creator == null)
+    //    {
+    //        _logger.LogWarning("Creator with User ID: {UserId} not found.", userId);
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "404",
+    //            ResponseMessage = "Creator does not exist.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "404",
+    //                ResponseMessage = "Creator not found."
+    //            }
+    //        };
+    //    }
+
+    //    // Initialize media URL for either photo or video
+    //    string mediaUrl = null;
+
+    //    // Upload image to Cloudinary if a photo is provided
+    //    if (photo != null)
+    //    {
+    //        var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
+    //        if (uploadResult["Code"] != "200")
+    //        {
+    //            return new ServerResponse<PostResponseDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ResponseCode = "400",
+    //                ResponseMessage = "Image upload failed.",
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "400",
+    //                    ResponseMessage = "Failed to upload the image."
+    //                }
+    //            };
+    //        }
+    //        mediaUrl = uploadResult["Url"];
+    //    }
+
+    //    // Upload video to Cloudinary if a video is provided
+    //    if (video != null)
+    //    {
+    //        var uploadResult = await _mediaService.UploadVideoAsync(video, "post_videos"); // Assuming you have a 'post_videos' folder in Cloudinary
+    //        if (uploadResult["Code"] != "200")
+    //        {
+    //            return new ServerResponse<PostResponseDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ResponseCode = "400",
+    //                ResponseMessage = "Video upload failed.",
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "400",
+    //                    ResponseMessage = "Failed to upload the video."
+    //                }
+    //            };
+    //        }
+    //        mediaUrl = uploadResult["Url"]; // Use the video URL if uploaded successfully
+    //    }
+
+    //    // Create the new post
+    //    var post = new Post
+    //    {
+    //        CreatorId = creator.Id,
+    //        Caption = postDto.Caption,
+    //        MediaUrl = mediaUrl,  // Use the uploaded media URL (image or video)
+    //        Location = postDto.Location,
+    //        Visibility = visibility,
+    //        CreatedAt = DateTimeOffset.UtcNow,
+    //        UpdatedAt = DateTimeOffset.UtcNow
+    //    };
+
+    //    _logger.LogInformation("Post object created: {Post}", post);
+
+    //    try
+    //    {
+    //        await _repository.Add(post);
+    //        await _unitOfWork.SaveChangesAsync();
+
+    //        _logger.LogInformation("Post created successfully for creator with User ID: {UserId}", userId);
+
+    //        var postResponse = new PostResponseDto
+    //        {
+    //            PostId = post.Id,
+    //            CreatorId = creator.Id,
+    //            CreatorName = creator.ApplicationUser?.FullName,
+    //            Caption = post.Caption,
+    //            MediaUrl = post.MediaUrl,
+    //            Location = post.Location,
+    //            Visibility = post.Visibility.ToString(),
+    //            CreatedAt = post.CreatedAt,
+    //            UpdatedAt = post.UpdatedAt
+    //        };
+
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = true,
+    //            ResponseCode = "00",
+    //            ResponseMessage = "Post created successfully.",
+    //            Data = postResponse
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error creating post for creator with User ID: {UserId}", userId);
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "500",
+    //            ResponseMessage = "An error occurred while creating the post.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "500",
+    //                ResponseMessage = "Internal server error",
+    //                ResponseDescription = ex.Message
+    //            }
+    //        };
+    //    }
+    //}
 
     public async Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
     {
@@ -780,19 +919,54 @@ public class CreatorService : ICreatorService
         }
 
         // Check if the user exists
-        var user = await _repository.GetById<ApplicationUser>(request.RegularUserId);
-        if (user == null)
+        var regularUser = await _regularUserRepository.GetByIdWithApplicationUser(request.RegularUserId);
+        if (regularUser == null || regularUser.ApplicationUser == null)
         {
-            _logger.LogWarning("User with ID: {UserId} not found.", request.RegularUserId);
+            _logger.LogWarning("User with ID: {UserId} or associated ApplicationUser not found.", request.RegularUserId);
             return new ServerResponse<VideoResponseDto>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
-                ResponseMessage = "User not found.",
+                ResponseMessage = "User or associated ApplicationUser not found.",
                 ErrorResponse = new ErrorResponse
                 {
                     ResponseCode = "404",
-                    ResponseMessage = "User not found."
+                    ResponseMessage = "User or associated ApplicationUser not found."
+                }
+            };
+        }
+
+        // Check if the creator is sending the video
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            _logger.LogWarning("User not found.");
+            return new ServerResponse<VideoResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.Error",
+                    ResponseMessage = "User not found"
+                }
+            };
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        //_logger.LogInformation("User roles for {UserId}: {Roles}", user.Id, string.Join(", ", roles));
+        //var creator = await _repository.GetById<ApplicationUser>(request.CreatorId); // Assuming you have the CreatorId in the Request model
+        if (roles == null || !roles.Contains("Creator"))
+        {
+            _logger.LogWarning("User with ID: {UserId} is not authorized to send videos.", request.RegularUserId);
+            return new ServerResponse<VideoResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "403",
+                ResponseMessage = "You are not authorized to send videos.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "403",
+                    ResponseMessage = "You are not authorized to send videos."
                 }
             };
         }
@@ -811,7 +985,8 @@ public class CreatorService : ICreatorService
                 ErrorResponse = new ErrorResponse
                 {
                     ResponseCode = "500",
-                    ResponseMessage = "Failed to upload video."
+                    ResponseMessage = "Failed to upload video.",
+                    ResponseDescription= "Invalid type.",
                 }
             };
         }
@@ -825,7 +1000,8 @@ public class CreatorService : ICreatorService
             RequestId = request.Id,
             VideoUrl = videoUrl,
             UserId = user.Id,
-            UserName = user.FullName
+            CreatorName = user.FullName,
+            SentToRegularUser = regularUser.ApplicationUser!.FullName,
         };
 
         return new ServerResponse<VideoResponseDto>
@@ -899,7 +1075,7 @@ public class CreatorService : ICreatorService
         var walletBalanceResponse = new WalletBalanceDto
         {
             CreatorId = creatorId,
-            WalletBalance = user.WalletBalance,
+            WalletBalance = user.Wallet.Balance,
             UserName = user.FullName
         };
 
@@ -992,7 +1168,7 @@ public class CreatorService : ICreatorService
         }
 
         // Update the user's wallet balance
-        user.WalletBalance -= amount;
+        user.Wallet.Balance = amount;
         _repository.Update(user);
         await _unitOfWork.SaveChangesAsync();
 
@@ -1004,7 +1180,7 @@ public class CreatorService : ICreatorService
             CreatorId = creatorId,
             Amount = amount,
             Currency = currency,
-            RemainingBalance = user.WalletBalance,
+            RemainingBalance = user.Wallet.Balance,
             TransactionDate = DateTimeOffset.UtcNow
         };
 
@@ -1066,30 +1242,56 @@ public class CreatorService : ICreatorService
     {
         _logger.LogInformation("Getting posts for creator with ApplicationUser ID: {ApplicationUserId}", applicationUserId);
 
-        // Step 1: Retrieve Creator based on ApplicationUserId
+        // Step 1: Validate and retrieve Creator based on ApplicationUserId
+        if (string.IsNullOrEmpty(applicationUserId))
+        {
+            _logger.LogWarning("Invalid ApplicationUser ID: {ApplicationUserId}", applicationUserId);
+            return new ServerResponse<IEnumerable<PostResponseDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "ApplicationUser ID cannot be null or empty.",
+                Data = null!
+            };
+        }
+
+        // Step 2: Retrieve creator from Creator repository
         var creator = await _repository.GetAll<Creator>()
-                                    .Where(c => c.ApplicationUserId == applicationUserId)
-                                    .FirstOrDefaultAsync();
+                                              .Where(c => c.ApplicationUserId == applicationUserId)
+                                              .FirstOrDefaultAsync();
 
         if (creator == null)
         {
             _logger.LogWarning("No creator found for ApplicationUser ID: {ApplicationUserId}", applicationUserId);
             return new ServerResponse<IEnumerable<PostResponseDto>>
             {
-                IsSuccessful = false,
-                ResponseCode = "404",
-                ResponseMessage = "Creator not found.",
-                Data = null!
+                IsSuccessful = true,  // Return success with an empty list
+                ResponseCode = "00",
+                ResponseMessage = "No creator found.",
+                Data = new List<PostResponseDto>()  // Return empty list
             };
         }
 
-        // Step 2: Use CreatorId to retrieve posts
+        // Step 3: Use CreatorId to retrieve posts from PostRepository
         var posts = await _postRepository.GetAllPosts()
-                             .Where(p => p.CreatorId == creator.Id)  // Use CreatorId now
+                             .Where(p => p.CreatorId == creator.Id)
                              .ToListAsync();
+
+        if (posts == null || !posts.Any())
+        {
+            _logger.LogWarning("No posts found for creator ID: {CreatorId}", creator.Id);
+            return new ServerResponse<IEnumerable<PostResponseDto>>
+            {
+                IsSuccessful = true,  // Return success even if no posts found
+                ResponseCode = "00",
+                ResponseMessage = "No posts found for this creator.",
+                Data = new List<PostResponseDto>()  // Return empty list
+            };
+        }
 
         _logger.LogInformation("Number of posts found for creator ID {CreatorId}: {PostCount}", creator.Id, posts.Count);
 
+        // Step 4: Map posts to PostResponseDto
         var postResponses = posts.Select(p => new PostResponseDto
         {
             PostId = p.Id,
@@ -1231,24 +1433,26 @@ public class CreatorService : ICreatorService
         // Apply pagination
         var paginatedCreators = await query.PaginateAsync(paginationFilter);
 
-        if (!paginatedCreators.PageItems.Any())
+        // Check if no creators found and return a successful response with an empty list
+        if (!paginatedCreators.PageItems!.Any())
         {
             _logger.LogInformation("No creators found after applying filters");
             return new ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>
             {
-                IsSuccessful = false,
-                ResponseCode = "404",
+                IsSuccessful = true,  // Still return a successful response
+                ResponseCode = "00",
                 ResponseMessage = "No creators found matching the search criteria.",
-                ErrorResponse = new ErrorResponse
+                Data = new PaginatorDto<IEnumerable<FilterCreatorDto>>
                 {
-                    ResponseCode = "404",
-                    ResponseMessage = "No creators found matching the search criteria.",
-                    ResponseDescription = "No creators found."
+                    CurrentPage = paginatedCreators.CurrentPage,
+                    PageSize = paginatedCreators.PageSize,
+                    NumberOfPages = paginatedCreators.NumberOfPages,
+                    PageItems = new List<FilterCreatorDto>()  // Return an empty list
                 }
             };
         }
 
-        var creatorDtos = paginatedCreators.PageItems.Select(c => new FilterCreatorDto
+        var creatorDtos = paginatedCreators.PageItems!.Select(c => new FilterCreatorDto
         {
             CreatorId = c.Id,
             FullName = $"{c.ApplicationUser?.FirstName ?? "N/A"} {c.ApplicationUser?.LastName ?? "N/A"}",
@@ -1274,6 +1478,103 @@ public class CreatorService : ICreatorService
         };
     }
 
+    public async Task<ServerResponse<object>> WithdrawFundsToBankAccountAsync(string userId, decimal amount, string bankCardId)
+    {
+        // Check if the user exists
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning("User not found for ID: {UserId}", userId);
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "06",
+                    ResponseMessage = "User not found"
+                }
+            };
+        }
+
+        // Check if the user is a creator
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Contains("Creator"))
+        {
+            _logger.LogWarning("User is not a creator.");
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "Creator.Error",
+                    ResponseMessage = "Creator not found",
+                    ResponseDescription = "Only Creators can withdraw funds to their bank accounts.",
+                }
+            };
+        }
+
+        // Check if the amount is valid (e.g., greater than zero)
+        if (amount <= 0)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "InvalidAmount.Error",
+                    ResponseMessage = "Invalid withdrawal amount",
+                    ResponseDescription = "The amount must be greater than zero."
+                }
+            };
+        }
+
+        // Check if the user has sufficient funds
+        var walletBalance = await _walletService.GetBalanceAsync(userId);
+        if (walletBalance < amount)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "InsufficientFunds.Error",
+                    ResponseMessage = "Insufficient funds",
+                    ResponseDescription = "You do not have enough funds in your wallet to complete this withdrawal."
+                }
+            };
+        }
+
+        // Process the withdrawal to the bank account via card
+        var withdrawalResult = await _walletService.WithdrawToBankAccountAsync(userId, amount, bankCardId);
+        if (!withdrawalResult.IsSuccessful)
+        {
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ResponseCode = withdrawalResult.ResponseCode,
+                ResponseMessage = withdrawalResult.ResponseMessage,
+                ErrorResponse = withdrawalResult.ErrorResponse
+            };
+        }
+
+        // Update the wallet balance after successful withdrawal
+        await _userRepository.UpdateWalletBalanceAsync(userId, -amount);
+        _logger.LogInformation("User with ID: {UserId} withdrew amount: {Amount} to bank account.", userId, amount);
+
+        // Return success response
+        return new ServerResponse<object>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Withdrawal to bank account initiated successfully.",
+            Data = new
+            {
+                UserId = userId,
+                Amount = amount,
+                BankCardId = bankCardId
+            }
+        };
+    }
 
 
 

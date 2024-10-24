@@ -99,6 +99,67 @@ public class CreatorController : ControllerBase
     }
 
 
+    //[HttpPost("CreatePost")]
+    //[Authorize(Roles = "Creator")]
+    //public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromQuery] PostVisibility visibility,
+    //[FromForm] UploadImage photo, [FromForm] UploadVideo video) // Assuming UploadVideo is a class that contains IFormFile Video
+    //{
+    //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    //    if (string.IsNullOrEmpty(userId))
+    //    {
+    //        return Unauthorized(new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "401",
+    //            ResponseMessage = "Unauthorized. User ID not found."
+    //        });
+    //    }
+
+    //    // Validate the image file if provided
+    //    if (photo.Image != null && !IsValidFile(photo.Image))
+    //    {
+    //        return BadRequest(new { message = "Invalid Image File Extension" });
+    //    }
+
+    //    // Validate the video file if provided
+    //    if (video.Video != null && !IsValidFile(video.Video)) // Assuming IsValidFile can also handle video files
+    //    {
+    //        return BadRequest(new { message = "Invalid Video File Extension" });
+    //    }
+
+    //    // Convert image IFormFile to byte array if provided
+    //    byte[] imageBytes = null;
+    //    if (photo.Image != null)
+    //    {
+    //        using (var stream = new MemoryStream())
+    //        {
+    //            await photo.Image.CopyToAsync(stream);
+    //            imageBytes = stream.ToArray();
+    //        }
+    //    }
+
+    //    // Convert video IFormFile to byte array if provided
+    //    byte[] videoBytes = null;
+    //    if (video.Video != null)
+    //    {
+    //        using (var stream = new MemoryStream())
+    //        {
+    //            await video.Video.CopyToAsync(stream);
+    //            videoBytes = stream.ToArray();
+    //        }
+    //    }
+
+    //    // Call the service with the Image and Video files along with other post details
+    //    var response = await _creatorService.CreatePostAsync(postDto, visibility, userId, photo.Image, video.Video);
+
+    //    if (!response.IsSuccessful)
+    //        return BadRequest(response.ErrorResponse);
+
+    //    return Ok(response);
+    //}
+
+
     [HttpPut("update-post/{postId}")]
     [Authorize(Roles = "Creator")]
     public async Task<IActionResult> UpdatePost(string postId, [FromForm] UpdatePostDto postDto, [FromQuery] PostVisibility visibility,
@@ -188,37 +249,6 @@ public class CreatorController : ControllerBase
         return Ok(result);
     }
 
-    
-    [HttpPost("likeComment")]
-    public async Task<IActionResult> LikeComment(string commentId)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not found or unauthorized.");
-        var result = await _creatorService.LikeCommentAsync(commentId, user.Id);
-        
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-
-        return Ok(result);
-    }
-
-
-    [HttpPost("likePost")]
-    public async Task<IActionResult> LikePost(string postId)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not found or unauthorized.");
-        var result = await _creatorService.LikePostAsync(postId, user.Id);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
-    }
-
 
     [HttpGet("posts")]
     public async Task<IActionResult> GetPostsByCreator()
@@ -229,9 +259,7 @@ public class CreatorController : ControllerBase
 
         var result = await _creatorService.GetPostsByCreatorAsync(user.Id);
 
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
+        // No longer returning a BadRequest, instead return Ok with empty data if no posts found
         return Ok(result);
     }
 
@@ -260,43 +288,38 @@ public class CreatorController : ControllerBase
         return Ok(result);
     }
 
+    
+    //[HttpPost("likeComment")]
+    //public async Task<IActionResult> LikeComment(string commentId)
+    //{
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
+    //        return Unauthorized("User not found or unauthorized.");
+    //    var result = await _creatorService.LikeCommentAsync(commentId, user.Id);
+
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
 
 
+    //    return Ok(result);
+    //}
 
 
-    [HttpPost("send-video")]
-    public async Task<IActionResult> SendVideoToUser(string requestId, [FromForm] UploadVideo videoDto)
-    {
-        // Check if the video is provided
-        if (videoDto.Video == null)
-        {
-            return BadRequest(new { message = "No video file provided." });
-        }
+    //[HttpPost("likePost")]
+    //public async Task<IActionResult> LikePost(string postId)
+    //{
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
+    //        return Unauthorized("User not found or unauthorized.");
+    //    var result = await _creatorService.LikePostAsync(postId, user.Id);
 
-        // Validate the file (video) if provided
-        if (!IsValidFile(videoDto.Video)) // Use the same validation logic as for images
-        {
-            return BadRequest(new { message = "Invalid File Extension" });
-        }
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
 
-        // Convert IFormFile to byte array
-        byte[] videoBytes;
-        using (var stream = new MemoryStream())
-        {
-            await videoDto.Video.CopyToAsync(stream);
-            videoBytes = stream.ToArray();
-        }
+    //    return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
+    //}
 
-        // Call the service with the video file and other post details
-        var result = await _creatorService.SendVideoToUserAsync(requestId, videoDto.Video); // Pass the byte array
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }
-
-
+    
     [HttpGet("wallet-balance")]
     public async Task<IActionResult> ViewWalletBalance()
     {
@@ -311,6 +334,51 @@ public class CreatorController : ControllerBase
         return Ok(result);
     }
 
+    
+    //[HttpPost("send-video")]
+    //public async Task<IActionResult> SendVideoToUser(string requestId, [FromForm] UploadVideo videoDto)
+    //{
+    //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //    if (userId == null)
+    //    {
+    //        return Unauthorized("User not authenticated.");
+    //    }
+
+    //    // Check if the video is provided
+    //    if (videoDto.Video == null)
+    //    {
+    //        return BadRequest(new { message = "No video file provided." });
+    //    }
+
+    //    // Validate the file (video) if provided
+    //    if (!IsValidVideoFile(videoDto.Video)) // Use the same validation logic as for images
+    //    {
+    //        return BadRequest(new { message = "Invalid File Extension" });
+    //    }
+
+    //    // Convert IFormFile to byte array
+    //    byte[] videoBytes;
+    //    using (var stream = new MemoryStream())
+    //    {
+    //        await videoDto.Video.CopyToAsync(stream);
+    //        videoBytes = stream.ToArray();
+    //    }
+
+    //    // Call the service with the video file and other post details
+    //    var result = await _creatorService.SendVideoToUserAsync(requestId, videoDto.Video); // Pass the byte array
+
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
+
+    //    return Ok(result);
+    //}
+
+    //private bool IsValidVideoFile(IFormFile file)
+    //{
+    //    var validExtensions = new[] { ".mp4", ".avi", ".mov" };
+    //    var extension = Path.GetExtension(file.FileName).ToLower();
+    //    return validExtensions.Contains(extension);
+    //}
 
     [HttpPost("handle-request")]
     public async Task<IActionResult> HandleRequest(string requestId, RequestStatus status)
@@ -324,19 +392,19 @@ public class CreatorController : ControllerBase
     }
 
 
-    [HttpPost("withdraw-to-bankAccount")]
-    public async Task<IActionResult> WithdrawToBankAccount([FromBody] WithdrawRequestDto request)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not found or unauthorized.");
-        var result = await _creatorService.WithdrawToBankAccountAsync(user.Id, request.Amount, request.Currency);
+    //[HttpPost("withdraw-to-bankAccount")]
+    //public async Task<IActionResult> WithdrawToBankAccount([FromBody] WithdrawRequestDto request)
+    //{
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
+    //        return Unauthorized("User not found or unauthorized.");
+    //    var result = await _creatorService.WithdrawToBankAccountAsync(user.Id, request.Amount, request.Currency);
 
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
 
-        return Ok(result);
-    }
+    //    return Ok(result);
+    //}
 
     
     [HttpGet("notifications")]
@@ -355,6 +423,28 @@ public class CreatorController : ControllerBase
     }
 
 
-    
+    [HttpPost("WithdrawFundsToBankAccount")]
+    public async Task<IActionResult> WithdrawFunds([FromBody] WithdrawFundsDto withdrawFundsDto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized("User not authenticated.");
+        }
+
+        var result = await _creatorService.WithdrawFundsToBankAccountAsync(userId, withdrawFundsDto.Amount, withdrawFundsDto.BankCardId);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+
+    public class WithdrawFundsDto
+    {
+        public decimal Amount { get; set; }
+        public string BankCardId { get; set; } = string.Empty; // Assuming this is a required field
+    }
 
 }

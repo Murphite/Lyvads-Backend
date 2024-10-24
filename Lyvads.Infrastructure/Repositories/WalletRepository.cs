@@ -106,33 +106,27 @@ public class WalletRepository : IWalletRepository
 
     public async Task<Wallet> GetWalletAsync(string userId)
     {
-        // Retrieve the ApplicationUser including the WalletId
-        var user = await _context.Users
+        // Retrieve the user along with their wallet information
+        var userWithWallet = await _context.Users
             .Where(u => u.Id == userId)
-            .Select(u => new { u.Id, u.WalletId })
+            .Include(u => u.Wallet) 
             .FirstOrDefaultAsync();
 
-        if (user == null)
+        // Check if the user was found
+        if (userWithWallet == null)
         {
             throw new InvalidOperationException("User not found.");
         }
 
-        if (string.IsNullOrEmpty(user.WalletId))
+        // Check if the wallet exists
+        if (userWithWallet.Wallet == null)
         {
             throw new InvalidOperationException("Wallet not assigned to the user.");
         }
 
-        // Retrieve the Wallet using the WalletId
-        var wallet = await _context.Wallets
-            .FirstOrDefaultAsync(w => w.Id == user.WalletId);
-
-        if (wallet == null)
-        {
-            throw new InvalidOperationException("Wallet not found.");
-        }
-
-        return wallet;
+        return userWithWallet.Wallet;
     }
+
 
     public async Task AddAsync(Wallet wallet)
     {

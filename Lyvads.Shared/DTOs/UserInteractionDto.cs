@@ -17,9 +17,10 @@ public class LikeDto
 }
 
 public class FundWalletDto
-{
-    public string? UserId { get; set; } = default!;
+{   
     public decimal Amount { get; set; } = default!;
+    public string? paymentMethodId { get; set; } = default!;
+    public string? currency { get; set; } = default!;
 }
 
 

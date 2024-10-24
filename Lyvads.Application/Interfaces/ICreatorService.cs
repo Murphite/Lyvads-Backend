@@ -14,7 +14,7 @@ public interface ICreatorService
     Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, PostVisibility visibility, string userId, IFormFile photo);
     Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo);
     Task<ServerResponse<CreatorProfileResponseDto>> UpdateCreatorSetUpRatesAsync(UpdateCreatorProfileDto dto, string userId);
-    //Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, string userId);
+    Task<ServerResponse<object>> WithdrawFundsToBankAccountAsync(string userId, decimal amount, string bankCardId);
     Task<ServerResponse<object>> DeletePostAsync(string postId, string userId);
     //Task<ServerResponse<PostResponseDto>> UpdatePostAsync(UpdatePostDto postDto, string userId);
     Task<ServerResponse<CommentResponseDto>> CommentOnPostAsync(string postId, string userId, string content);

@@ -29,23 +29,23 @@ public class RegularUserController : Controller
     }
 
 
-    [HttpPut("UpdateProfile")]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateRegularUserProfileDto dto)
-    {
-        // Get the logged-in user's ID
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return NotFound("User not found.");
+    //[HttpPut("UpdateProfile")]
+    //public async Task<IActionResult> UpdateProfile([FromBody] UpdateRegularUserProfileDto dto)
+    //{
+    //    // Get the logged-in user's ID
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
+    //        return NotFound("User not found.");
 
-        // Call the service to update the creator profile
-        var result = await _regularUserService.UpdateUserProfileAsync(dto, user.Id);
+    //    // Call the service to update the creator profile
+    //    var result = await _regularUserService.UpdateUserProfileAsync(dto, user.Id);
 
-        if (!result.IsSuccess)
-            return BadRequest(result.Errors);
+    //    if (!result.IsSuccess)
+    //        return BadRequest(result.Errors);
 
-        // Return the updated profile data
-        return Ok(ResponseDto<RegularUserProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
-    }
+    //    // Return the updated profile data
+    //    return Ok(ResponseDto<RegularUserProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
+    //}
 
     
     [HttpGet("RegularUsers")]
@@ -59,6 +59,6 @@ public class RegularUserController : Controller
         if (!result.IsSuccessful)
             return StatusCode(int.Parse(result.ResponseCode), result.ErrorResponse);
 
-        return Ok(ResponseDto<PaginatorDto<IEnumerable<RegularUserDto>>>.Success(result.Data, result.ResponseMessage));
+        return Ok(result);
     }
 }

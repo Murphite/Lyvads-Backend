@@ -29,8 +29,11 @@ public class CollaborationService : ICollaborationService
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<AdminDashboardService> _logger;
     //private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IRegularUserRepository _regularUserRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMediaService _mediaService;
     private readonly IWalletService _walletService;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CollaborationService(
         UserManager<ApplicationUser> userManager,
@@ -43,7 +46,10 @@ public class CollaborationService : ICollaborationService
         IRequestRepository requestRepository,
         ILogger<AdminDashboardService> logger,
         IMediaService mediaService,
-        IWalletService walletService)
+        IWalletService walletService,
+        IRegularUserRepository regularUserRepository,
+        IHttpContextAccessor httpContextAccessor,
+        IUnitOfWork unitOfWork)
         //IWebHostEnvironment webHostEnvironment)
     {
         _userManager = userManager;
@@ -55,9 +61,12 @@ public class CollaborationService : ICollaborationService
         _disputeRepository = disputeRepository;
         _creatorRepository = creatorRepository;
         _requestRepository = requestRepository;
-        //_webHostEnvironment = webHostEnvironment;
-        _mediaService = mediaService;
+        _regularUserRepository = regularUserRepository;
+        _httpContextAccessor = httpContextAccessor;
+       //_webHostEnvironment = webHostEnvironment;
+       _mediaService = mediaService;
         _walletService = walletService;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<ServerResponse<List<CollaborationDto>>> GetCollaborationsAsync()
@@ -206,71 +215,127 @@ public class CollaborationService : ICollaborationService
     //    }
     //}
 
-    public async Task<ServerResponse<List<GetUserRequestDto>>> GetAllRequestsForCreatorAsync(string creatorId, string status)
+    public async Task<ServerResponse<List<GetUserRequestDto>>> GetAllRequestsForCreatorAsync(string creatorId, RequestStatus status)
     {
         _logger.LogInformation("Fetching all requests made to creator: {CreatorId} with status: {Status}", creatorId, status);
 
-        // Fetch all requests where the creator is the logged-in user
-        var query = _requestRepository.GetRequestsForCreator(creatorId);
+        var creator = await _creatorRepository.GetCreatorByApplicationUserIdAsync(creatorId);
 
-        // Apply status filter (pending/completed)
-        if (!string.IsNullOrWhiteSpace(status))
+        if (creator == null || creator.ApplicationUser == null)
         {
-            if (status == "Pending")
-                query = query.Where(r => r.Status == RequestStatus.Pending);
-            else if (status == "Completed")
-                query = query.Where(r => r.Status == RequestStatus.Completed);
-            else if (status == "All")
-                query = query.Where(r => r.Status == RequestStatus.All);
-        }
-
-        var requests = await query.ToListAsync();
-
-        // If no requests found, return a response indicating this
-        if (requests == null || !requests.Any())
-        {
+            _logger.LogWarning("User with ID: {UserId} or associated ApplicationUser not found.", creatorId);
             return new ServerResponse<List<GetUserRequestDto>>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
-                ResponseMessage = "No requests found for the creator.",
+                ResponseMessage = "User or associated ApplicationUser not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User or associated ApplicationUser not found."
+                }
+            };
+        }
+        
+        try
+        {
+            // Fetch all requests where the creator is the logged-in user
+            var query = _requestRepository.GetRequestsForCreator(creator.Id);
+
+            // Apply status filter (pending/completed/all)
+            if (status == RequestStatus.Pending)
+            {
+                query = query.Where(r => r.Status == RequestStatus.Pending);
+            }
+            else if (status == RequestStatus.Completed)
+            {
+                query = query.Where(r => r.Status == RequestStatus.Completed);
+            }
+            else if (status == RequestStatus.All)
+            {
+                query = query.Where(r => r.Status == RequestStatus.All);
+            }
+
+            var requests = await query.ToListAsync();
+
+            // If no requests found, return a response indicating this
+            if (requests == null || !requests.Any())
+            {
+                return new ServerResponse<List<GetUserRequestDto>>
+                {
+                    IsSuccessful = true,
+                    ResponseCode = "00",
+                    ResponseMessage = "No requests found for the creator.",
+                    Data = null!
+                };
+            }
+
+            // Convert requests to DTOs for the response
+            var requestDtos = requests.Select(r => new GetUserRequestDto
+            {
+                RequestId = r.Id,
+                CreatorFullName = $"{r.Creator?.ApplicationUser?.FirstName} {r.Creator?.ApplicationUser?.LastName}", // Full name of the Creator
+                UserFullName = $"{r.RegularUser!.ApplicationUser!.FirstName} {r.RegularUser!.ApplicationUser.LastName}", // Full name of the Regular User who made the request
+                Status = r.Status.ToString(),
+                CreatedAt = r.CreatedAt.UtcDateTime,
+            }).ToList();
+
+            return new ServerResponse<List<GetUserRequestDto>>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Requests fetched successfully.",
+                Data = requestDtos
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching requests for user: {UserId}");
+            return new ServerResponse<List<GetUserRequestDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "An error occurred while fetching the requests.",
                 Data = null!
             };
         }
-
-        // Convert requests to DTOs for the response
-        var requestDtos = requests.Select(r => new GetUserRequestDto
-        {
-            RequestId = r.Id,
-            UserFullName = $"{r.RegularUser!.ApplicationUser!.FirstName} {r.RegularUser!.ApplicationUser.LastName}", // Full name of the Regular User who made the request
-            Status = r.Status,
-            CreatedAt = r.CreatedAt.UtcDateTime,
-        }).ToList();
-
-        return new ServerResponse<List<GetUserRequestDto>>
-        {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            ResponseMessage = "Requests fetched successfully.",
-            Data = requestDtos
-        };
     }
 
-    public async Task<ServerResponse<List<GetRequestDto>>> GetAllRequestsByUserAsync(string userId, string status)
+    public async Task<ServerResponse<List<GetRequestDto>>> GetAllRequestsByUserAsync(string userId, RequestStatus status)
     {
         _logger.LogInformation("Fetching all requests made by user: {UserId} with status: {Status}", userId, status);
 
-        var query = _requestRepository.GetRequestsByUser(userId);
-
-        // Apply status filter (pending/completed)
-        if (!string.IsNullOrWhiteSpace(status))
+        var regularUser = await _regularUserRepository.GetRegularUserByApplicationUserIdAsync(userId);
+        if (regularUser == null || regularUser.ApplicationUser == null)
         {
-            if (status == "Pending")
-                query = query.Where(r => r.Status == RequestStatus.Pending);
-            else if (status == "Completed")
-                query = query.Where(r => r.Status == RequestStatus.Completed);
-            else if (status == "All")
-                query = query.Where(r => r.Status == RequestStatus.All);
+            _logger.LogWarning("User with ID: {UserId} or associated ApplicationUser not found.", userId);
+            return new ServerResponse<List<GetRequestDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User or associated ApplicationUser not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User or associated ApplicationUser not found."
+                }
+            };
+        }
+
+        // Fetch requests for the user using RegularUserId
+        var query = _requestRepository.GetRequestsByUser(regularUser.Id);
+
+        if (status == RequestStatus.Pending)
+        {
+            query = query.Where(r => r.Status == RequestStatus.Pending);
+        }
+        else if (status == RequestStatus.Completed)
+        {
+            query = query.Where(r => r.Status == RequestStatus.Completed);
+        }
+        else if (status == RequestStatus.All)
+        {
+            // No need to apply filter, as you're fetching all statuses
         }
 
         var requests = await query.ToListAsync();
@@ -279,19 +344,20 @@ public class CollaborationService : ICollaborationService
         {
             return new ServerResponse<List<GetRequestDto>>
             {
-                IsSuccessful = false,
-                ResponseCode = "404",
+                IsSuccessful = true,
+                ResponseCode = "00",
                 ResponseMessage = "No requests found for the user.",
-                Data = null!
+                Data = new List<GetRequestDto>()
             };
         }
 
-        // Convert requests to DTOs for the response
+        // Convert requests to DTOs for the response, including RegularUser's ApplicationUser details
         var requestDtos = requests.Select(r => new GetRequestDto
         {
             RequestId = r.Id,
-            CreatorFullName = $"{r.Creator?.ApplicationUser?.FirstName} {r.Creator?.ApplicationUser?.LastName}",
-            Status = r.Status,
+            CreatorFullName = $"{r.Creator?.ApplicationUser?.FirstName} {r.Creator?.ApplicationUser?.LastName}", // Full name of the Creator
+            RegularUserFullName = $"{r.RegularUser?.ApplicationUser?.FirstName} {r.RegularUser?.ApplicationUser?.LastName}", // Full name of the RegularUser
+            Status = r.Status.ToString(),
             CreatedAt = r.CreatedAt.UtcDateTime,
         }).ToList();
 
@@ -441,19 +507,52 @@ public class CollaborationService : ICollaborationService
         }
 
         // Check if the user exists
-        var user = await _repository.GetById<ApplicationUser>(request.RegularUserId);
-        if (user == null)
+        var regularUser = await _regularUserRepository.GetByIdWithApplicationUser(request.RegularUserId);
+        if (regularUser == null || regularUser.ApplicationUser == null)
         {
-            _logger.LogWarning("User with ID: {UserId} not found.", request.RegularUserId);
+            _logger.LogWarning("User with ID: {UserId} or associated ApplicationUser not found.", request.RegularUserId);
             return new ServerResponse<VideoResponseDto>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
-                ResponseMessage = "User not found.",
+                ResponseMessage = "User or associated ApplicationUser not found.",
                 ErrorResponse = new ErrorResponse
                 {
                     ResponseCode = "404",
-                    ResponseMessage = "User not found."
+                    ResponseMessage = "User or associated ApplicationUser not found."
+                }
+            };
+        }
+
+        // Check if the creator is sending the video
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            _logger.LogWarning("User not found.");
+            return new ServerResponse<VideoResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.Error",
+                    ResponseMessage = "User not found"
+                }
+            };
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || !roles.Contains("Creator"))
+        {
+            _logger.LogWarning("User with ID: {UserId} is not authorized to send videos.", request.RegularUserId);
+            return new ServerResponse<VideoResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "403",
+                ResponseMessage = "You are not authorized to send videos.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "403",
+                    ResponseMessage = "You are not authorized to send videos."
                 }
             };
         }
@@ -472,45 +571,28 @@ public class CollaborationService : ICollaborationService
                 ErrorResponse = new ErrorResponse
                 {
                     ResponseCode = "500",
-                    ResponseMessage = "Failed to upload video."
+                    ResponseMessage = "Failed to upload video.",
+                    ResponseDescription = "Invalid type.",
                 }
             };
         }
 
-        // Extract the publicId and folderName from the upload result
-        var publicId = uploadResult["PublicId"]; // Assuming this is returned from your upload service
-        var folderName = "videos"; // The folder where the video is uploaded
+        var videoUrl = uploadResult["Url"];
 
-        // Get the download URL for the uploaded video
-        var downloadUrlResponse = await _mediaService.GetDownloadUrlAsync(publicId, folderName);
-
-        if (downloadUrlResponse["Code"] != "200")
-        {
-            _logger.LogError("Failed to generate download URL for request with ID: {RequestId}", requestId);
-            return new ServerResponse<VideoResponseDto>
-            {
-                IsSuccessful = false,
-                ResponseCode = "500",
-                ResponseMessage = "Failed to generate download URL.",
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "500",
-                    ResponseMessage = "Failed to generate download URL."
-                }
-            };
-        }
-
-        var downloadUrl = downloadUrlResponse["DownloadUrl"];
+        // Save the video URL to the database
+        request.VideoUrl = videoUrl; 
+        _repository.Update(request); 
+        await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Video sent successfully for request with ID: {RequestId}", requestId);
 
-        // Create the response DTO including the download URL
         var videoResponse = new VideoResponseDto
         {
             RequestId = request.Id,
-            VideoUrl = downloadUrl,  // Use the generated download URL here
+            VideoUrl = videoUrl,
             UserId = user.Id,
-            UserName = user.FullName
+            CreatorName = user.FullName,
+            SentToRegularUser = regularUser.ApplicationUser!.FullName,
         };
 
         return new ServerResponse<VideoResponseDto>
@@ -607,7 +689,6 @@ public class CollaborationService : ICollaborationService
             Data = disputeDtos
         };
     }
-
 
     public async Task<ServerResponse<DisputeDetailsDto>> GetDisputeDetailsByIdAsync(string disputeId, string userId)
     {

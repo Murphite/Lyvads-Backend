@@ -7,6 +7,9 @@ using Lyvads.Domain.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Lyvads.Application.Dtos.WalletDtos;
+using Lyvads.Domain.Responses;
+using Microsoft.AspNetCore.Mvc;
+using Lyvads.Infrastructure.Repositories;
 
 namespace Lyvads.Application.Implementations;
 
@@ -66,99 +69,300 @@ public class WalletService : IWalletService
 
     //    return new Error[] { new("BankTransfer.Error", "Failed to initiate bank transfer.") };
     //}
-
-    public async Task<Result> FundWalletViaOnlineAsync(string userId, decimal amount, string paymentMethodId)
+    public async Task<ServerResponse<string>> FundWalletViaCardAsync(string userId, decimal amount, 
+        string paymentMethodId, string currency)
     {
         var options = new PaymentIntentCreateOptions
         {
-            Amount = (long)(amount * 100), // Convert amount to the smallest currency unit (cents for USD)
-            Currency = "usd", // Specify the currency
-            PaymentMethod = paymentMethodId, // The payment method ID provided by Stripe (e.g., for bank transfer, wallet, etc.)
-            ConfirmationMethod = "automatic", // Automatically confirm the payment
-            Confirm = true, // Automatically confirm the PaymentIntent after creation
+            Amount = (long)(amount * 100),  // Convert amount to cents
+            Currency = currency.ToLower(),  // Set currency dynamically
+            PaymentMethod = paymentMethodId,
+            ConfirmationMethod = "manual",
+            CaptureMethod = "automatic",
         };
 
         var service = new PaymentIntentService();
         try
         {
-            // Create the PaymentIntent
             PaymentIntent intent = await service.CreateAsync(options);
 
-            // Check if the payment succeeded
-            if (intent.Status == "succeeded")
+            return new ServerResponse<string>(true)
             {
-                // Credit the wallet
-                var result = await CreditWalletAsync(userId, amount);
-                if (result.IsSuccess)
-                    return Result.Success("Fund Wallet via Online Payment was Successful.");
-            }
+                ResponseCode = "200",
+                ResponseMessage = "Payment intent created successfully.",
+                Data = intent.ClientSecret  // Return client_secret for frontend to complete the payment
+            };
         }
-        catch (StripeException ex)
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Payment failed.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "Payment processing error.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "PaymentError",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
+    }
+
+
+    public async Task<ServerResponse<string>> FundWalletViaOnlinePaymentAsync(string userId, decimal amount, string paymentMethodId, string currency)
+    {
+        // Create options for PaymentIntent
+        var options = new PaymentIntentCreateOptions
+        {
+            Amount = (long)(amount * 100),  // Convert amount to cents
+            Currency = currency,
+            PaymentMethod = paymentMethodId,  // PaymentMethodId from frontend
+            ConfirmationMethod = "manual",   // Set to manual for frontend confirmation
+            CaptureMethod = "automatic",
+        };
+
+        var service = new PaymentIntentService();
+        try
+        {
+            // Create the payment intent via Stripe
+            PaymentIntent intent = await service.CreateAsync(options);
+
+            // Check if further action is required
+            if (intent.Status == "requires_action" || intent.Status == "requires_confirmation")
+            {
+                return new ServerResponse<string>
+                {
+                    IsSuccessful = true,
+                    ResponseCode = "200",
+                    ResponseMessage = "Authentication required.",
+                    Data = intent.ClientSecret  // Frontend will use this to complete payment authentication
+                };
+            }
+
+            // Return success response if no further action is required
+            return new ServerResponse<string>
+            {
+                IsSuccessful = true,
+                ResponseCode = "200",
+                ResponseMessage = "Payment intent created successfully.",
+                Data = intent.ClientSecret  // Return the client secret for frontend
+            };
+        }
+        catch (StripeException stripeEx)
+        {
+            _logger.LogError(stripeEx, "Online payment failed.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Failed to process online payment",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "StripeError",
+                    ResponseDescription = stripeEx.Message
+                }
+            };
+        }
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Online payment failed.");
-            return new Error[] { new Error("Online payment failed:", ex.Message) };
-
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "An error occurred while processing your payment.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "PaymentError",
+                    ResponseDescription = ex.Message
+                }
+            };
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error during online payment.");
-            return new Error[] { new Error("Unexpected error occurred:", ex.Message) };
-
-        }
-
-        return new Error[] { new Error("CardTransfer.Error", "Failed to process online payment.") };
     }
 
-    public async Task<Result> FundWalletViaCardAsync(string userId, decimal amount, string cardToken)
+    
+    // This method will confirm the payment and credit the wallet if successful
+    public async Task<ServerResponse<string>> ConfirmPaymentAsync(string paymentIntentId, string userId, decimal amount)
     {
-        var options = new PaymentIntentCreateOptions
-        {
-            Amount = (long)(amount * 100), // Convert amount to cents
-            Currency = "usd",
-            PaymentMethod = cardToken,
-            ConfirmationMethod = "automatic",
-            Confirm = true,
-        };
-
         var service = new PaymentIntentService();
         try
         {
-            PaymentIntent intent = await service.CreateAsync(options);
+            PaymentIntent intent = await service.ConfirmAsync(paymentIntentId);
+
             if (intent.Status == "succeeded")
             {
-                // Credit the wallet
-                var result = await CreditWalletAsync(userId, amount);
-                if (result.IsSuccess)
-                    return Result.Success("Fund Wallet via Transfer was Successful.");
+                var walletResult = await CreditWalletAsync(userId, amount);
+                if (walletResult.IsSuccess)
+                {
+                    return new ServerResponse<string>(true)
+                    {
+                        ResponseCode = "200",
+                        ResponseMessage = "Payment confirmed and wallet funded successfully.",
+                        Data = intent.Id
+                    };
+                }
+                else
+                {
+                    return new ServerResponse<string>
+                    {
+                        IsSuccessful = false,
+                        ResponseCode = "500",
+                        ResponseMessage = "Failed to credit the wallet after payment confirmation.",
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "500",
+                            ResponseMessage = "Wallet funding error",
+                            ResponseDescription = "Failed to credit the wallet after payment succeeded."
+                        }
+                    };
+                }
+            }
+            else if (intent.Status == "requires_action")
+            {
+                return new ServerResponse<string>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = "402",
+                    ResponseMessage = "Authentication required",
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "402",
+                        ResponseMessage = "requires_action",
+                        ResponseDescription = "Additional authentication is still required to complete the payment."
+                    }
+                };
+            }
+        }
+        catch (StripeException stripeEx)
+        {
+            _logger.LogError(stripeEx, "Payment confirmation failed.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Failed to confirm payment",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "StripeError",
+                    ResponseDescription = stripeEx.Message
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Payment confirmation failed.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "An error occurred while confirming your payment.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "PaymentError",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
+
+        return new ServerResponse<string>
+        {
+            IsSuccessful = false,
+            ResponseCode = "400",
+            ResponseMessage = "Failed to confirm payment.",
+            ErrorResponse = new ErrorResponse
+            {
+                ResponseCode = "400",
+                ResponseMessage = "UnknownError",
+                ResponseDescription = "An unknown error occurred during the payment confirmation process."
+            }
+        };
+    }
+
+    public async Task<ServerResponse<string>> WithdrawToBankAccountAsync(string userId, decimal amount, string bankCardId)
+    {
+        // Check if the user has sufficient funds
+        var walletBalance = await GetBalanceAsync(userId);
+        if (walletBalance < amount)
+        {
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "InsufficientFunds.Error",
+                ResponseMessage = "Insufficient funds",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "InsufficientFunds.Error",
+                    ResponseMessage = "You do not have enough funds in your wallet to complete this withdrawal."
+                }
+            };
+        }
+
+        // Create options for the withdrawal request (This assumes you have a payment processing service)
+        var withdrawalOptions = new WithdrawalOptions
+        {
+            Amount = amount,
+            Currency = "usd",
+            BankCardId = bankCardId, // Assuming you have a way to identify the bank card
+                                     // Add any other required options for the withdrawal
+        };
+
+        try
+        {
+            // Process the withdrawal (replace this with your actual payment processor logic)
+            var withdrawalResult = await WithdrawAsync(withdrawalOptions);
+
+            if (withdrawalResult.IsSuccess)
+            {
+                // If the withdrawal was successful, return success response
+                return new ServerResponse<string>(true)
+                {
+                    ResponseCode = "00",
+                    ResponseMessage = "Withdrawal to bank account successful.",
+                    Data = withdrawalResult.TransactionId! // Assuming the processor returns a transaction ID
+                };
+            }
+            else
+            {
+                // Handle failure in withdrawal processing
+                return new ServerResponse<string>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = withdrawalResult.ErrorCode!,
+                    ResponseMessage = "Withdrawal failed",
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = withdrawalResult.ErrorCode,
+                        ResponseMessage = withdrawalResult.ErrorMessage,
+                        ResponseDescription = withdrawalResult.ErrorDescription // Assuming these fields exist in the withdrawal result
+                    }
+                };
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Card payment failed.");
-            return new Error[] { new Error("Card payment failed:", ex.Message) };
+            _logger.LogError(ex, "An error occurred during withdrawal processing for User ID: {UserId}", userId);
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "An error occurred while processing the withdrawal.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "WithdrawalError",
+                    ResponseDescription = ex.Message
+                }
+            };
         }
-
-        return new Error[] { new("CardTransfer.Error", "Failed to process card payment.") };
     }
 
-    public async Task<Result> ConfirmBankTransferAsync(string transferReference)
-    {
-        var transfer = await _walletRepository.GetTransferDetailsAsync(transferReference);
-
-        if (transfer != null && transfer.Status == "PENDING")
-        {
-            transfer.Status = "COMPLETED";
-            await _walletRepository.UpdateTransferStatusAsync(transfer);
-
-            // Credit the wallet
-            var result = await CreditWalletAsync(transfer.UserId, transfer.Amount);
-            if (result.IsSuccess)
-            {
-                return Result.Success("Confirmed Bank Transfer");
-            }
-        }
-        return new Error[] { new("BankTransfer.Error", "Transfer confirmation failed.") };
-    }    
 
     public async Task<bool> DeductBalanceAsync(string userId, decimal amount)
     {
@@ -234,6 +438,74 @@ public class WalletService : IWalletService
         }
     }
 
+    public async Task<WithdrawalResult> WithdrawAsync(WithdrawalOptions options)
+    {
+        try
+        {
+            // Create Stripe Transfer options
+            var transferOptions = new TransferCreateOptions
+            {
+                Amount = (long)(options.Amount * 100), // Stripe requires amount in cents
+                Currency = options.Currency, // For example "usd" or "ngn"
+                Destination = options.BankCardId, // The Stripe account or card ID to transfer funds to
+                TransferGroup = "LYVADS_WITHDRAWAL" // Optional: Grouping for easier tracking
+            };
+
+            var transferService = new TransferService();
+            var transfer = await transferService.CreateAsync(transferOptions);
+
+            // Return success if the transfer is completed
+            return new WithdrawalResult
+            {
+                IsSuccess = true,
+                TransactionId = transfer.Id,
+                ErrorCode = null,
+                ErrorMessage = null,
+                ErrorDescription = null
+            };
+        }
+        catch (StripeException stripeEx)
+        {
+            // Handle Stripe-specific exceptions
+            return new WithdrawalResult
+            {
+                IsSuccess = false,
+                ErrorCode = stripeEx.StripeError.Code,
+                ErrorMessage = stripeEx.StripeError.Message,
+                ErrorDescription = stripeEx.StripeError.DeclineCode
+            };
+        }
+        catch (Exception ex)
+        {
+            // Handle general exceptions
+            return new WithdrawalResult
+            {
+                IsSuccess = false,
+                ErrorCode = "Payment.Error",
+                ErrorMessage = ex.Message,
+                ErrorDescription = ex.InnerException?.Message
+            };
+        }
+    }
+
+
+    public class WithdrawalOptions
+    {
+        public decimal Amount { get; set; }
+        public string? Currency { get; set; }
+        public string? BankCardId { get; set; } // The card ID or token used for withdrawal
+    }
+
+    public class WithdrawalResult
+    {
+        public bool IsSuccess { get; set; }
+        public string? TransactionId { get; set; }
+        public string? ErrorCode { get; set; }
+        public string? ErrorMessage { get; set; }
+        public string? ErrorDescription { get; set; }
+    }
+
+
     //public async Task<Result> WithdrawFundsAsync(string userId, decimal amount)
     //{
     //    if (amount <= 0)
@@ -277,5 +549,38 @@ public class WalletService : IWalletService
 
     //    return new Error[] { new("Withdrawal.Error", "Failed to process withdrawal.") };
     //}
+
+    //public async Task<Result> FundWalletViaCardAsync(string userId, decimal amount, string cardToken)
+    //{
+    //    var options = new PaymentIntentCreateOptions
+    //    {
+    //        Amount = (long)(amount * 100), // Convert amount to cents
+    //        Currency = "usd",
+    //        PaymentMethod = cardToken,
+    //        ConfirmationMethod = "automatic",
+    //        Confirm = true,
+    //    };
+
+    //    var service = new PaymentIntentService();
+    //    try
+    //    {
+    //        PaymentIntent intent = await service.CreateAsync(options);
+    //        if (intent.Status == "succeeded")
+    //        {
+    //            // Credit the wallet
+    //            var result = await CreditWalletAsync(userId, amount);
+    //            if (result.IsSuccess)
+    //                return Result.Success("Fund Wallet via Transfer was Successful.");
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Card payment failed.");
+    //        return new Error[] { new Error("Card payment failed:", ex.Message) };
+    //    }
+
+    //    return new Error[] { new("CardTransfer.Error", "Failed to process card payment.") };
+    //}
+
 
 }

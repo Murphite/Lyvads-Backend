@@ -11,7 +11,7 @@
 	<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" /> 
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Stripe.net" Version="45.14.0" />
+    <PackageReference Include="Stripe.net" Version="46.2.1" />
   </ItemGroup>
 
   <ItemGroup>

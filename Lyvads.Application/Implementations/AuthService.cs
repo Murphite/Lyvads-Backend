@@ -13,6 +13,8 @@ using Lyvads.Domain.Responses;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 namespace Lyvads.Application.Implementations;
+
+using Lyvads.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 
 
@@ -32,6 +34,8 @@ public class AuthService : IAuthService
     private readonly ISuperAdminRepository _superAdminRepository;
     private readonly IEmailContext _emailContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IWalletRepository _walletRepository;
+
     public AuthService(UserManager<ApplicationUser> userManager, 
         IRepository repository, 
         IJwtService jwtService,
@@ -45,7 +49,8 @@ public class AuthService : IAuthService
         ICreatorRepository creatorRepository, 
         ISuperAdminRepository superAdminRepository,
         IEmailContext emailContext,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IWalletRepository walletRepository)
     {
         _userManager = userManager;
         _repository = repository;
@@ -61,6 +66,7 @@ public class AuthService : IAuthService
         _superAdminRepository = superAdminRepository;
         _emailContext = emailContext;
         _httpContextAccessor = httpContextAccessor;
+        _walletRepository = walletRepository;
     }
 
     public async Task<ServerResponse<RegistrationResponseDto>> InitiateRegistration(string email)
@@ -349,6 +355,8 @@ public class AuthService : IAuthService
                 // Clear the verified email from the session after registration
                 _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
 
+                await transaction.CommitAsync();
+
                 return new ServerResponse<RegisterUserResponseDto>
                 {
                     IsSuccessful = true,
@@ -437,7 +445,6 @@ public class AuthService : IAuthService
                     PhoneNumber = registerUserDto.PhoneNumber,
                     CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow,
-                    WalletId = GenerateWalletId(),
                     PublicId = Guid.NewGuid().ToString(),
                     Location = registerUserDto.Location, // Include user's location
                     IsVerified = true // Mark the user as not verified initially
@@ -482,6 +489,18 @@ public class AuthService : IAuthService
                 }
 
                 await _regularUserRepository.AddAsync(regularUser);
+
+                // Create Wallet for the User
+                var wallet = new Wallet
+                {
+                    ApplicationUserId = applicationUser.Id,
+                    Balance = 0,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow
+                };
+
+                // Save the wallet to the database
+                await _walletRepository.AddAsync(wallet);
 
                 // Verify that the user was successfully saved in the database
                 var savedUser = await _userManager.FindByIdAsync(applicationUser.Id.ToString());
@@ -595,7 +614,6 @@ public class AuthService : IAuthService
                     PhoneNumber = registerCreatorDto.PhoneNumber,
                     CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTimeOffset.UtcNow,
-                    WalletId = GenerateWalletId(),
                     PublicId = Guid.NewGuid().ToString(),
                     Bio = registerCreatorDto.Bio,
                     Location = registerCreatorDto.Location,
@@ -652,6 +670,19 @@ public class AuthService : IAuthService
                 }
 
                 await _creatorRepository.AddAsync(creator);
+
+                // Create Wallet for the User
+                var wallet = new Wallet
+                {
+                    ApplicationUserId = applicationUser.Id,
+                    Balance = 0,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow
+                };
+
+                // Save the wallet to the database
+                await _walletRepository.AddAsync(wallet);
+
                 var savedUser = await _userManager.FindByIdAsync(applicationUser.Id.ToString());
                 if (savedUser == null)
                 {

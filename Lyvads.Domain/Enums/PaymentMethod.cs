@@ -2,7 +2,7 @@
 
 namespace Lyvads.Domain.Enums;
 
-public enum PaymentMethod
+public enum AppPaymentMethod
 {
     Wallet,
     Online,

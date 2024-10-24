@@ -62,14 +62,30 @@ public class UserRepository : IUserRepository
 
     public async Task UpdateWalletBalanceAsync(string userId, decimal amount)
     {
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users.Include(u => u.Wallet).FirstOrDefaultAsync(u => u.Id == userId); // Ensure the Wallet is included
         if (user != null)
         {
-            user.WalletBalance += amount;
+            // Check if Wallet is null and initialize if necessary
+            if (user.Wallet == null)
+            {
+                user.Wallet = new Wallet
+                {
+                    Balance = 0 // Initialize balance if it was null
+                };
+            }
+
+            // Update the balance
+            user.Wallet.Balance += amount;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
+        else
+        {
+            // Handle case when user is not found
+            throw new Exception($"User with ID {userId} not found.");
+        }
     }
+
 
     public async Task AddFavoriteAsync(string userId, string creatorId)
     {

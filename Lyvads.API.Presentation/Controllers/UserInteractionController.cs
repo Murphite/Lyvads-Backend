@@ -12,6 +12,8 @@ using Lyvads.Shared.DTOs;
 using Lyvads.Application.Dtos;
 using Lyvads.Domain.Responses;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Lyvads.Domain.Enums;
 
 namespace Lyvads.API.Controllers;
 
@@ -115,81 +117,6 @@ public class UserInteractionController : ControllerBase
         return Ok(result);
     }
 
-
-    //[HttpPost("Like")]
-    //public async Task<IActionResult> LikeContent([FromBody] LikeDto likeDto)
-    //{
-    //    try
-    //    {
-    //        var result = await _userInteractionService.LikeContentAsync(likeDto.UserId!, likeDto.ContentId!);
-
-    //        if (!result.IsSuccessful)
-    //            return BadRequest(result.ErrorResponse);
-
-    //        return Ok(result);
-    //    }
-    //    catch (DbUpdateException ex)
-    //    {
-    //        // Log the inner exception
-    //        var innerExceptionMessage = ex.InnerException?.Message ?? ex.Message;
-    //        return StatusCode(500, new { Message = "An error occurred while saving changes.", Error = innerExceptionMessage });
-    //    }
-
-    //}
-
-
-    //[HttpPost("Unlike")]
-    //public async Task<IActionResult> UnlikeContent([FromBody] UnlikeDto unlikeDto)
-    //{
-    //    _logger.LogInformation("******* Verifying Email Update ********");
-
-    //    if (string.IsNullOrEmpty(unlikeDto.UserId))
-    //    {
-    //        return BadRequest("User ID cannot be null or empty");
-    //    }
-
-    //    if (string.IsNullOrEmpty(unlikeDto.ContentId))
-    //    {
-    //        return BadRequest("Content ID cannot be null or empty");
-    //    }
-
-    //    var result = await _userInteractionService.UnlikeContentAsync(unlikeDto.UserId, unlikeDto.ContentId);
-
-    //    if (!result.IsSuccessful)
-    //        return BadRequest(result.ErrorResponse);
-
-    //    return Ok(result);
-    //}
-
-
-
-    [HttpPost("FundWallet")]
-    public async Task<IActionResult> FundWallet([FromBody] FundWalletDto fundWalletDto)
-    {
-        var result = await _userInteractionService.FundWalletAsync(fundWalletDto.UserId!, fundWalletDto.Amount);
-
-        if(!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }   
-
-   
-    [HttpPost("MakeRequest")]
-    public async Task<IActionResult> MakeRequest([FromQuery] string creatorId, [FromBody] CreateRequestDto createRequestDto)
-    {
-        if (createRequestDto == null || string.IsNullOrEmpty(creatorId))
-            return BadRequest("Invalid request data");
-
-        createRequestDto.CreatorId = creatorId;
-        var result = await _userInteractionService.MakeRequestAsync(createRequestDto);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }
-
     [HttpGet("posts/{postId}/likes")]
     public async Task<IActionResult> GetNumberOfLikes(string postId)
     {
@@ -239,6 +166,172 @@ public class UserInteractionController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("toggle-favorite")]
+    public async Task<IActionResult> ToggleFavorite([FromBody] AddFavoriteDto favoriteDto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        var response = await _userInteractionService.ToggleFavoriteAsync(user.Id, favoriteDto.CreatorId!);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+
+        return Ok(response);
+    }
+
+    [HttpGet("creators/{creatorId}/posts")]
+    public async Task<IActionResult> GetAllPostsOfCreator(string creatorId, [FromQuery] PaginationFilter paginationFilter)
+    {
+        var response = await _userInteractionService.GetAllPostsOfCreatorAsync(creatorId, paginationFilter);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+
+    [HttpGet("creators/featured")]
+    public async Task<IActionResult> GetFeaturedCreators([FromQuery] PaginationFilter paginationFilter)
+    {
+        // Ensure that paginationFilter has default values if not provided in the query
+        paginationFilter ??= new PaginationFilter();
+
+        var response = await _userInteractionService.GetFeaturedCreatorsAsync(paginationFilter);
+
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+
+        return Ok(response);
+    }
+
+
+    [HttpGet("ViewCreatorsProfile/{creatorId}")]
+    public async Task<IActionResult> ViewCreatorProfile(string creatorId)
+    {
+        var response = await _userInteractionService.ViewCreatorProfileAsync(creatorId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+    [HttpPost("creators/{creatorId}/toggle-follow-creator")]
+    public async Task<IActionResult> FollowCreator(string creatorId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        var response = await _userInteractionService.FollowCreatorAsync(user.Id, creatorId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
+
+    [HttpPost("{commentId}/toggle-like-comment")]
+    public async Task<IActionResult> ToggleLikeComment(string commentId)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized("User not authenticated.");
+
+        var response = await _userInteractionService.ToggleLikeCommentAsync(commentId, userId);
+
+        if (!response.IsSuccessful)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+    [HttpPost("{postId}/toggle-like-post")]
+    public async Task<IActionResult> ToggleLikePost(string postId)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized("User not authenticated.");
+        }
+
+        var response = await _userInteractionService.ToggleLikePostAsync(postId, userId);
+
+        if (!response.IsSuccessful)
+        {
+            return BadRequest(response);
+        }
+
+        return Ok(response);
+    }
+
+    [HttpPost("FundWalletViaCardPayment")]
+    public async Task<IActionResult> FundWallet([FromBody] FundWalletDto fundWalletDto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized("User not authenticated.");
+        }
+
+        var result = await _userInteractionService.FundWalletAsync(userId, fundWalletDto.Amount,
+            fundWalletDto.paymentMethodId!, fundWalletDto.currency);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+    [HttpPost("FundWalletViaOnlinePayment")]
+    public async Task<IActionResult> FundWalletViaOnlinePayment([FromBody] FundWalletViaOnlinePaymentDto fundWalletDto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized("User not authenticated.");
+        }
+
+        var result = await _userInteractionService.FundWalletViaOnlinePaymentAsync(userId,
+            fundWalletDto.Amount, fundWalletDto.PaymentMethodId, fundWalletDto.currency);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+    //[HttpPost("ConfirmPayment")]
+    //public async Task<IActionResult> ConfirmPayment([FromBody] ConfirmPaymentDto confirmPaymentDto)
+    //{
+    //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //    if (userId == null)
+    //    {
+    //        return Unauthorized("User not authenticated.");
+    //    }
+
+    //    var result = await _userInteractionService.ConfirmPaymentAsync(confirmPaymentDto.PaymentIntentId, userId, confirmPaymentDto.Amount);
+
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
+
+    //    return Ok(result);
+    //}
+
+
+    [HttpPost("MakeRequest")]
+    public async Task<IActionResult> MakeRequest([FromQuery] string creatorId, [FromQuery] AppPaymentMethod payment, 
+        [FromQuery] RequestType requestType, [FromBody] CreateRequestDto createRequestDto)
+    {
+        if (createRequestDto == null || string.IsNullOrEmpty(creatorId))
+            return BadRequest("Invalid request data");
+
+        var result = await _userInteractionService.MakeRequestAsync(creatorId, payment, requestType, createRequestDto);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+
     //[HttpGet("favorite-creators")]
     //public async Task<IActionResult> GetFavoriteCreators()
     //{
@@ -268,68 +361,6 @@ public class UserInteractionController : ControllerBase
     //    return Ok(response);
     //}
 
-    [HttpPost("toggle-favorite")]
-    public async Task<IActionResult> ToggleFavorite([FromBody] AddFavoriteDto favoriteDto)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not logged in.");
-
-        var response = await _userInteractionService.ToggleFavoriteAsync(user.Id, favoriteDto.CreatorId!);
-        if (!response.IsSuccessful)
-            return BadRequest(response.ErrorResponse);
-
-        return Ok(response);
-    }
-
-
-    [HttpGet("creators/{creatorId}/posts")]
-    public async Task<IActionResult> GetAllPostsOfCreator(string creatorId)
-    {
-        var response = await _userInteractionService.GetAllPostsOfCreatorAsync(creatorId);
-        if (!response.IsSuccessful)
-            return BadRequest(response.ErrorResponse);
-        return Ok(response);
-    }
-
-
-    [HttpGet("creators/featured")]
-    public async Task<IActionResult> GetFeaturedCreators([FromQuery] PaginationFilter paginationFilter)
-    {
-        // Ensure that paginationFilter has default values if not provided in the query
-        paginationFilter ??= new PaginationFilter();
-
-        var response = await _userInteractionService.GetFeaturedCreatorsAsync(paginationFilter);
-
-        if (!response.IsSuccessful)
-            return BadRequest(response.ErrorResponse);
-
-        return Ok(response);
-    }
-
-
-
-    [HttpGet("creators/{creatorId}")]
-    public async Task<IActionResult> ViewCreatorProfile(string creatorId)
-    {
-        var response = await _userInteractionService.ViewCreatorProfileAsync(creatorId);
-        if (!response.IsSuccessful)
-            return BadRequest(response.ErrorResponse);
-        return Ok(response);
-    }
-
-    [HttpPost("creators/{creatorId}/followCreator")]
-    public async Task<IActionResult> FollowCreator(string creatorId)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not logged in.");
-
-        var response = await _userInteractionService.FollowCreatorAsync(user.Id, creatorId);
-        if (!response.IsSuccessful)
-            return BadRequest(response.ErrorResponse);
-        return Ok(response);
-    }
 
     //[HttpPost("creators/{creatorId}/unfollow")]
     //public async Task<IActionResult> UnfollowCreator(string userId, string creatorId)
@@ -352,6 +383,65 @@ public class UserInteractionController : ControllerBase
 
     //    return Ok(ResponseDto<object>.Success());
     //}
+    //[HttpPost("Like")]
+    //public async Task<IActionResult> LikeContent([FromBody] LikeDto likeDto)
+    //{
+    //    try
+    //    {
+    //        var result = await _userInteractionService.LikeContentAsync(likeDto.UserId!, likeDto.ContentId!);
+
+    //        if (!result.IsSuccessful)
+    //            return BadRequest(result.ErrorResponse);
+
+    //        return Ok(result);
+    //    }
+    //    catch (DbUpdateException ex)
+    //    {
+    //        // Log the inner exception
+    //        var innerExceptionMessage = ex.InnerException?.Message ?? ex.Message;
+    //        return StatusCode(500, new { Message = "An error occurred while saving changes.", Error = innerExceptionMessage });
+    //    }
+
+    //}
+
+
+    //[HttpPost("Unlike")]
+    //public async Task<IActionResult> UnlikeContent([FromBody] UnlikeDto unlikeDto)
+    //{
+    //    _logger.LogInformation("******* Verifying Email Update ********");
+
+    //    if (string.IsNullOrEmpty(unlikeDto.UserId))
+    //    {
+    //        return BadRequest("User ID cannot be null or empty");
+    //    }
+
+    //    if (string.IsNullOrEmpty(unlikeDto.ContentId))
+    //    {
+    //        return BadRequest("Content ID cannot be null or empty");
+    //    }
+
+    //    var result = await _userInteractionService.UnlikeContentAsync(unlikeDto.UserId, unlikeDto.ContentId);
+
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
+
+    //    return Ok(result);
+    //}
+
+    public class FundWalletViaOnlinePaymentDto
+    {
+        public decimal Amount { get; set; } = default!;
+        public string PaymentMethodId { get; set; } = default!;
+        public string currency { get; set; } = default!;
+
+    }
+
+    public class ConfirmPaymentDto
+    {
+        public decimal Amount { get; set; } = default!;
+        public string PaymentIntentId { get; set; } = default!;
+
+    }
 
     public class RemoveFavoriteDto
     {
