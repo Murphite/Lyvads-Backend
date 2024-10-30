@@ -30,7 +30,7 @@ public class RequestDetailsDto
     public decimal Amount { get; set; }
     public string CreatorFullName { get; set; } = default!;
     public string RequestId { get; set; } = default!;
-    public RequestType RequestType { get; set; }
+    public string? RequestType { get; set; }
     public RequestStatus? Status { get; set; }
     public string? VideoUrl { get; set; }
     public DateTime CreatedAt { get; set; }

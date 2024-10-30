@@ -35,6 +35,7 @@ public class AuthService : IAuthService
     private readonly IEmailContext _emailContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IWalletRepository _walletRepository;
+    private readonly IProfileService _profileService;
 
     public AuthService(UserManager<ApplicationUser> userManager, 
         IRepository repository, 
@@ -50,7 +51,8 @@ public class AuthService : IAuthService
         ISuperAdminRepository superAdminRepository,
         IEmailContext emailContext,
         IHttpContextAccessor httpContextAccessor,
-        IWalletRepository walletRepository)
+        IWalletRepository walletRepository,
+        IProfileService profileService)
     {
         _userManager = userManager;
         _repository = repository;
@@ -67,6 +69,7 @@ public class AuthService : IAuthService
         _emailContext = emailContext;
         _httpContextAccessor = httpContextAccessor;
         _walletRepository = walletRepository;
+        _profileService = profileService;
     }
 
     public async Task<ServerResponse<RegistrationResponseDto>> InitiateRegistration(string email)
@@ -599,7 +602,6 @@ public class AuthService : IAuthService
         {
             try
             {
-
                 var names = registerCreatorDto.FullName!.Split(' ');
                 var firstName = names[0];
                 var lastName = names.Length > 1 ? string.Join(' ', names.Skip(1)) : string.Empty;
@@ -671,6 +673,24 @@ public class AuthService : IAuthService
 
                 await _creatorRepository.AddAsync(creator);
 
+                // Call the profile picture upload service
+                var uploadResponse = await _profileService.UploadProfilePictureAsync(applicationUser.Id, registerCreatorDto.ProfilePicture);
+                if (!uploadResponse.IsSuccessful)
+                {
+                    _logger.LogError("Profile picture upload failed for user with ID: {UserId}", applicationUser.Id);
+                    await transaction.RollbackAsync();
+                    return new ServerResponse<RegisterUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "400",
+                            ResponseMessage = "Failed to upload profile picture",
+                            ResponseDescription = uploadResponse.ErrorResponse?.ResponseMessage
+                        }
+                    };
+                }
+
                 // Create Wallet for the User
                 var wallet = new Wallet
                 {
@@ -680,7 +700,6 @@ public class AuthService : IAuthService
                     UpdatedAt = DateTimeOffset.UtcNow
                 };
 
-                // Save the wallet to the database
                 await _walletRepository.AddAsync(wallet);
 
                 var savedUser = await _userManager.FindByIdAsync(applicationUser.Id.ToString());
@@ -699,10 +718,7 @@ public class AuthService : IAuthService
                 }
 
                 await _verificationService.MarkEmailAsVerified(verifiedEmail);
-                // Clear the EmailContext after successful registration
                 _httpContextAccessor.HttpContext?.Session.Remove("VerifiedEmail");
-
-                // Notify Admin/SuperAdmin about pending user for verification (e.g., send an email or push notification)
 
                 await transaction.CommitAsync();
 
@@ -718,6 +734,7 @@ public class AuthService : IAuthService
                         Email = applicationUser.Email,
                         Location = applicationUser.Location,
                         Role = RolesConstant.Creator,
+                        ProfilePictureUrl = uploadResponse.Data?.NewProfilePictureUrl,
                         Message = "Registration successful. Your account will be activated after Admin verification."
                     }
                 };
@@ -725,9 +742,7 @@ public class AuthService : IAuthService
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred during registration: {ex.Message}");
-
                 await transaction.RollbackAsync();
-
                 return new ServerResponse<RegisterUserResponseDto>
                 {
                     IsSuccessful = false,
@@ -741,6 +756,7 @@ public class AuthService : IAuthService
             }
         }
     }
+
 
     public async Task<ServerResponse<LoginResponseDto>> Login(LoginUserDto loginUserDto)
     {

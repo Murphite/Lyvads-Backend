@@ -26,12 +26,15 @@ public class CreatorController : ControllerBase
     private readonly ICreatorService _creatorService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<CreatorController> _logger;
+    private readonly IMediaService _mediaService;
 
-    public CreatorController(ICreatorService creatorService, UserManager<ApplicationUser> userManager, ILogger<CreatorController> logger)
+    public CreatorController(ICreatorService creatorService, UserManager<ApplicationUser> userManager,
+        ILogger<CreatorController> logger, IMediaService mediaService)
     {
         _creatorService = creatorService;
         _userManager = userManager;
         _logger = logger;
+        _mediaService = mediaService;
     }
 
     
@@ -55,54 +58,10 @@ public class CreatorController : ControllerBase
         return Ok(ResponseDto<CreatorProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
     }
 
-    [HttpPost("CreatePost")]
-    [Authorize(Roles = "Creator")]
-    public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromQuery] PostVisibility visibility,
-        [FromForm] UploadImage photo)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Unauthorized(new ServerResponse<PostResponseDto>
-            {
-                IsSuccessful = false,
-                ResponseCode = "401",
-                ResponseMessage = "Unauthorized. User ID not found."
-            });
-        }
-
-        // Validate the file (photo) if provided
-        if (photo.Image != null && !IsValidFile(photo.Image))  // Validate using the Image property
-        {
-            return BadRequest(new { message = "Invalid File Extension" });
-        }
-
-        // Convert IFormFile to byte array
-        byte[] fileBytes = null!;
-        if (photo.Image != null)
-        {
-            using (var stream = new MemoryStream())
-            {
-                await photo.Image.CopyToAsync(stream);  // Use the Image property for file operations
-                fileBytes = stream.ToArray();
-            }
-        }
-
-        // Call the service with the Image file and other post details
-        var response = await _creatorService.CreatePostAsync(postDto, visibility, userId, photo.Image!);
-
-        if (!response.IsSuccessful)
-            return BadRequest(response.ErrorResponse);
-
-        return Ok(response);
-    }
-
-
     //[HttpPost("CreatePost")]
     //[Authorize(Roles = "Creator")]
     //public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromQuery] PostVisibility visibility,
-    //[FromForm] UploadImage photo, [FromForm] UploadVideo video) // Assuming UploadVideo is a class that contains IFormFile Video
+    //    [FromForm] UploadImage photo)
     //{
     //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -116,42 +75,25 @@ public class CreatorController : ControllerBase
     //        });
     //    }
 
-    //    // Validate the image file if provided
-    //    if (photo.Image != null && !IsValidFile(photo.Image))
+    //    // Validate the file (photo) if provided
+    //    if (photo.Image != null && !IsValidFile(photo.Image))  // Validate using the Image property
     //    {
-    //        return BadRequest(new { message = "Invalid Image File Extension" });
+    //        return BadRequest(new { message = "Invalid File Extension" });
     //    }
 
-    //    // Validate the video file if provided
-    //    if (video.Video != null && !IsValidFile(video.Video)) // Assuming IsValidFile can also handle video files
-    //    {
-    //        return BadRequest(new { message = "Invalid Video File Extension" });
-    //    }
-
-    //    // Convert image IFormFile to byte array if provided
-    //    byte[] imageBytes = null;
+    //    // Convert IFormFile to byte array
+    //    byte[] fileBytes = null!;
     //    if (photo.Image != null)
     //    {
     //        using (var stream = new MemoryStream())
     //        {
-    //            await photo.Image.CopyToAsync(stream);
-    //            imageBytes = stream.ToArray();
+    //            await photo.Image.CopyToAsync(stream);  // Use the Image property for file operations
+    //            fileBytes = stream.ToArray();
     //        }
     //    }
 
-    //    // Convert video IFormFile to byte array if provided
-    //    byte[] videoBytes = null;
-    //    if (video.Video != null)
-    //    {
-    //        using (var stream = new MemoryStream())
-    //        {
-    //            await video.Video.CopyToAsync(stream);
-    //            videoBytes = stream.ToArray();
-    //        }
-    //    }
-
-    //    // Call the service with the Image and Video files along with other post details
-    //    var response = await _creatorService.CreatePostAsync(postDto, visibility, userId, photo.Image, video.Video);
+    //    // Call the service with the Image file and other post details
+    //    var response = await _creatorService.CreatePostAsync(postDto, visibility, userId, photo.Image!);
 
     //    if (!response.IsSuccessful)
     //        return BadRequest(response.ErrorResponse);
@@ -160,12 +102,37 @@ public class CreatorController : ControllerBase
     //}
 
 
+    [HttpPost("CreatePost")]
+    [Authorize(Roles = "Creator")]
+    public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromQuery] PostVisibility visibility,
+    [FromForm] List<IFormFile> mediaFiles)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new ServerResponse<PostResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "Unauthorized. User ID not found."
+            });
+        }
+
+        var response = await _creatorService.CreatePostAsync(postDto, visibility, userId, mediaFiles);
+
+        if (!response.IsSuccessful)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
+
+
     [HttpPut("update-post/{postId}")]
     [Authorize(Roles = "Creator")]
-    public async Task<IActionResult> UpdatePost(string postId, [FromForm] UpdatePostDto postDto, [FromQuery] PostVisibility visibility,
-        [FromForm] UploadImage photo)
+    public async Task<IActionResult> UpdatePost(string postId, [FromForm] UpdatePostDto postDto,
+    [FromQuery] PostVisibility visibility, [FromForm] List<IFormFile> mediaFiles)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // Get user ID from claims
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(userId))
         {
@@ -177,28 +144,8 @@ public class CreatorController : ControllerBase
             });
         }
 
-        // Set PostId in DTO to match route parameter
-        // postDto.PostId = postId; // No longer needed
-
-        // Validate the file (photo) if provided
-        if (photo.Image != null && !IsValidFile(photo.Image))  // Validate using the Image property
-        {
-            return BadRequest(new { message = "Invalid File Extension" });
-        }
-
-        // Convert IFormFile to byte array
-        byte[] fileBytes = null!;
-        if (photo.Image != null)
-        {
-            using (var stream = new MemoryStream())
-            {
-                await photo.Image.CopyToAsync(stream);  // Use the Image property for file operations
-                fileBytes = stream.ToArray();
-            }
-        }
-
-        // Call the service with the Image file and other post details
-        var response = await _creatorService.UpdatePostAsync(postId, postDto, visibility, userId, photo.Image!); // Pass postId directly
+        // Call the service with multiple media files
+        var response = await _creatorService.UpdatePostAsync(postId, postDto, visibility, userId, mediaFiles);
 
         if (!response.IsSuccessful)
             return BadRequest(response.ErrorResponse);

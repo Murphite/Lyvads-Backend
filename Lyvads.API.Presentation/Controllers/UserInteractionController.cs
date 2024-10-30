@@ -227,6 +227,18 @@ public class UserInteractionController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("creators/{creatorId}/is-following")]
+    public async Task<IActionResult> IsFollowingCreator(string creatorId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        var response = await _userInteractionService.CheckIfUserIsFollowingCreatorAsync(user.Id, creatorId);
+        return Ok(response);
+    }
+
+
 
     [HttpPost("{commentId}/toggle-like-comment")]
     public async Task<IActionResult> ToggleLikeComment(string commentId)
@@ -318,12 +330,12 @@ public class UserInteractionController : ControllerBase
 
     [HttpPost("MakeRequest")]
     public async Task<IActionResult> MakeRequest([FromQuery] string creatorId, [FromQuery] AppPaymentMethod payment, 
-        [FromQuery] RequestType requestType, [FromBody] CreateRequestDto createRequestDto)
+        [FromBody] CreateRequestDto createRequestDto)
     {
         if (createRequestDto == null || string.IsNullOrEmpty(creatorId))
             return BadRequest("Invalid request data");
 
-        var result = await _userInteractionService.MakeRequestAsync(creatorId, payment, requestType, createRequestDto);
+        var result = await _userInteractionService.MakeRequestAsync(creatorId, payment, createRequestDto);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);

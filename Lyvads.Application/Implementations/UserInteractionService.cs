@@ -270,7 +270,7 @@ public class UserInteractionService : IUserInteractionService
     //}
 
     public async Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId,
-     AppPaymentMethod payment, RequestType requestType, CreateRequestDto createRequestDto)
+     AppPaymentMethod payment, CreateRequestDto createRequestDto)
     {
         try
         {
@@ -409,7 +409,7 @@ public class UserInteractionService : IUserInteractionService
                         Script = createRequestDto.Script!,
                         CreatorId = creatorId,
                         RegularUserId = regularUser.Id,
-                        RequestType = requestType,
+                        RequestType = createRequestDto.RequestType,
                         CreatedAt = DateTimeOffset.UtcNow,
                         UpdatedAt = DateTimeOffset.UtcNow,
                         PaymentMethod = AppPaymentMethod.Wallet,
@@ -428,7 +428,7 @@ public class UserInteractionService : IUserInteractionService
                         {
                             CreatorId = creatorId,
                             CreatorName = creatorName,
-                            RequestType = requestType.ToString(),
+                            RequestType = createRequestDto.RequestType,
                             Script = request.Script,
                             CreatedAt = request.CreatedAt,
                             PaymentMethod = request.ToString(),
@@ -509,7 +509,7 @@ public class UserInteractionService : IUserInteractionService
             {
                 CreatorId = creatorId,
                 CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
-                RequestType = requestType.ToString(),
+                RequestType = createRequestDto.RequestType,
                 Script = createRequestDto.Script,
                 CreatedAt = DateTimeOffset.UtcNow,
                 PaymentMethod = payment.ToString(),
@@ -1633,20 +1633,18 @@ public class UserInteractionService : IUserInteractionService
             };
         }
 
-        // Calculate the sum of rates per request type
-        var collabRates = creator?.CollabRates?
-         .GroupBy(c => c.RequestType)
-         .Select(group => new CollabRateDto
-         {
-             RequestType = group.Key!.ToString(), // RequestType from CollaborationRate
-             TotalAmount = group.Sum(c => c.TotalAmount) // Summing Rate from CollaborationRate entity
-         })
-         .ToList();
+        var collabRates = creator.CollabRates?
+            .GroupBy(c => c.RequestType)
+            .Select(group => new CollabRateDto
+            {
+                RequestType = group.Key?.ToString(),
+                TotalAmount = group.Sum(c => c.TotalAmount)
+            })
+            .ToList();
 
-
-        // Get all posts and convert to ViewPostDto
+        // Get the first 3 posts of the creator
         var postResponse = await GetAllPostsOfCreatorAsync(creatorId);
-        var posts = postResponse.Data.Select(p => new ViewPostDto
+        var posts = postResponse.Data.Take(3).Select(p => new ViewPostDto
         {
             Id = p.PostId,
             Caption = p.Caption,
@@ -1655,13 +1653,17 @@ public class UserInteractionService : IUserInteractionService
 
         var creatorProfile = new CreatorProfileDto
         {
-            Name = creator?.Name,
-            AppUserName = creator?.AppUserName,
+            Id = creator.Id,
+            Name = creator.Name,
+            ImageUrl = creator.ImageUrl,
+            AppUserName = creator.AppUserName,
             FollowersCount = await _userRepository.GetFollowerCountAsync(creatorId),
+            EngagementCount = creator.EngagementCount,
             Posts = posts,
-            Bio = creator?.Bio,
-            Occupation = creator?.Occupation,
-            CollabRates = collabRates // Correctly assigning the aggregated rates
+            Bio = creator.Bio,
+            Location = creator.Location,
+            Occupation = creator.Occupation,
+            CollabRates = collabRates
         };
 
         return new ServerResponse<CreatorProfileDto>
@@ -1671,6 +1673,7 @@ public class UserInteractionService : IUserInteractionService
             Data = creatorProfile
         };
     }
+
 
     public async Task<ServerResponse<object>> FollowCreatorAsync(string userId, string creatorId)
     {
@@ -1705,6 +1708,33 @@ public class UserInteractionService : IUserInteractionService
         }
     }
 
+    public async Task<ServerResponse<bool>> CheckIfUserIsFollowingCreatorAsync(string userId, string creatorId)
+    {
+        // Check if the creator exists
+        var creatorExists = await _userRepository.CreatorExistsAsync(creatorId);
+        if (!creatorExists)
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "06",
+                    ResponseMessage = "Creator not found."
+                }
+            };
+        }
+
+        // Check if the user is following the creator
+        var isFollowing = await _userRepository.IsUserFollowingCreatorAsync(userId, creatorId);
+
+        return new ServerResponse<bool>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = isFollowing
+        };
+    }
 
 
     public async Task<ServerResponse<object>> UnfollowCreatorAsync(string userId, string creatorId)

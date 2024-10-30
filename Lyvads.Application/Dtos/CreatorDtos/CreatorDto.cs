@@ -16,6 +16,7 @@ public class CreatorDto
 
 public class FilterCreatorDto
 {
+    public string ImageUrl { get; set; } = default!;
     public string CreatorId { get; set; } = default!;
     public string FullName { get; set; } = default!;
     public string Industry { get; set; } = default!;

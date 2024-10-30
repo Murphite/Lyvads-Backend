@@ -101,20 +101,36 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<bool> CreatorExistsAsync(string creatorId)
+    {
+        return await _context.Creators
+            .AnyAsync(c => c.Id == creatorId);
+    }
+
+    public async Task<ApplicationUser?> GetUserWithCreatorAsync(string userId)
+    {
+        return await _context.Users
+            .Include(u => u.Creator)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
+
+
     public async Task<CreatorProfileDto> GetCreatorByIdAsync(string creatorId)
     {
         var creator = await _context.Creators
-            .Include(c => c.CollabRates) // Ensure CollabRates is a collection of CollaborationRate entities
+            .Include(c => c.ApplicationUser)
+            .Include(c => c.CollabRates)
             .FirstOrDefaultAsync(c => c.Id == creatorId);
 
-        if (creator == null) return null!;
+        if (creator == null)
+            return null!;
 
-        // Convert the CollaborationRate entities to CollabRateDto
         var collabRatesDto = creator.CollabRates?
             .Select(cr => new CollabRateDto
             {
-                RequestType = cr.RequestType.ToString(), // Assuming RequestType is a string
-                TotalAmount = cr.Rate // Assuming Rate is the amount
+                RequestType = cr.RequestType.ToString(),
+                TotalAmount = cr.Rate
             })
             .ToList();
 
@@ -122,8 +138,13 @@ public class UserRepository : IUserRepository
         {
             Id = creator.Id,
             Name = creator.ApplicationUser?.FullName,
+            ImageUrl = creator.ApplicationUser?.ImageUrl,
+            Bio = creator.ApplicationUser?.Bio,
+            Occupation = creator.ApplicationUser?.Occupation,
+            AppUserName = creator.ApplicationUser?.AppUserName,
+            Location = creator.ApplicationUser?.Location,
             EngagementCount = creator.EngagementCount,
-            CollabRates = collabRatesDto // Return the converted DTO list
+            CollabRates = collabRatesDto
         };
     }
 
@@ -253,4 +274,7 @@ public class UserRepository : IUserRepository
         return await _context.Follows
             .AnyAsync(f => f.UserId == userId && f.CreatorId == creatorId);
     }
+
+    
+
 }

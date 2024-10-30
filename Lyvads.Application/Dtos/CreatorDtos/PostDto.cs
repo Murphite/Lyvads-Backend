@@ -1,4 +1,5 @@
 ﻿using Lyvads.Domain.Enums;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ public class PostDto
 {
     public string Caption { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
+    //public List<IFormFile> MediaUrls { get; set; } = new List<IFormFile>();
     //public PostVisibility Visibility { get; set; }
 }
 

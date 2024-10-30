@@ -9,7 +9,7 @@ public class CreatorProfileResponseDto
     public string? SimpleAdvert { get; set; }
     public string? WearBrand { get; set; }
     public string? SongAdvert { get; set; }
-    public RequestType? Request { get; set; }
+    public string? Request { get; set; }
 }
 
 public class RegularUserProfileResponseDto

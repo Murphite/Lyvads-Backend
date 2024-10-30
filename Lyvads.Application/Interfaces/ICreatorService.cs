@@ -10,13 +10,15 @@ namespace Lyvads.Application.Interfaces;
 
 public interface ICreatorService
 {
+    Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility,
+     string userId, List<IFormFile> mediaFiles);
+    public string DetermineFileType(IFormFile file);
     Task<ServerResponse<PaginatorDto<IEnumerable<CreatorDto>>>> GetCreators(PaginationFilter paginationFilter);
-    Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, PostVisibility visibility, string userId, IFormFile photo);
-    Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo);
+    Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto,
+        PostVisibility visibility, string userId, List<IFormFile> mediaFiles);
     Task<ServerResponse<CreatorProfileResponseDto>> UpdateCreatorSetUpRatesAsync(UpdateCreatorProfileDto dto, string userId);
     Task<ServerResponse<object>> WithdrawFundsToBankAccountAsync(string userId, decimal amount, string bankCardId);
     Task<ServerResponse<object>> DeletePostAsync(string postId, string userId);
-    //Task<ServerResponse<PostResponseDto>> UpdatePostAsync(UpdatePostDto postDto, string userId);
     Task<ServerResponse<CommentResponseDto>> CommentOnPostAsync(string postId, string userId, string content);
     Task<ServerResponse<LikeResponseDto>> LikeCommentAsync(string commentId, string userId);
     Task<ServerResponse<LikeResponseDto>> LikePostAsync(string postId, string userId);

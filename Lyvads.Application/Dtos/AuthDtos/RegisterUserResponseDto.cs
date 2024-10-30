@@ -9,6 +9,7 @@ public class RegisterUserResponseDto
     public string? Location { get; set; }
     public string? Message { get; set; }
     public string? Role { get; set; }
+    public string? ProfilePictureUrl { get; set; }
 }
 
 

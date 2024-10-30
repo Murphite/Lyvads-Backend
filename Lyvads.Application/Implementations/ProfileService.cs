@@ -10,6 +10,8 @@ using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Dtos.AuthDtos;
 using Lyvads.Domain.Responses;
 using Microsoft.AspNetCore.Http;
+using Lyvads.Infrastructure.Repositories;
+using Lyvads.Shared.DTOs;
 
 namespace Lyvads.Application.Implementations;
 
@@ -137,6 +139,85 @@ public class ProfileService : IProfileService
             ResponseCode = "00",
             ResponseMessage = "User profile retrieved successfully.",
             Data = userProfileDto
+        };
+    }
+
+    public async Task<ServerResponse<UpdateProfilePicResponseDto>> UploadProfilePictureAsync(string userId, IFormFile newProfilePicture)
+    {
+        _logger.LogInformation("User with ID: {UserId} is updating their profile picture", userId);
+
+        string folderName = "user_profile_pictures";  // Folder for uploaded images
+
+        // Check if user exists
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<UpdateProfilePicResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        // Upload the profile picture to Cloudinary (or any other service)
+        var uploadResult = await _mediaService.UploadImageAsync(newProfilePicture, folderName);
+
+        if (uploadResult["Code"] != "200")
+        {
+            _logger.LogError("Failed to upload profile picture for user with ID: {UserId}", userId);
+            return new ServerResponse<UpdateProfilePicResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Failed to upload profile picture.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Failed to upload profile picture."
+                }
+            };
+        }
+
+        // Update profile picture URL
+        user.ImageUrl = uploadResult["Url"];
+        var updateResult = await _userManager.UpdateAsync(user);
+
+        if (!updateResult.Succeeded)
+        {
+            return new ServerResponse<UpdateProfilePicResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Profile picture update was not successful.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Profile picture update was not successful."
+                }
+            };
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        // Prepare the response
+        var updateProfilePicResponseDto = new UpdateProfilePicResponseDto
+        {
+            UserId = user.Id,
+            NewProfilePictureUrl = user.ImageUrl,
+        };
+
+        return new ServerResponse<UpdateProfilePicResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Profile picture updated successfully.",
+            Data = updateProfilePicResponseDto
         };
     }
 

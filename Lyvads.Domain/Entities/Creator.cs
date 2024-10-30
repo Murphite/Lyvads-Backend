@@ -25,7 +25,7 @@ public class Creator : Entity, IAuditable
     public string? SimpleAdvert { get; set; }
     public string? WearBrand { get; set; }
     public string? SongAdvert { get; set; }
-    public RequestType? Request { get; set; }
+    public string? Request { get; set; }
     
 
     // Exclusive Deal Properties

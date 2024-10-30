@@ -28,12 +28,14 @@ public class CreatorProfileDto
 {
     public string Id { get; set; } = default!;
     public string? Name { get; set; }
+    public string? ImageUrl { get; set; }
     public string? AppUserName { get; set; }
     public int FollowersCount { get; set; }
     public int EngagementCount { get; set; }
     public List<ViewPostDto>? Posts { get; set; }
     public string? Bio { get; set; }
     public string? Occupation { get; set; }
+    public string? Location { get; set; }
     public List<CollabRateDto>? CollabRates { get; set; }
 }
 

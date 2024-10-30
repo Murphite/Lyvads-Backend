@@ -120,9 +120,8 @@ public class CollaborationController : ControllerBase
     {
         var response = await _collaborationService.OpenDisputeAsync(requestId, disputeDto);
         if (!response.IsSuccessful)
-        {
-            return BadRequest(response);
-        }
+            return BadRequest(response.ErrorResponse);
+
         return Ok(response);
     }
 

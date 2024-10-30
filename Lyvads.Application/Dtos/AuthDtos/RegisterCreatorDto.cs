@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace Lyvads.Application.Dtos.AuthDtos;
 
@@ -9,6 +10,7 @@ public class RegisterCreatorDto
     public required string? PhoneNumber { get; init; }
     public required string? Email { get; init; }
     public required string? Bio { get; init; }
+    public IFormFile? ProfilePicture { get; set; }
     public required string? Location { get; init; }
     public required string? Occupation { get; init; }
 

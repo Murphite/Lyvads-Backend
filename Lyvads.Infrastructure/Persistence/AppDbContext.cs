@@ -44,6 +44,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Follow> Follows { get; set; }
     public DbSet<CollaborationRate> CollabRates { get; set; }
     public DbSet<RegularUser> RegularUsers { get; set; }
+    public DbSet<Media> Media { get; set; }
 
 
 

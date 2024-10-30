@@ -147,109 +147,249 @@ public class CreatorService : ICreatorService
         }
     }
 
-    public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
+    public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility,
+    string userId, List<IFormFile> mediaFiles)
     {
-        _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
+        // Check if the media file count exceeds the limit
+        if (mediaFiles.Count > 10)
+        {
+            return new ServerResponse<PostResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "A maximum of 10 media files (images or videos) is allowed per post."
+            };
+        }
 
-        // Check if the creator exists in the database by UserId
-        var creator = await _repository.FindByCondition<Creator>(c => c.ApplicationUserId == userId);
+        var creator = await _repository.GetAll<Creator>().FirstOrDefaultAsync(c => c.ApplicationUserId == userId);
         if (creator == null)
         {
-            _logger.LogWarning("Creator with User ID: {UserId} not found.", userId);
             return new ServerResponse<PostResponseDto>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
-                ResponseMessage = "Creator does not exist.",
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "404",
-                    ResponseMessage = "Creator not found."
-                }
+                ResponseMessage = "Creator not found."
             };
         }
 
-        // Upload image to Cloudinary if a photo is provided
-        string mediaUrl = null!;
-        if (photo != null)
+        // Create a new Post entity
+        var post = new Post
         {
-            var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
-            if (uploadResult["Code"] != "200")
+            CreatorId = creator.Id,
+            Caption = postDto.Caption,
+            Location = postDto.Location,
+            Visibility = visibility,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Upload and save each media file
+        var mediaUrls = new List<string>();
+        foreach (var file in mediaFiles)
+        {
+            var fileType = DetermineFileType(file);
+            Dictionary<string, string> uploadResponse;
+
+            if (fileType == "image")
+            {
+                uploadResponse = await _mediaService.UploadImageAsync(file, "images-folder");
+            }
+            else if (fileType == "video")
+            {
+                uploadResponse = await _mediaService.UploadVideoAsync(file, "videos-folder");
+            }
+            else
             {
                 return new ServerResponse<PostResponseDto>
                 {
                     IsSuccessful = false,
                     ResponseCode = "400",
-                    ResponseMessage = "Image upload failed.",
-                    ErrorResponse = new ErrorResponse
-                    {
-                        ResponseCode = "400",
-                        ResponseMessage = "Failed to upload the image."
-                    }
+                    ResponseMessage = "Unsupported file type."
                 };
             }
-            mediaUrl = uploadResult["Url"];
+
+            if (uploadResponse["Code"] == "200")
+            {
+                var media = new Media
+                {
+                    PostId = post.Id,  
+                    Url = uploadResponse["Url"],
+                    FileType = fileType,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                post.MediaFiles.Add(media);
+                mediaUrls.Add(uploadResponse["Url"]);
+            }
+            else
+            {
+                return new ServerResponse<PostResponseDto>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = "400",
+                    ResponseMessage = "Failed to upload file."
+                };
+            }
         }
 
-        // Create the new post
-        var post = new Post
+        // Save the post and associated media files in a single transaction
+        _repository.Add(post);
+        await _unitOfWork.SaveChangesAsync();
+
+        // Return response with media URLs
+        return new ServerResponse<PostResponseDto>
         {
-            CreatorId = creator.Id,
-            Caption = postDto.Caption,
-            MediaUrl = mediaUrl!,  // Use the uploaded image URL
-            Location = postDto.Location,
-            Visibility = visibility,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
-        };
-
-        _logger.LogInformation("Post object created: {Post}", post);
-
-        try
-        {
-            await _repository.Add(post);
-            await _unitOfWork.SaveChangesAsync();
-
-            _logger.LogInformation("Post created successfully for creator with User ID: {UserId}", userId);
-
-            var postResponse = new PostResponseDto
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Post created successfully.",
+            Data = new PostResponseDto
             {
                 PostId = post.Id,
-                CreatorId = creator.Id,
                 CreatorName = creator.ApplicationUser?.FullName,
-                Caption = post.Caption,
-                MediaUrl = post.MediaUrl,
+                CreatorId = creator.Id,
                 Location = post.Location,
                 Visibility = post.Visibility.ToString(),
-                CreatedAt = post.CreatedAt,
-                UpdatedAt = post.UpdatedAt
-            };
-
-            return new ServerResponse<PostResponseDto>
-            {
-                IsSuccessful = true,
-                ResponseCode = "00",
-                ResponseMessage = "Post created successfully.",
-                Data = postResponse
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating post for creator with User ID: {UserId}", userId);
-            return new ServerResponse<PostResponseDto>
-            {
-                IsSuccessful = false,
-                ResponseCode = "500",
-                ResponseMessage = "An error occurred while creating the post.",
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "500",
-                    ResponseMessage = "Internal server error",
-                    ResponseDescription = ex.Message
-                }
-            };
-        }
+                Caption = post.Caption,
+                MediaUrls = mediaUrls,
+                CreatedAt = post.CreatedAt
+            }
+        };
     }
+
+
+
+    public string DetermineFileType(IFormFile file)
+    {
+        // Use MIME type or file extension to determine if the file is an image or video
+        var imageMimeTypes = new List<string> { "image/jpeg", "image/jpg", "image/png" };
+        var videoMimeTypes = new List<string> { "video/mp4", "video/avi", "video/mov" };
+
+        if (imageMimeTypes.Contains(file.ContentType))
+        {
+            return "image";
+        }
+        else if (videoMimeTypes.Contains(file.ContentType))
+        {
+            return "video";
+        }
+
+        // Check file extension as a fallback
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        if (extension == ".jpg" || extension == ".jpeg" || extension == ".png")
+        {
+            return "image";
+        }
+        else if (extension == ".mp4" || extension == ".avi" || extension == ".mov")
+        {
+            return "video";
+        }
+
+        // Default to image if the type cannot be determined
+        return "image";
+    }
+
+    //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
+    //{
+    //    _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
+
+    //    // Check if the creator exists in the database by UserId
+    //    var creator = await _repository.FindByCondition<Creator>(c => c.ApplicationUserId == userId);
+    //    if (creator == null)
+    //    {
+    //        _logger.LogWarning("Creator with User ID: {UserId} not found.", userId);
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "404",
+    //            ResponseMessage = "Creator does not exist.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "404",
+    //                ResponseMessage = "Creator not found."
+    //            }
+    //        };
+    //    }
+
+    //    // Upload image to Cloudinary if a photo is provided
+    //    string mediaUrl = null!;
+    //    if (photo != null)
+    //    {
+    //        var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
+    //        if (uploadResult["Code"] != "200")
+    //        {
+    //            return new ServerResponse<PostResponseDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ResponseCode = "400",
+    //                ResponseMessage = "Image upload failed.",
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "400",
+    //                    ResponseMessage = "Failed to upload the image."
+    //                }
+    //            };
+    //        }
+    //        mediaUrl = uploadResult["Url"];
+    //    }
+
+    //    // Create the new post
+    //    var post = new Post
+    //    {
+    //        CreatorId = creator.Id,
+    //        Caption = postDto.Caption,
+    //        MediaUrl = mediaUrl!,  // Use the uploaded image URL
+    //        Location = postDto.Location,
+    //        Visibility = visibility,
+    //        CreatedAt = DateTimeOffset.UtcNow,
+    //        UpdatedAt = DateTimeOffset.UtcNow
+    //    };
+
+    //    _logger.LogInformation("Post object created: {Post}", post);
+
+    //    try
+    //    {
+    //        await _repository.Add(post);
+    //        await _unitOfWork.SaveChangesAsync();
+
+    //        _logger.LogInformation("Post created successfully for creator with User ID: {UserId}", userId);
+
+    //        var postResponse = new PostResponseDto
+    //        {
+    //            PostId = post.Id,
+    //            CreatorId = creator.Id,
+    //            CreatorName = creator.ApplicationUser?.FullName,
+    //            Caption = post.Caption,
+    //            MediaUrl = post.MediaUrl,
+    //            Location = post.Location,
+    //            Visibility = post.Visibility.ToString(),
+    //            CreatedAt = post.CreatedAt,
+    //            UpdatedAt = post.UpdatedAt
+    //        };
+
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = true,
+    //            ResponseCode = "00",
+    //            ResponseMessage = "Post created successfully.",
+    //            Data = postResponse
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error creating post for creator with User ID: {UserId}", userId);
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "500",
+    //            ResponseMessage = "An error occurred while creating the post.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "500",
+    //                ResponseMessage = "Internal server error",
+    //                ResponseDescription = ex.Message
+    //            }
+    //        };
+    //    }
+    //}
 
     //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo, IFormFile video)
     //{
@@ -378,7 +518,8 @@ public class CreatorService : ICreatorService
     //    }
     //}
 
-    public async Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
+    public async Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto,
+     PostVisibility visibility, string userId, List<IFormFile> mediaFiles)
     {
         _logger.LogInformation("Updating post with Post ID: {PostId} for User ID: {UserId}", postId, userId);
 
@@ -432,33 +573,63 @@ public class CreatorService : ICreatorService
             };
         }
 
-        // Upload image to Cloudinary if a photo is provided
-        if (photo != null)
+        // Enforce media file limit
+        if (mediaFiles.Count > 10)
         {
-            var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming 'post_images' folder
-            if (uploadResult["Code"] != "200")
+            return new ServerResponse<PostResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "A maximum of 10 media files (images or videos) is allowed per post."
+            };
+        }
+
+        // Process each media file
+        foreach (var mediaFile in mediaFiles)
+        {
+            var fileType = DetermineFileType(mediaFile);
+            Dictionary<string, string> uploadResponse;
+
+            if (fileType == "image")
+            {
+                uploadResponse = await _mediaService.UploadImageAsync(mediaFile, "images-folder");
+            }
+            else if (fileType == "video")
+            {
+                uploadResponse = await _mediaService.UploadVideoAsync(mediaFile, "videos-folder");
+            }
+            else
             {
                 return new ServerResponse<PostResponseDto>
                 {
                     IsSuccessful = false,
                     ResponseCode = "400",
-                    ResponseMessage = "Image upload failed.",
-                    ErrorResponse = new ErrorResponse
-                    {
-                        ResponseCode = "400",
-                        ResponseMessage = "Failed to upload the image."
-                    }
+                    ResponseMessage = "Unsupported file type."
                 };
             }
-            post.MediaUrl = uploadResult["Url"];  // Update the MediaUrl
+
+            if (uploadResponse["Code"] == "200")
+            {
+                var media = new Media
+                {
+                    PostId = post.Id,
+                    Url = uploadResponse["Url"],
+                    FileType = fileType,
+                    CreatedAt = DateTime.UtcNow
+                };
+                post.MediaFiles.Add(media);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to upload media file for post ID: {PostId}", postId);
+            }
         }
 
+        // Update post details
         post.Caption = postDto.Caption ?? post.Caption;
         post.Location = postDto.Location ?? post.Location;
         post.Visibility = visibility;
         post.UpdatedAt = DateTimeOffset.UtcNow;
-
-        _logger.LogInformation("Post object updated: {Post}", post);
 
         try
         {
@@ -471,7 +642,7 @@ public class CreatorService : ICreatorService
                 CreatorId = creator.Id,
                 CreatorName = creator.ApplicationUser?.FullName,
                 Caption = post.Caption,
-                MediaUrl = post.MediaUrl,
+                MediaUrls = post.MediaFiles.Select(m => m.Url).ToList(),
                 Location = post.Location,
                 Visibility = post.Visibility.ToString(),
                 CreatedAt = post.CreatedAt,
@@ -1296,9 +1467,9 @@ public class CreatorService : ICreatorService
         {
             PostId = p.Id,
             CreatorId = p.CreatorId,
-            CreatorName = p.Creator?.ApplicationUser?.FullName ?? "Unknown",  // Ensure this is properly populated
+            CreatorName = p.Creator?.ApplicationUser?.FullName ?? "Unknown",
             Caption = p.Caption,
-            MediaUrl = p.MediaUrl,
+            MediaUrls = p.MediaFiles.Select(m => m.Url).ToList(),
             Location = p.Location,
             Visibility = p.Visibility.ToString(),
             CreatedAt = p.CreatedAt,
@@ -1314,6 +1485,7 @@ public class CreatorService : ICreatorService
         };
     }
 
+   
     public async Task<ServerResponse<CreatorProfileResponseDto>> UpdateCreatorSetUpRatesAsync(UpdateCreatorProfileDto dto, string userId)
     {
         // Find the user by ID
@@ -1458,6 +1630,7 @@ public class CreatorService : ICreatorService
             FullName = $"{c.ApplicationUser?.FirstName ?? "N/A"} {c.ApplicationUser?.LastName ?? "N/A"}",
             Price = c.Price,
             Location = c.ApplicationUser?.Location ?? "N/A",
+            ImageUrl = c.ApplicationUser?.ImageUrl ?? "N/A",
             Industry = c.ApplicationUser?.Occupation ?? "N/A"
         }).ToList();
 

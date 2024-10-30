@@ -12,11 +12,11 @@ public interface IUserRepository
     Task<Like> GetLikeAsync(string userId, string contentId);
     Task RemoveLikeAsync(Like like);
     Task UpdateWalletBalanceAsync(string userId, decimal amount);
-
+    Task<ApplicationUser?> GetUserWithCreatorAsync(string userId);
     Task AddFavoriteAsync(string userId, string creatorId);
     Task FollowCreatorAsync(string userId, string creatorId);
     Task<CreatorProfileDto> GetCreatorByIdAsync(string creatorId);
-    //Task<Creator?> GetCreatorByIdAsync(string creatorId);
+    Task<bool> CreatorExistsAsync(string creatorId);
     IQueryable<CreatorResponseDto> GetCreatorsWithMostEngagementAndFollowersAsync();
     Task<List<CreatorResponseDto>> GetFavoriteCreatorsAsync(string userId);
     Task<int> GetFollowerCountAsync(string creatorId);

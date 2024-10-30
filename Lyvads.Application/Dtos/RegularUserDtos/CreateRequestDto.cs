@@ -6,6 +6,7 @@ namespace Lyvads.Application.Dtos.RegularUserDtos;
 public class CreateRequestDto
 {
     public string? Script { get; set; }
+    public string? RequestType { get; set; }
     public decimal Amount { get; set; }
     public bool FastTrack { get; set; } 
     public bool RemoveWatermark { get; set; } 

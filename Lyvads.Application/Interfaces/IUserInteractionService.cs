@@ -11,7 +11,7 @@ namespace Lyvads.Application.Interfaces;
 public interface IUserInteractionService
 {
     Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId, AppPaymentMethod payment,
-        RequestType requestType, CreateRequestDto createRequestDto);
+       CreateRequestDto createRequestDto);
     Task<ServerResponse<CommentResponseDto>> EditCommentAsync(string commentId, string userId, string newContent);
     Task<ServerResponse<CommentResponseDto>> AddCommentOnPostAsync(string postId, string userId, string content);
     Task<ServerResponse<CommentResponseDto>> ReplyToCommentAsync(string parentCommentId, string userId, string content);
@@ -39,4 +39,5 @@ public interface IUserInteractionService
     Task<ServerResponse<LikeResponseDto>> ToggleLikeCommentAsync(string commentId, string userId);
     Task<ServerResponse<PaginatorDto<IEnumerable<ViewPostResponseDto>>>> GetAllPostsOfCreatorAsync(string creatorId, PaginationFilter paginationFilter);
     //Task<ServerResponse<object>> CreateRequestAsync(CreateRequestDto createRequestDto);
+    Task<ServerResponse<bool>> CheckIfUserIsFollowingCreatorAsync(string userId, string creatorId);
 }

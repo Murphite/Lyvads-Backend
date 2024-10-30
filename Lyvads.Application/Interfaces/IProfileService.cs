@@ -18,5 +18,6 @@ public interface IProfileService
     Task<ServerResponse<UpdateLocationResponseDto>> UpdateLocationAsync(UpdateLocationDto dto, string userId);
     Task<ServerResponse<UpdatePhoneNumberResponseDto>> UpdatePhoneNumberAsync(UpdatePhoneNumberDto dto, string userId);
     Task<ServerResponse<UserProfileDto>> GetProfileAsync(string userId);
+    Task<ServerResponse<UpdateProfilePicResponseDto>> UploadProfilePictureAsync(string userId, IFormFile newProfilePicture);
     Task<ServerResponse<bool>> ValidatePasswordAsync(string email, ValidatePasswordDto validatePasswordDto);
 }

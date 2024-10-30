@@ -16,7 +16,7 @@ public class Request : Entity, IAuditable
     public decimal FastTrackFee { get; set; } = 0m;
     
     public AppPaymentMethod PaymentMethod { get; set; }
-    public RequestType RequestType { get; set; }
+    public string? RequestType { get; set; }
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
