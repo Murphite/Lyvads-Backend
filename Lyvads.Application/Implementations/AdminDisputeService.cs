@@ -29,12 +29,16 @@ public class AdminDisputeService : IDisputeService
             var disputeDtos = disputes.Select(d => new DisputeDto
             {
                 Id = d.Id,
-                RegularUserName = $"{d.RegularUser.ApplicationUser!.FirstName} {d.RegularUser.ApplicationUser.LastName}",
-                CreatorName = $"{d.Creator.ApplicationUser!.FirstName} {d.Creator.ApplicationUser.LastName}",
+                RegularUserName = d.RegularUser?.ApplicationUser != null
+                    ? $"{d.RegularUser.ApplicationUser.FirstName} {d.RegularUser.ApplicationUser.LastName}"
+                    : "N/A",
+                CreatorName = d.Creator?.ApplicationUser != null
+                    ? $"{d.Creator.ApplicationUser.FirstName} {d.Creator.ApplicationUser.LastName}"
+                    : "N/A",
                 Amount = d.Amount,
-                Reason = d.Reason,
+                Reason = d.Reason.ToString(),
                 FlaggedDate = d.CreatedAt,
-                Status = d.Status
+                Status = d.Status.ToString()
             }).ToList();
 
             return new ServerResponse<List<DisputeDto>>
@@ -85,9 +89,9 @@ public class AdminDisputeService : IDisputeService
                 RegularUserName = $"{dispute.RegularUser.ApplicationUser!.FirstName} {dispute.RegularUser.ApplicationUser.LastName}",
                 CreatorName = $"{dispute.Creator.ApplicationUser!.FirstName} {dispute.Creator.ApplicationUser.LastName}",
                 Amount = dispute.Amount,
-                Reason = dispute.Reason,
+                Reason = dispute.Reason.ToString(),
                 FlaggedDate = dispute.CreatedAt,
-                Status = dispute.Status
+                Status = dispute.Status.ToString()
             };
 
             return new ServerResponse<DisputeDto>

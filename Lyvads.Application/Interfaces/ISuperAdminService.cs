@@ -14,5 +14,6 @@ public interface ISuperAdminService
     Task<ServerResponse<string>> DeleteUser(string userId);
     Task<ServerResponse<string>> DisableUser(string userId);
     Task<ServerResponse<string>> ActivateUserAsync(string userId);
+    Task<ServerResponse<string>> ToggleUserStatusAsync(string userId);
 
 }

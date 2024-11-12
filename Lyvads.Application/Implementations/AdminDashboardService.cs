@@ -278,6 +278,65 @@ public class AdminDashboardService : IAdminUserService
         };
     }
 
+    public async Task<ServerResponse<TPRevenueReportDto>> GetRevenueReport(string timePeriod)
+    {
+        var now = DateTime.UtcNow;
+        decimal totalRevenue;
+
+        switch (timePeriod.ToLower())
+        {
+            case "yearly":
+                totalRevenue = await _transactionRepository
+                    .GetAllPayments()
+                    .Where(p => p.CreatedAt.Year == now.Year)
+                    .SumAsync(p => p.Amount);
+                break;
+
+            case "monthly":
+                totalRevenue = await _transactionRepository
+                    .GetAllPayments()
+                    .Where(p => p.CreatedAt.Year == now.Year && p.CreatedAt.Month == now.Month)
+                    .SumAsync(p => p.Amount);
+                break;
+
+            case "weekly":
+                totalRevenue = await _transactionRepository
+                    .GetAllPayments()
+                    .Where(p => p.CreatedAt >= now.AddDays(-7))
+                    .SumAsync(p => p.Amount);
+                break;
+
+            case "daily":
+                totalRevenue = await _transactionRepository
+                    .GetAllPayments()
+                    .Where(p => p.CreatedAt.Date == now.Date)
+                    .SumAsync(p => p.Amount);
+                break;
+
+            default:
+                _logger.LogWarning("Invalid time period specified: {TimePeriod}", timePeriod);
+                return new ServerResponse<TPRevenueReportDto>
+                {
+                    IsSuccessful = false,
+                    ResponseMessage = "Invalid time period. Please specify 'yearly', 'monthly', 'weekly', or 'daily'."
+                };
+        }
+
+        var revenueReport = new TPRevenueReportDto
+        {
+            TotalRevenue = totalRevenue,
+            TimePeriod = timePeriod
+        };
+
+        _logger.LogInformation("{TimePeriod} revenue report retrieved successfully.", timePeriod);
+        return new ServerResponse<TPRevenueReportDto>
+        {
+            IsSuccessful = true,
+            Data = revenueReport
+        };
+    }
+
+
     public async Task<ServerResponse<List<TopRequestDto>>> GetTopRequests()
     {
         var requests = await _requestRepository.GetRequests()
@@ -286,6 +345,7 @@ public class AdminDashboardService : IAdminUserService
                 r.RegularUserId,
                 r.RegularUser!.ApplicationUser!.FirstName,
                 r.RegularUser.ApplicationUser!.LastName,
+                r.RegularUser.ApplicationUser.ImageUrl,
                 r.RequestType,
                 TransactionAmount = r.Transactions.Sum(t => t.Amount)
             })
@@ -297,6 +357,7 @@ public class AdminDashboardService : IAdminUserService
             {
                 RegularUser = g.First().FirstName + " " + g.First().LastName,
                 RequestType = g.Key.RequestType.ToString(),
+                ProfilePic = g.First().ImageUrl,
                 RequestCount = g.Count(),
                 TotalAmount = g.Sum(x => x.TransactionAmount),
                 TimePeriod = DateTime.UtcNow
@@ -314,23 +375,32 @@ public class AdminDashboardService : IAdminUserService
 
     public async Task<ServerResponse<List<TopCreatorDto>>> GetTopCreators()
     {
-        var topCreators = await _creatorRepository.GetCreators()
+        var creatorsData = await _creatorRepository.GetCreators()
             .Include(c => c.Collaborations)
-            .GroupBy(c => new
+            .Select(c => new
             {
-                c.ApplicationUser!.FirstName,
-                c.ApplicationUser.LastName,
-                c.ApplicationUser.Occupation
+                CreatorId = c.Id,
+                CreatorName = c.ApplicationUser!.FirstName + " " + c.ApplicationUser.LastName,
+                ProfilePic = c.ApplicationUser.ImageUrl,
+                Industry = c.ApplicationUser.Occupation,
+                NumberOfCollaborations = c.Collaborations.Count,
+                TotalAmountEarned = c.Collaborations.Sum(collab => collab.Amount)
             })
+            .ToListAsync();
+
+        var topCreators = creatorsData
+            .GroupBy(c => new { c.CreatorId, c.CreatorName, c.ProfilePic, c.Industry })
             .Select(g => new TopCreatorDto
             {
-                CreatorName = g.Key.FirstName + " " + g.Key.LastName,
-                Industry = g.Key.Occupation,
-                NumberOfCollaborations = g.Sum(c => c.Collaborations.Count),
-                TotalAmountEarned = g.Sum(c => c.Collaborations.Sum(collab => collab.Amount)),
+                CreatorId = g.Key.CreatorId,
+                CreatorName = g.Key.CreatorName,
+                ProfilePic = g.Key.ProfilePic,
+                Industry = g.Key.Industry,
+                NumberOfCollaborations = g.Sum(c => c.NumberOfCollaborations),
+                TotalAmountEarned = g.Sum(c => c.TotalAmountEarned)
             })
             .OrderByDescending(c => c.NumberOfCollaborations)
-            .ToListAsync();
+            .ToList();
 
         _logger.LogInformation("Top creators retrieved successfully.");
         return new ServerResponse<List<TopCreatorDto>>
@@ -340,7 +410,8 @@ public class AdminDashboardService : IAdminUserService
         };
     }
 
-    public async Task<ServerResponse<CollaborationStatusReportDto>> GetCollaborationStatusesReport()
+
+    public async Task<ServerResponse<List<CollaborationStatusDto>>> GetCollaborationStatusesReport()
     {
         var now = DateTime.UtcNow;
 
@@ -356,20 +427,59 @@ public class AdminDashboardService : IAdminUserService
             .Where(c => c.Status == CollaborationStatus.Declined && c.CreatedAt.Year == now.Year)
             .CountAsync();
 
-        var collaborationStatusReport = new CollaborationStatusReportDto
-        {
-            SuccessfulCollaborations = successfulCollaborations,
-            PendingCollaborations = pendingCollaborations,
-            DeclinedCollaborations = declinedCollaborations
-        };
+        var collaborationStatusReport = new List<CollaborationStatusDto>
+    {
+        new CollaborationStatusDto { Name = "SuccessfulCollaborations", Value = successfulCollaborations },
+        new CollaborationStatusDto { Name = "PendingCollaborations", Value = pendingCollaborations },
+        new CollaborationStatusDto { Name = "DeclinedCollaborations", Value = declinedCollaborations }
+    };
 
         _logger.LogInformation("Collaboration statuses report retrieved successfully.");
-        return new ServerResponse<CollaborationStatusReportDto>
+        return new ServerResponse<List<CollaborationStatusDto>>
         {
             IsSuccessful = true,
             Data = collaborationStatusReport
         };
     }
 
+    public async Task<ServerResponse<MonthlyRevenueReportDto>> GetMonthlyRevenueReportAsync(int year)
+    {
+        var monthlyRevenueData = await _transactionRepository
+            .GetAllPayments()
+            .Where(p => p.CreatedAt.Year == year)
+            .GroupBy(p => p.CreatedAt.Month)
+            .Select(g => new MonthlyRevenueDto
+            {
+                Month = g.Key,
+                TotalRevenue = g.Sum(p => p.Amount)
+            })
+            .ToListAsync();
+
+        // Ensure all months are included, with 0 revenue for months with no transactions
+        var fullMonthlyRevenue = Enumerable.Range(1, 12)
+            .Select(month => new MonthlyRevenueDto
+            {
+                Month = month,
+                TotalRevenue = monthlyRevenueData.FirstOrDefault(m => m.Month == month)?.TotalRevenue ?? 0
+            })
+            .ToList();
+
+        // Calculate Grand Total Revenue for the year
+        var grandTotalRevenue = fullMonthlyRevenue.Sum(m => m.TotalRevenue);
+
+        var revenueReport = new MonthlyRevenueReportDto
+        {
+            Year = year,
+            MonthlyRevenue = fullMonthlyRevenue,
+            GrandTotalRevenue = grandTotalRevenue
+        };
+
+        _logger.LogInformation("Monthly revenue report for year {Year} retrieved successfully.", year);
+        return new ServerResponse<MonthlyRevenueReportDto>
+        {
+            IsSuccessful = true,
+            Data = revenueReport
+        };
+    }
 
 }

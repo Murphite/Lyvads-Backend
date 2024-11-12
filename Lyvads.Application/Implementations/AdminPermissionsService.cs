@@ -1,5 +1,7 @@
 ﻿
 
+using CloudinaryDotNet.Actions;
+using Lyvads.Application.Dtos.AuthDtos;
 using Lyvads.Application.Dtos.SuperAdminDtos;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Constants;
@@ -19,23 +21,29 @@ public class AdminPermissionsService : IAdminPermissionsService
     private readonly IActivityLogRepository _activityLogRepository;
     private readonly ILogger<AdminPermissionsService> _logger;
     private readonly IAdminRepository _adminRepository;
+    private readonly ISuperAdminRepository _superAdminRepository;
+    private readonly IRepository _repository;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public AdminPermissionsService(IActivityLogRepository activityLogRepository,
         ILogger<AdminPermissionsService> logger,
         IAdminRepository adminRepository,
+        ISuperAdminRepository superAdminRepository,
+        IRepository repository,
         UserManager<ApplicationUser> userManager)
     {
         _activityLogRepository = activityLogRepository;
         _logger = logger;
         _adminRepository = adminRepository;
+        _superAdminRepository = superAdminRepository;
+        _repository = repository;
         _userManager = userManager;
     }
 
 
     public async Task<ServerResponse<List<AdminUserDto>>> GetAllAdminUsersAsync()
     {
-        var admins = await _adminRepository.GetAllAdminsAsync(); // Fetch all Admin and SuperAdmin
+        var admins = await _adminRepository.GetAllAdminsAsync();
 
         if (admins == null || !admins.Any())
         {
@@ -62,7 +70,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 FirstName = a.FirstName,
                 LastName = a.LastName,
                 Email = a.Email,
-                Role = role,
+                Role = role.ToString(),
                 LastActive = a.UpdatedAt,
                 IsActive = a.IsActive
             });
@@ -78,12 +86,30 @@ public class AdminPermissionsService : IAdminPermissionsService
     }
 
 
-    public async Task<ServerResponse<AdminPermissionsDto>> GrantPermissionsToAdminAsync(string adminUserId,
-        AdminPermissionsDto permissionsDto, string requestingAdminId)
+    public async Task<ServerResponse<AdminPermissionsDto>> GrantPermissionsToAdminAsync(string superAdminUserId,
+     AdminPermissionsDto permissionsDto, string targetAdminId)
     {
-        // Check if the requesting user is a SuperAdmin
-        var requestingAdmin = await _userManager.FindByIdAsync(requestingAdminId);
-        if (requestingAdmin == null || !(await _userManager.IsInRoleAsync(requestingAdmin, AdminRoleType.SuperAdmin.ToString())))
+        
+        var targetAdmin = await _userManager.FindByIdAsync(targetAdminId);
+        var superAdmin = await _userManager.FindByIdAsync(superAdminUserId);
+
+        // Check for the target admin user
+        if (targetAdmin == null)
+        {
+            return new ServerResponse<AdminPermissionsDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Target admin user not found.",
+                Data = null!
+            };
+        }
+
+        // Check if the requesting admin is a SuperAdmin
+
+        //if (!(await _userManager.GetRolesAsync(superAdmin)
+        var roles = await _userManager.GetRolesAsync(superAdmin!);
+        if (roles == null || !roles.Contains("SuperAdmin"))
         {
             return new ServerResponse<AdminPermissionsDto>
             {
@@ -95,8 +121,8 @@ public class AdminPermissionsService : IAdminPermissionsService
         }
 
         // Find the admin user who will receive the permissions
-        var adminUser = await _userManager.FindByIdAsync(adminUserId);
-        if (adminUser == null)
+       // var adminUser = await _userManager.FindByIdAsync(targetAdmin);
+        if (targetAdmin == null)
         {
             return new ServerResponse<AdminPermissionsDto>
             {
@@ -107,7 +133,7 @@ public class AdminPermissionsService : IAdminPermissionsService
             };
         }
 
-        if (!adminUser.IsActive)
+        if (!targetAdmin.IsActive)
         {
             return new ServerResponse<AdminPermissionsDto>
             {
@@ -119,8 +145,8 @@ public class AdminPermissionsService : IAdminPermissionsService
         }
 
         // Check if the adminUser is actually an Admin or SuperAdmin
-        var isAdminOrSuperAdmin = await _userManager.IsInRoleAsync(adminUser, AdminRoleType.Admin.ToString())
-                                    || await _userManager.IsInRoleAsync(adminUser, AdminRoleType.SuperAdmin.ToString());
+        var isAdminOrSuperAdmin = await _userManager.IsInRoleAsync(targetAdmin, AdminRoleType.Admin.ToString()) ||
+                                  await _userManager.IsInRoleAsync(targetAdmin, AdminRoleType.SuperAdmin.ToString());
 
         if (!isAdminOrSuperAdmin)
         {
@@ -133,22 +159,41 @@ public class AdminPermissionsService : IAdminPermissionsService
             };
         }
 
-        // Logic to update permissions for the admin user
-        var permissions = new AdminPermission
-        {
-            ApplicationUserId = adminUserId,
-            CanManageAdminRoles = permissionsDto.CanManageAdminRoles,
-            CanManageUsers = permissionsDto.CanManageUsers,
-            CanManageRevenue = permissionsDto.CanManageRevenue,
-            CanManageUserAds = permissionsDto.CanManageUserAds,
-            CanManageCollaborations = permissionsDto.CanManageCollaborations,
-            CanManagePosts = permissionsDto.CanManagePosts,
-            CanManageDisputes = permissionsDto.CanManageDisputes,
-            CanManagePromotions = permissionsDto.CanManagePromotions
-        };
+        // Logic to update or create permissions for the admin user
+        var existingPermissions = await _adminRepository.GetByUserIdAsync(superAdminUserId); 
 
-        // Save the permissions to the database
-        await _adminRepository.AddAsync(permissions);
+        if (existingPermissions != null)
+        {
+            // Update the existing permissions
+            existingPermissions.CanManageAdminRoles = permissionsDto.CanManageAdminRoles;
+            existingPermissions.CanManageUsers = permissionsDto.CanManageUsers;
+            existingPermissions.CanManageRevenue = permissionsDto.CanManageRevenue;
+            existingPermissions.CanManageUserAds = permissionsDto.CanManageUserAds;
+            existingPermissions.CanManageCollaborations = permissionsDto.CanManageCollaborations;
+            existingPermissions.CanManagePosts = permissionsDto.CanManagePosts;
+            existingPermissions.CanManageDisputes = permissionsDto.CanManageDisputes;
+            existingPermissions.CanManagePromotions = permissionsDto.CanManagePromotions;
+
+            await _adminRepository.UpdateAsync(existingPermissions);  
+        }
+        else
+        {
+            // If no existing permissions, create new ones
+            var permissions = new AdminPermission
+            {
+                ApplicationUserId = targetAdminId,
+                CanManageAdminRoles = permissionsDto.CanManageAdminRoles,
+                CanManageUsers = permissionsDto.CanManageUsers,
+                CanManageRevenue = permissionsDto.CanManageRevenue,
+                CanManageUserAds = permissionsDto.CanManageUserAds,
+                CanManageCollaborations = permissionsDto.CanManageCollaborations,
+                CanManagePosts = permissionsDto.CanManagePosts,
+                CanManageDisputes = permissionsDto.CanManageDisputes,
+                CanManagePromotions = permissionsDto.CanManagePromotions
+            };
+
+            await _adminRepository.AddAsync(permissions);  
+        }
 
         // Return the granted permissions in the response
         return new ServerResponse<AdminPermissionsDto>
@@ -160,34 +205,10 @@ public class AdminPermissionsService : IAdminPermissionsService
         };
     }
 
+
     public async Task<ServerResponse<string>> CreateCustomRoleAsync(string roleName, AdminPermissionsDto permissionsDto)
     {
-        // Validate if the role name is within the allowed roles
-        var validRoles = new[] { RolesConstant.Admin, RolesConstant.SuperAdmin }; // Add more valid roles if needed
-
-        if (!validRoles.Contains(roleName))
-        {
-            return new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "400",
-                ResponseMessage = "Invalid role name.",
-                Data = null!
-            };
-        }
-
-        // Check if the role already exists in the repository
-        var existingRole = await _adminRepository.GetRoleByNameAsync(roleName);
-        if (existingRole != null)
-        {
-            return new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "400",
-                ResponseMessage = "Role already exists.",
-                Data = null!
-            };
-        }
+        var role = roleName?.ToUpperInvariant();      
 
         // Create a new AdminRole entity
         var newRole = new AdminRole
@@ -226,82 +247,179 @@ public class AdminPermissionsService : IAdminPermissionsService
     }
 
 
-    public async Task<EditAdminUserDto> EditAdminUserAsync(EditAdminUserDto editAdminUserDto)
+    public async Task<ServerResponse<EditResponseAdminUserDto>> EditAdminUserAsync(string adminUserId, EditAdminUserDto editAdminUserDto)
     {
-        // Check if the editAdminUserDto.Id is null or empty
-        if (string.IsNullOrEmpty(editAdminUserDto.Id))
+        if (string.IsNullOrEmpty(adminUserId))
         {
-            return null!; // Handle the error by returning null or throwing an exception based on your design
+            return new ServerResponse<EditResponseAdminUserDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Admin User ID cannot be null or empty.",
+                Data = null!
+            };
         }
 
-        var adminUser = await _userManager.FindByIdAsync(editAdminUserDto.Id);
+        var adminUser = await _adminRepository.GetAdminByIdAsync(adminUserId); 
         if (adminUser == null)
         {
-            return null!; // Return null if user is not found, or handle the error appropriately
+            return new ServerResponse<EditResponseAdminUserDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Admin user not found.",
+                Data = null!
+            };
         }
 
-        // Update basic user information
         adminUser.FirstName = editAdminUserDto.FirstName!;
         adminUser.LastName = editAdminUserDto.LastName!;
 
-        // Get current roles of the admin user
         var currentRoles = await _userManager.GetRolesAsync(adminUser);
-
-        // Remove the user from all current roles
         if (currentRoles.Count > 0)
         {
             await _userManager.RemoveFromRolesAsync(adminUser, currentRoles);
         }
 
-        // Add the user to the new role based on the provided AdminRoleType
         await _userManager.AddToRoleAsync(adminUser, editAdminUserDto.Role.ToString());
-
-        // Update the IsActive status
         adminUser.IsActive = editAdminUserDto.IsActive;
-
-        // Save the changes to the user
         await _userManager.UpdateAsync(adminUser);
 
-        // Return the updated DTO
-        return new EditAdminUserDto
+        return new ServerResponse<EditResponseAdminUserDto>
         {
-            Id = adminUser.Id,
-            FirstName = adminUser.FirstName,
-            LastName = adminUser.LastName,
-            Role = editAdminUserDto.Role,
-            IsActive = adminUser.IsActive
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Admin user updated successfully.",
+            Data = new EditResponseAdminUserDto
+            {
+                Id = adminUserId,
+                FirstName = adminUser.FirstName,
+                LastName = adminUser.LastName,
+                Role = editAdminUserDto.Role.ToString(),
+                IsActive = adminUser.IsActive
+            }
         };
     }
 
-    public async Task<AddAdminUserDto> AddAdminUserAsync(AddAdminUserDto addAdminUserDto)
+
+    public async Task<ServerResponse<AddAdminUserDto>> AddAdminUserAsync(AddAdminUserDto addAdminUserDto)
     {
-        var newAdminUser = new ApplicationUser
+        using (var transaction = await _repository.BeginTransactionAsync())
         {
-            FirstName = addAdminUserDto.FirstName!,
-            LastName = addAdminUserDto.LastName!,
-            Email = addAdminUserDto.Email,
-            IsActive = true,
-            CreatedAt = DateTime.Now
-        };
 
-        var result = await _userManager.CreateAsync(newAdminUser, addAdminUserDto.Password!);
-        if (!result.Succeeded)
-        {
-            return null!;
+            var newAdminUser = new ApplicationUser
+            {
+                FirstName = addAdminUserDto.FirstName!,
+                LastName = addAdminUserDto.LastName!,
+                Email = addAdminUserDto.Email,
+                UserName = addAdminUserDto.Email,
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow,
+                PublicId = Guid.NewGuid().ToString(),
+                IsActive = true,
+            };
+
+            var result = await _userManager.CreateAsync(newAdminUser, addAdminUserDto.Password!);
+            if (!result.Succeeded)
+            {
+                return new ServerResponse<AddAdminUserDto>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = "400",
+                    ResponseMessage = "Failed to create user.",
+                    Data = null
+                };
+            }
+
+            result = await _userManager.AddToRoleAsync(newAdminUser, addAdminUserDto.Role!.ToString());
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Error occurred while assigning role to user {UserEmail}", addAdminUserDto.Email);
+                return new ServerResponse<AddAdminUserDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "500",
+                        ResponseMessage = "Role Assignment Failed",
+                        ResponseDescription = string.Join(", ", result.Errors.Select(e => e.Description))
+                    }
+                };
+            }
+
+            var role = addAdminUserDto.Role?.ToUpperInvariant();
+
+
+            // Add the user to the corresponding role repository
+            switch (role)
+            {
+                case RolesConstant.Admin:
+                    await _adminRepository.AddAsync(new Admin
+                    {
+                        ApplicationUserId = newAdminUser.Id,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        UpdatedAt = DateTimeOffset.UtcNow,
+                        ApplicationUser = newAdminUser
+                    });
+                    break;
+
+                case RolesConstant.SuperAdmin:
+                    await _superAdminRepository.AddAsync(new SuperAdmin
+                    {
+                        ApplicationUserId = newAdminUser.Id,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        UpdatedAt = DateTimeOffset.UtcNow,
+                        ApplicationUser = newAdminUser
+                    });
+                    break;
+            }
+                    await transaction.CommitAsync();
+
+            return new ServerResponse<AddAdminUserDto>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Admin user created successfully.",
+                Data = new AddAdminUserDto
+                {
+                    UserId = newAdminUser.Id,
+                    FirstName = newAdminUser.FirstName,
+                    LastName = newAdminUser.LastName,
+                    Email = newAdminUser.Email,
+                    Password = addAdminUserDto.Password,
+                    Role = role
+                }
+            };
         }
-
-        // Assign the initial role (Admin or SuperAdmin) after creation
-        await _userManager.AddToRoleAsync(newAdminUser, addAdminUserDto.Role.ToString());
-
-        // Return the created DTO
-        return new AddAdminUserDto
-        {
-            FirstName = newAdminUser.FirstName,
-            LastName = newAdminUser.LastName,
-            Email = newAdminUser.Email,
-            Role = addAdminUserDto.Role
-        };
     }
 
 
 }
+
+
+//// Validate if the role name is within the allowed roles
+//var validRoles = new[] { RolesConstant.Admin, RolesConstant.SuperAdmin }; 
+
+//if (!validRoles.Contains(role))
+//{
+//    return new ServerResponse<string>
+//    {
+//        IsSuccessful = false,
+//        ResponseCode = "400",
+//        ResponseMessage = "Invalid role name.",
+//        Data = null!
+//    };
+//}
+
+// Check if the role already exists in the repository
+//var existingRole = await _adminRepository.GetRoleByNameAsync(roleName);
+//if (existingRole != null)
+//{
+//    return new ServerResponse<string>
+//    {
+//        IsSuccessful = false,
+//        ResponseCode = "400",
+//        ResponseMessage = "Role already exists.",
+//        Data = null!
+//    };
+//}

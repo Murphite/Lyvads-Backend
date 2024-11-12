@@ -42,7 +42,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Impression> Impressions { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
     public DbSet<Follow> Follows { get; set; }
-    public DbSet<CollaborationRate> CollabRates { get; set; }
     public DbSet<RegularUser> RegularUsers { get; set; }
     public DbSet<Media> Media { get; set; }
 
@@ -110,6 +109,18 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasMany(p => p.Likes)
             .WithOne(l => l.Post)
             .HasForeignKey(l => l.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Post>()
+            .HasOne(p => p.Creator)
+            .WithMany(c => c.Posts)
+            .HasForeignKey(p => p.CreatorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Post>()
+            .HasMany(p => p.MediaFiles)
+            .WithOne(m => m.Post)
+            .HasForeignKey(m => m.PostId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Request and Deal Configuration

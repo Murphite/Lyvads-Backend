@@ -12,6 +12,19 @@ public class UpdateCreatorProfileDto
     public string? Request { get; set; }
 }
 
+public class RateDto
+{
+    public string RateId { get; set; } = string.Empty; // Only for response
+    public string Type { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+}
+
+public class UpdateCreatorRateDto
+{
+    public List<RateDto> Rates { get; set; } = new List<RateDto>();
+
+}
+
 public class UpdateRegularUserProfileDto
 {
     public string? FullName { get; set; }

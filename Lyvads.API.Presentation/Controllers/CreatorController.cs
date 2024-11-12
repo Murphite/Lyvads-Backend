@@ -36,11 +36,10 @@ public class CreatorController : ControllerBase
         _logger = logger;
         _mediaService = mediaService;
     }
+        
 
-    
-
-    [HttpPut("update-creator-setUpRates")]
-    public async Task<IActionResult> UpdateCreatorSetUpRates([FromBody] UpdateCreatorProfileDto dto)
+    [HttpPost("update-creator-rates")]
+    public async Task<IActionResult> UpdateCreatorRates([FromBody] UpdateCreatorRateDto dto)
     {
         // Get the logged-in user's ID
         var user = await _userManager.GetUserAsync(User);
@@ -48,14 +47,29 @@ public class CreatorController : ControllerBase
             return NotFound("User not found.");
 
         // Call the service to update the creator profile
-        var result = await _creatorService.UpdateCreatorSetUpRatesAsync(dto, user.Id);
+        var result = await _creatorService.UpdateCreatorRatesAsync(dto, user.Id);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
+        return Ok(result);
+    }
 
-        // Return the updated profile data
-        return Ok(ResponseDto<CreatorProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
+    [HttpDelete("delete-creator-rate")]
+    public async Task<IActionResult> DeleteCreatorRates([FromQuery] string rateId)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return NotFound("User not found.");
+
+        // Call the service to update the creator profile
+        var result = await _creatorService.DeleteCreatorRateAsync(rateId, user.Id);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
     }
 
     //[HttpPost("CreatePost")]
@@ -127,7 +141,7 @@ public class CreatorController : ControllerBase
     }
 
 
-    [HttpPut("update-post/{postId}")]
+    [HttpPost("update-post/{postId}")]
     [Authorize(Roles = "Creator")]
     public async Task<IActionResult> UpdatePost(string postId, [FromForm] UpdatePostDto postDto,
     [FromQuery] PostVisibility visibility, [FromForm] List<IFormFile> mediaFiles)
@@ -236,35 +250,7 @@ public class CreatorController : ControllerBase
     }
 
     
-    //[HttpPost("likeComment")]
-    //public async Task<IActionResult> LikeComment(string commentId)
-    //{
-    //    var user = await _userManager.GetUserAsync(User);
-    //    if (user == null)
-    //        return Unauthorized("User not found or unauthorized.");
-    //    var result = await _creatorService.LikeCommentAsync(commentId, user.Id);
-
-    //    if (!result.IsSuccessful)
-    //        return BadRequest(result.ErrorResponse);
-
-
-    //    return Ok(result);
-    //}
-
-
-    //[HttpPost("likePost")]
-    //public async Task<IActionResult> LikePost(string postId)
-    //{
-    //    var user = await _userManager.GetUserAsync(User);
-    //    if (user == null)
-    //        return Unauthorized("User not found or unauthorized.");
-    //    var result = await _creatorService.LikePostAsync(postId, user.Id);
-
-    //    if (!result.IsSuccessful)
-    //        return BadRequest(result.ErrorResponse);
-
-    //    return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
-    //}
+   
 
     
     [HttpGet("wallet-balance")]
@@ -282,6 +268,75 @@ public class CreatorController : ControllerBase
     }
 
     
+   
+    [HttpPost("handle-request")]
+    public async Task<IActionResult> HandleRequest(string requestId, RequestStatus status)
+    {
+        var result = await _creatorService.HandleRequestAsync(requestId, status);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+
+    
+    
+    [HttpGet("notifications")]
+    public async Task<IActionResult> GetNotifications()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+
+        var result = await _creatorService.GetNotificationsAsync(user.Id);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+
+    [HttpPost("WithdrawFundsToBankAccount")]
+    public async Task<IActionResult> WithdrawFunds([FromBody] WithdrawFundsDto withdrawFundsDto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized("User not authenticated.");
+        }
+
+        var result = await _creatorService.WithdrawFundsToBankAccountAsync(userId, withdrawFundsDto.Amount, withdrawFundsDto.BankCardId);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+
+    public class WithdrawFundsDto
+    {
+        public decimal Amount { get; set; }
+        public string BankCardId { get; set; } = string.Empty; // Assuming this is a required field
+    }
+
+    //[HttpPost("withdraw-to-bankAccount")]
+    //public async Task<IActionResult> WithdrawToBankAccount([FromBody] WithdrawRequestDto request)
+    //{
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
+    //        return Unauthorized("User not found or unauthorized.");
+    //    var result = await _creatorService.WithdrawToBankAccountAsync(user.Id, request.Amount, request.Currency);
+
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
+
+    //    return Ok(result);
+    //}
+
     //[HttpPost("send-video")]
     //public async Task<IActionResult> SendVideoToUser(string requestId, [FromForm] UploadVideo videoDto)
     //{
@@ -327,71 +382,55 @@ public class CreatorController : ControllerBase
     //    return validExtensions.Contains(extension);
     //}
 
-    [HttpPost("handle-request")]
-    public async Task<IActionResult> HandleRequest(string requestId, RequestStatus status)
-    {
-        var result = await _creatorService.HandleRequestAsync(requestId, status);
 
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }
-
-
-    //[HttpPost("withdraw-to-bankAccount")]
-    //public async Task<IActionResult> WithdrawToBankAccount([FromBody] WithdrawRequestDto request)
+    //[HttpPost("likeComment")]
+    //public async Task<IActionResult> LikeComment(string commentId)
     //{
     //    var user = await _userManager.GetUserAsync(User);
     //    if (user == null)
     //        return Unauthorized("User not found or unauthorized.");
-    //    var result = await _creatorService.WithdrawToBankAccountAsync(user.Id, request.Amount, request.Currency);
+    //    var result = await _creatorService.LikeCommentAsync(commentId, user.Id);
 
     //    if (!result.IsSuccessful)
     //        return BadRequest(result.ErrorResponse);
 
+
     //    return Ok(result);
     //}
 
-    
-    [HttpGet("notifications")]
-    public async Task<IActionResult> GetNotifications()
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not found or unauthorized.");
 
-        var result = await _creatorService.GetNotificationsAsync(user.Id);
+    //[HttpPost("likePost")]
+    //public async Task<IActionResult> LikePost(string postId)
+    //{
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
+    //        return Unauthorized("User not found or unauthorized.");
+    //    var result = await _creatorService.LikePostAsync(postId, user.Id);
 
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
 
-        return Ok(result);
-    }
-
-
-    [HttpPost("WithdrawFundsToBankAccount")]
-    public async Task<IActionResult> WithdrawFunds([FromBody] WithdrawFundsDto withdrawFundsDto)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
-            return Unauthorized("User not authenticated.");
-        }
-
-        var result = await _creatorService.WithdrawFundsToBankAccountAsync(userId, withdrawFundsDto.Amount, withdrawFundsDto.BankCardId);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }
+    //    return Ok(ResponseDto<LikeResponseDto>.Success(result.Data, "Comment liked successfully."));
+    //}
 
 
-    public class WithdrawFundsDto
-    {
-        public decimal Amount { get; set; }
-        public string BankCardId { get; set; } = string.Empty; // Assuming this is a required field
-    }
+    //[HttpPut("update-creator-setUpRates")]
+    //public async Task<IActionResult> UpdateCreatorSetUpRates([FromBody] UpdateCreatorProfileDto dto)
+    //{
+    //    // Get the logged-in user's ID
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
+    //        return NotFound("User not found.");
+
+    //    // Call the service to update the creator profile
+    //    var result = await _creatorService.UpdateCreatorSetUpRatesAsync(dto, user.Id);
+
+    //    if (!result.IsSuccessful)
+    //        return BadRequest(result.ErrorResponse);
+
+
+    //    // Return the updated profile data
+    //    return Ok(ResponseDto<CreatorProfileResponseDto>.Success(result.Data, "Profile updated successfully."));
+    //}
 
 }

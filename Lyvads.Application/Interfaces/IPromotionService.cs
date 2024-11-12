@@ -12,5 +12,6 @@ public interface IPromotionService
     Task<ServerResponse<PromotionDto>> AddPromotion(CreatePromotionDto createPromotionDto);
     Task<ServerResponse<PromotionDto>> UpdatePromotion(string promotionId, UpdatePromotionDto updatePromotionDto);
     Task<ServerResponse<object>> DeletePromotion(string promotionId);
-    Task<ServerResponse<object>> TogglePromotionVisibility(string promotionId, bool hide);
+    Task<ServerResponse<object>> TogglePromotionVisibility(string promotionId);
+    Task<ServerResponse<List<PromotionDto>>> GetAllPromotions(bool? isHidden = null);
 }

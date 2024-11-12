@@ -10,9 +10,9 @@ public class DisputeDto
     public string? RegularUserName { get; set; }
     public string? CreatorName { get; set; }
     public decimal Amount { get; set; }
-    public DisputeReasons? Reason { get; set; }
+    public string? Reason { get; set; }
     public DateTimeOffset FlaggedDate { get; set; }
-    public DisputeStatus Status { get; set; }
+    public string? Status { get; set; }
 }
 
 public class FetchDisputeDto

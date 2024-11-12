@@ -20,9 +20,17 @@ public class RevenueReportDto
     public decimal DailyRevenue { get; set; }
 }
 
+public class TPRevenueReportDto
+{
+    public decimal TotalRevenue { get; set; }
+    public string TimePeriod { get; set; }
+}
+
+
 public class TopRequestDto
 {
     public string? RegularUser { get; set; }
+    public string? ProfilePic { get; set; }
     public string? RequestType { get; set; }
     public int RequestCount { get; set; }
     public decimal TotalAmount { get; set; }
@@ -31,7 +39,9 @@ public class TopRequestDto
 
 public class TopCreatorDto
 {
+    public string? CreatorId { get; set; }
     public string? CreatorName { get; set; }
+    public string? ProfilePic { get; set; }
     public string? Industry { get; set; }
     public int NumberOfCollaborations { get; set; }
     public decimal TotalAmountEarned { get; set; }
@@ -44,3 +54,24 @@ public class CollaborationStatusReportDto
     public int DeclinedCollaborations { get; set; }
     public DateTime TimePeriod { get; set; }
 }
+
+public class CollaborationStatusDto
+{
+    public string? Name { get; set; }
+    public int Value { get; set; }
+}
+
+
+public class MonthlyRevenueReportDto
+{
+    public int Year { get; set; }
+    public List<MonthlyRevenueDto>? MonthlyRevenue { get; set; }
+    public decimal GrandTotalRevenue { get; set; }
+}
+
+public class MonthlyRevenueDto
+{
+    public int Month { get; set; }  // 1 = Jan, 2 = Feb, ..., 12 = Dec
+    public decimal TotalRevenue { get; set; }
+}
+

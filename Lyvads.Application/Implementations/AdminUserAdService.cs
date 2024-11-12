@@ -147,4 +147,76 @@ public class AdminUserAdService : IUserAdService
             };
         }
     }
+
+    public async Task<ServerResponse<string>> ToggleAdStatusAsync(string adId)
+    {
+        try
+        {
+            // Fetch the ad by its ID
+            var ad = await _userAdRepository.GetByIdAsync(adId);
+            if (ad == null)
+            {
+                return new ServerResponse<string>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "404",
+                        ResponseMessage = "Ad not found"
+                    }
+                };
+            }
+
+            // Toggle the ad's status
+            if (ad.Status == UserAdStatus.Approved)
+            {
+                // If ad is approved, decline it
+                ad.Status = UserAdStatus.Declined;
+                _logger.LogInformation($"Ad with ID {adId} has been declined.");
+            }
+            else if (ad.Status == UserAdStatus.Declined)
+            {
+                // If ad is declined, approve it
+                ad.Status = UserAdStatus.Approved;
+                _logger.LogInformation($"Ad with ID {adId} has been approved.");
+            }
+            else
+            {
+                // If the ad is in any other state, consider it neutral and cannot toggle
+                return new ServerResponse<string>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = "400",
+                    ResponseMessage = "Ad cannot be toggled because its current status is neither approved nor declined."
+                };
+            }
+
+            // Update the ad status in the repository
+            await _userAdRepository.UpdateAsync(ad);
+
+            // Return a successful response
+            return new ServerResponse<string>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = ad.Status == UserAdStatus.Approved ? "Ad approved successfully" : "Ad declined successfully"
+            };
+        }
+        catch (Exception ex)
+        {
+            // Log and handle any errors
+            _logger.LogError(ex, "Error toggling ad status for Ad ID: {AdId}", adId);
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Internal Server Error",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
+    }
+
 }

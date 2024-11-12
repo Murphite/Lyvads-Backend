@@ -41,4 +41,11 @@ public class CreatorRepository : ICreatorRepository
     {
         return await _context.Creators.FirstOrDefaultAsync(r => r.ApplicationUserId == applicationUserId);
     }
+
+    public async Task<Creator> GetCreatorByIdWithApplicationUser(string id)
+    {
+        return await _context.Creators
+            .Include(r => r.ApplicationUser)
+            .FirstOrDefaultAsync(r => r.Id == id);
+    }
 }

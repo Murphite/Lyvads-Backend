@@ -7,7 +7,6 @@ public class Post : Entity, IAuditable
     public string Location { get; set; } = default!;
     public string CreatorId { get; set; } = default!;
     public bool IsDeleted { get; set; }
-
     public Creator Creator { get; set; } = default!;
     public PostVisibility Visibility { get; set; }
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();

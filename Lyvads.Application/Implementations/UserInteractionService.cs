@@ -68,207 +68,7 @@ public class UserInteractionService : IUserInteractionService
         _regularUserRepository = regularUserRepository;
     }
 
-    //public async Task<ServerResponse<string>> MakeRequestAsync(string creatorId, CreateRequestDto createRequestDto)
-    //{
-    //    try
-    //    {
-    //        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
-
-    //        if (user == null)
-    //        {
-    //            _logger.LogWarning("User not found.");
-    //            return new ServerResponse<string>
-    //            {
-    //                IsSuccessful = false,
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "User.Error",
-    //                    ResponseMessage = "User not found"
-    //                }
-    //            };
-    //        }
-
-    //        var isRegularUser = await _userManager.IsInRoleAsync(user, "RegularUser");
-    //        if (!isRegularUser)
-    //        {
-    //            _logger.LogWarning("User is not a regular user.");
-    //            return new ServerResponse<string>
-    //            {
-    //                IsSuccessful = false,
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "RegularUser.Error",
-    //                    ResponseMessage = "Regular User not found"
-    //                }
-    //            };
-    //        }
-
-    //        var creator = await _creatorRepository.GetCreatorByIdAsync(creatorId);
-    //        if (creator == null)
-    //        {
-    //            _logger.LogWarning("Creator not found.");
-    //            return new ServerResponse<string>
-    //            {
-    //                IsSuccessful = false,
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "Creator.Error",
-    //                    ResponseMessage = "Creator not found"
-    //                }
-    //            };
-    //        }
-
-    //        string? domain = _configuration.GetValue<string>("Lyvads_Client_URL");
-    //        if (string.IsNullOrEmpty(domain))
-    //        {
-    //            _logger.LogError("Client URL is not configured.");
-    //            return new ServerResponse<string>
-    //            {
-    //                IsSuccessful = false,
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "Configuration.Error",
-    //                    ResponseMessage = "Client URL is not configured."
-    //                }
-    //            };
-    //        }
-
-    //        Session session;
-
-    //        if (createRequestDto.PaymentMethod == PaymentMethod.ATMCard)
-    //        {
-    //            var paymentDto = new PaymentDTO
-    //            {
-    //                Amount = (int)(createRequestDto.Amount * 100),
-    //                ProductName = "Request Payment",
-    //                ReturnUrl = "/return-url"
-    //            };
-    //            session = await _paymentGatewayService.CreateCardPaymentSessionAsync(paymentDto, domain);
-    //        }
-    //        else if (createRequestDto.PaymentMethod == PaymentMethod.Wallet)
-    //        {
-    //            var walletBalance = await _walletService.GetBalanceAsync(user.Id);
-    //            if (walletBalance < createRequestDto.Amount)
-    //            {
-    //                _logger.LogWarning("Insufficient wallet balance.");
-    //                return new ServerResponse<string>
-    //                {
-    //                    IsSuccessful = false,
-    //                    ErrorResponse = new ErrorResponse
-    //                    {
-    //                        ResponseCode = "WalletBalance.Error",
-    //                        ResponseMessage = "Insufficient wallet balance."
-    //                    }
-    //                };
-    //            }
-
-    //            var result = await _walletService.DeductBalanceAsync(user.Id, createRequestDto.Amount);
-    //            if (result)
-    //            {
-    //                var request = new Request
-    //                {
-    //                    Script = createRequestDto.Script,
-    //                    CreatorId = creatorId,
-    //                    RegularUserId = user.Id,
-    //                    RequestType = createRequestDto.RequestType,
-    //                    CreatedAt = DateTimeOffset.UtcNow,
-    //                    UpdatedAt = DateTimeOffset.UtcNow,
-    //                    PaymentMethod = PaymentMethod.Wallet
-    //                };
-
-    //                var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
-    //                if (requestResultIsSuccess)
-    //                {
-    //                    _logger.LogInformation("Wallet payment successful and request created.");
-    //                    return new ServerResponse<string>
-    //                    {
-    //                        IsSuccessful = true,
-    //                        Data = "Wallet payment successful and request created"
-    //                    };
-    //                }
-
-    //                _logger.LogWarning("Failed to create request after wallet payment.");
-    //                return new ServerResponse<string>
-    //                {
-    //                    IsSuccessful = false,
-    //                    ErrorResponse = new ErrorResponse
-    //                    {
-    //                        ResponseCode = "CreateRequest.Error",
-    //                        ResponseMessage = "Failed to create request after wallet payment."
-    //                    }
-    //                };
-    //            }
-
-    //            _logger.LogWarning("Failed to process wallet payment.");
-    //            return new ServerResponse<string>
-    //            {
-    //                IsSuccessful = false,
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "WalletPayment.Error",
-    //                    ResponseMessage = "Failed to process wallet payment."
-    //                }
-    //            };
-    //        }
-    //        else if (createRequestDto.PaymentMethod == PaymentMethod.Online)
-    //        {
-    //            var paymentDto = new PaymentDTO
-    //            {
-    //                Amount = (int)(createRequestDto.Amount * 100),
-    //                ProductName = "Request Payment",
-    //                ReturnUrl = "/return-url"
-    //            };
-    //            session = await _paymentGatewayService.CreateOnlinePaymentSessionAsync(paymentDto, domain);
-    //        }
-    //        else
-    //        {
-    //            _logger.LogWarning("Unsupported payment method.");
-    //            return new ServerResponse<string>
-    //            {
-    //                IsSuccessful = false,
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "Payment.Error",
-    //                    ResponseMessage = "Unsupported payment method."
-    //                }
-    //            };
-    //        }
-
-    //        if (session == null)
-    //        {
-    //            _logger.LogWarning("Failed to create payment session.");
-    //            return new ServerResponse<string>
-    //            {
-    //                IsSuccessful = false,
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "Session.Error",
-    //                    ResponseMessage = "Failed to create payment session."
-    //                }
-    //            };
-    //        }
-
-    //        return new ServerResponse<string>
-    //        {
-    //            IsSuccessful = true,
-    //            Data = session.Id
-    //        };
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        _logger.LogError(e, "Error occurred while making request.");
-    //        return new ServerResponse<string>
-    //        {
-    //            IsSuccessful = false,
-    //            ErrorResponse = new ErrorResponse
-    //            {
-    //                ResponseCode = "Exception.Error",
-    //                ResponseMessage = e.Message
-    //            }
-    //        };
-    //    }
-    //}
-
+   
     public async Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId,
      AppPaymentMethod payment, CreateRequestDto createRequestDto)
     {
@@ -977,7 +777,7 @@ public class UserInteractionService : IUserInteractionService
         };
     }
 
-    public async Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string currency)
+    public async Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string? currency)
     {
         // Check if the user exists
         var user = await _userRepository.GetUserByIdAsync(userId);
@@ -1916,6 +1716,54 @@ public class UserInteractionService : IUserInteractionService
         };
     }
 
+    public async Task<ServerResponse<int>> GetCreatorsFollowingCountAsync(string userId)
+    {
+        var followingCount = await _userRepository.GetCreatorsFollowingCountAsync(userId);
+
+        return new ServerResponse<int>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = followingCount
+        };
+    }
+
+
+    public async Task<ServerResponse<int>> GetUsersFollowingCreatorCountAsync(string creatorId)
+    {
+        var followerCount = await _userRepository.GetUsersFollowingCreatorCountAsync(creatorId);
+
+        return new ServerResponse<int>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = followerCount
+        };
+    }
+
+
+    public async Task<ServerResponse<List<UserFollowerDto>>> GetUsersFollowingCreatorDetailsAsync(string creatorId)
+    {
+        var followers = await _userRepository.GetUsersFollowingCreatorDetailsAsync(creatorId);
+
+        if (followers == null || !followers.Any())
+        {
+            return new ServerResponse<List<UserFollowerDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "06",
+                ResponseMessage = "No followers found.",
+                Data = new List<UserFollowerDto>()
+            };
+        }
+
+        return new ServerResponse<List<UserFollowerDto>>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = followers
+        };
+    }
 
 
     //public async Task<ServerResponse<object>> CreateRequestAsync(CreateRequestDto createRequestDto)

@@ -10,6 +10,8 @@ namespace Lyvads.Application.Interfaces;
 
 public interface IUserInteractionService
 {
+    Task<ServerResponse<int>> GetUsersFollowingCreatorCountAsync(string creatorId);
+
     Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId, AppPaymentMethod payment,
        CreateRequestDto createRequestDto);
     Task<ServerResponse<CommentResponseDto>> EditCommentAsync(string commentId, string userId, string newContent);

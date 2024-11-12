@@ -11,6 +11,7 @@ using Lyvads.Application.Implementations;
 using Microsoft.AspNetCore.Identity;
 using Lyvads.Domain.Responses;
 using Lyvads.Shared.DTOs;
+using Lyvads.Application.Dtos.RegularUserDtos;
 
 namespace Lyvads.API.Controllers;
 
@@ -110,7 +111,7 @@ public class AuthController : ControllerBase
 
 
     [HttpPost("RegisterCreator")]
-    public async Task<IActionResult> RegisterCreator([FromBody] CompleteRegistrationDto dto)
+    public async Task<IActionResult> RegisterCreator([FromForm] CompleteRegistrationDto dto, [FromForm] UpdateProfilePictureDto picdto)
     {
         _logger.LogInformation($"******* Inside the RegisterCreator Controller Method ********");
 
@@ -128,13 +129,31 @@ public class AuthController : ControllerBase
             ConfirmPassword = dto.ConfirmPassword,
             Email = email,
             Bio = dto.Bio ?? string.Empty,
+            //ProfilePicture = picdto.NewProfilePictureUrl,
             Location = dto.Location ?? string.Empty,
             Occupation = dto.Occupation ?? string.Empty,
             SocialHandles = dto.SocialHandles, // Pass through even if null
-            ExclusiveDeals = dto.ExclusiveDeals ?? new List<ExclusiveDealDto>() // Default to empty list if null
+            ExclusiveDeals = dto.ExclusiveDeals ?? new List<ExclusiveDealDto>() 
         };
 
-        var result = await _authService.RegisterCreator(registerCreatorDto);
+        // Validate the file (photo) if provided
+        if (picdto.NewProfilePictureUrl != null && !IsValidFile(picdto.NewProfilePictureUrl))
+        {
+            return BadRequest(new { message = "Invalid File Extension" });
+        }
+
+        // Convert IFormFile to byte array
+        byte[] fileBytes = null!;
+        if (picdto.NewProfilePictureUrl != null)
+        {
+            using (var stream = new MemoryStream())
+            {
+                await picdto.NewProfilePictureUrl.CopyToAsync(stream);  
+                fileBytes = stream.ToArray();
+            }
+        }
+
+        var result = await _authService.RegisterCreator(registerCreatorDto, picdto.NewProfilePictureUrl!);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
@@ -379,6 +398,12 @@ public class AuthController : ControllerBase
 
 
 
+    private bool IsValidFile(IFormFile file)
+    {
+        var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        return validExtensions.Contains(extension);
+    }
 
     public static class EmailContext
     {

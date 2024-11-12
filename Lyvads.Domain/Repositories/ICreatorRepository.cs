@@ -8,4 +8,5 @@ public interface ICreatorRepository
     Task<Creator?> GetCreatorByIdAsync(string creatorId);
     IQueryable<Creator> GetCreators();
     Task<Creator?> GetCreatorByApplicationUserIdAsync(string applicationUserId);
+    Task<Creator> GetCreatorByIdWithApplicationUser(string id);
 }

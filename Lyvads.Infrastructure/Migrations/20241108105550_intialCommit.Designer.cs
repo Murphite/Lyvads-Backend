@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Lyvads.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241007211645_AddRegularUserToApplicationUser")]
-    partial class AddRegularUserToApplicationUser
+    [Migration("20241108105550_intialCommit")]
+    partial class intialCommit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -116,9 +116,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.Property<bool>("CanManageUsers")
                         .HasColumnType("bit");
-
-                    b.Property<string>("RoleId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -237,12 +234,6 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("VerificationCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("WalletBalance")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<string>("WalletId")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -530,30 +521,19 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<int?>("Request")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SimpleAdvert")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SongAdvert")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Tiktok")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("WearBrand")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("XTwitter")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
+                    b.HasIndex("ApplicationUserId")
+                        .IsUnique();
 
                     b.ToTable("Creators");
                 });
@@ -790,6 +770,33 @@ namespace Lyvads.Infrastructure.Migrations
                     b.ToTable("Likes");
                 });
 
+            modelBuilder.Entity("Lyvads.Domain.Entities.Media", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FileType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("Media");
+                });
+
             modelBuilder.Entity("Lyvads.Domain.Entities.Notification", b =>
                 {
                     b.Property<string>("Id")
@@ -818,53 +825,10 @@ namespace Lyvads.Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Lyvads.Domain.Entities.Post", b =>
+            modelBuilder.Entity("Lyvads.Domain.Entities.Promotion", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Caption")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("CreatorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MediaUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PostStatus")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("Visibility")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatorId");
-
-                    b.ToTable("Posts");
-                });
-
-            modelBuilder.Entity("Lyvads.Domain.Entities.Promotion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -890,6 +854,27 @@ namespace Lyvads.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Promotions");
+                });
+
+            modelBuilder.Entity("Lyvads.Domain.Entities.Rate", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CreatorId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.ToTable("Rate");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.RegularUser", b =>
@@ -936,10 +921,10 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("RegularUserId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("RequestType")
-                        .HasColumnType("int");
+                    b.Property<string>("RequestType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Script")
                         .IsRequired()
@@ -948,15 +933,8 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("VideoUrl")
                         .HasColumnType("nvarchar(max)");
@@ -965,7 +943,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("RegularUserId");
 
                     b.ToTable("Requests");
                 });
@@ -1084,7 +1062,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("nvarchar(450)");
@@ -1101,9 +1079,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -1350,6 +1325,45 @@ namespace Lyvads.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Post", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Caption")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PostStatus")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.ToTable("Posts");
+                });
+
             modelBuilder.Entity("Lyvads.Domain.Entities.ActivityLog", b =>
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
@@ -1426,9 +1440,11 @@ namespace Lyvads.Infrastructure.Migrations
 
             modelBuilder.Entity("Lyvads.Domain.Entities.CollaborationRate", b =>
                 {
-                    b.HasOne("Lyvads.Domain.Entities.Creator", null)
+                    b.HasOne("Lyvads.Domain.Entities.Creator", "Creator")
                         .WithMany("CollabRates")
                         .HasForeignKey("CreatorId");
+
+                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Comment", b =>
@@ -1441,7 +1457,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .WithMany("Replies")
                         .HasForeignKey("ParentCommentId");
 
-                    b.HasOne("Lyvads.Domain.Entities.Post", "Post")
+                    b.HasOne("Post", "Post")
                         .WithMany("Comments")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -1478,9 +1494,9 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.Creator", b =>
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithOne("Creator")
+                        .HasForeignKey("Lyvads.Domain.Entities.Creator", "ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");
@@ -1595,23 +1611,34 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.Like", b =>
                 {
                     b.HasOne("Lyvads.Domain.Entities.Content", "Content")
-                        .WithMany()
-                        .HasForeignKey("ContentId");
+                        .WithMany("Likes")
+                        .HasForeignKey("ContentId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Lyvads.Domain.Entities.Post", "Post")
+                    b.HasOne("Post", "Post")
                         .WithMany("Likes")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
+                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
+                        .WithMany("Likes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ApplicationUser");
 
                     b.Navigation("Content");
 
                     b.Navigation("Post");
+                });
 
-                    b.Navigation("User");
+            modelBuilder.Entity("Lyvads.Domain.Entities.Media", b =>
+                {
+                    b.HasOne("Post", "Post")
+                        .WithMany("MediaFiles")
+                        .HasForeignKey("PostId");
+
+                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Notification", b =>
@@ -1625,13 +1652,11 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Lyvads.Domain.Entities.Post", b =>
+            modelBuilder.Entity("Lyvads.Domain.Entities.Rate", b =>
                 {
                     b.HasOne("Lyvads.Domain.Entities.Creator", "Creator")
-                        .WithMany("Posts")
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Rates")
+                        .HasForeignKey("CreatorId");
 
                     b.Navigation("Creator");
                 });
@@ -1654,7 +1679,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasOne("Lyvads.Domain.Entities.RegularUser", "RegularUser")
                         .WithMany("Requests")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RegularUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Creator");
@@ -1793,10 +1818,25 @@ namespace Lyvads.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Post", b =>
+                {
+                    b.HasOne("Lyvads.Domain.Entities.Creator", "Creator")
+                        .WithMany("Posts")
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+                });
+
             modelBuilder.Entity("Lyvads.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("AdminPermissions")
                         .IsRequired();
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Likes");
 
                     b.Navigation("Notifications");
 
@@ -1809,6 +1849,11 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.Comment", b =>
                 {
                     b.Navigation("Replies");
+                });
+
+            modelBuilder.Entity("Lyvads.Domain.Entities.Content", b =>
+                {
+                    b.Navigation("Likes");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Creator", b =>
@@ -1824,18 +1869,13 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Navigation("ExclusiveDeals");
 
                     b.Navigation("Posts");
+
+                    b.Navigation("Rates");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Deal", b =>
                 {
                     b.Navigation("Transactions");
-                });
-
-            modelBuilder.Entity("Lyvads.Domain.Entities.Post", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Likes");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.RegularUser", b =>
@@ -1855,6 +1895,15 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.Wallet", b =>
                 {
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Post", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Likes");
+
+                    b.Navigation("MediaFiles");
                 });
 #pragma warning restore 612, 618
         }

@@ -18,7 +18,7 @@ public interface ICollaborationService
     Task<ServerResponse<RequestDetailsDto>> GetRequestDetailsAsync(string requestId);
     //Task<ServerResponse<bool>> DownloadVideoAsync(string requestId, bool withWatermark);
     //Task<ServerResponse<bool>> OpenDisputeAsync(string requestId, string reason);
-    Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string requestId, OpenDisputeDto disputeDto);
+    Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string userId, string requestId, DisputeReasons disputeReason, OpenDisputeDto disputeDto);
     Task<ServerResponse<List<GetUserRequestDto>>> GetAllRequestsForCreatorAsync(string creatorId, RequestStatus status);
     Task<ServerResponse<List<FetchDisputeDto>>> FetchDisputesByCreatorAsync(string userId);
     Task<ServerResponse<VideoResponseDto>> SendVideoToUserAsync(string requestId, IFormFile video);

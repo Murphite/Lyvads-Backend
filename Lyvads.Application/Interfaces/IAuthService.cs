@@ -2,6 +2,7 @@
 using Lyvads.Application.Dtos.AuthDtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Domain.Responses;
+using Microsoft.AspNetCore.Http;
 
 namespace Lyvads.Application.Interfaces;
 
@@ -10,7 +11,7 @@ public interface IAuthService
     Task<ServerResponse<RegistrationResponseDto>> InitiateRegistration(string email);
     Task<ServerResponse<EmailVerificationResponseDto>> VerifyEmail(string verificationCode);
     Task<ServerResponse<RegisterUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto);
-    Task<ServerResponse<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto);
+    Task<ServerResponse<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto, IFormFile newProfilePicture);
     Task<ServerResponse<RegisterUserResponseDto>> RegisterSuperAdmin(RegisterSuperAdminDto registerSuperAdminDto);
     Task<ServerResponse<LoginResponseDto>> Login(LoginUserDto loginUserDto);
     Task<ServerResponse<RegistrationResponseDto>> ForgotPassword(ForgotPasswordRequestDto forgotPasswordDto);

@@ -12,6 +12,12 @@ public class CreatorProfileResponseDto
     public string? Request { get; set; }
 }
 
+public class CreatorRateResponseDto
+{
+    public List<RateDto> Rates { get; set; } = new List<RateDto>();
+    public string? CreatorId { get; set; }
+}
+
 public class RegularUserProfileResponseDto
 {
     public string? FullName { get; set; }

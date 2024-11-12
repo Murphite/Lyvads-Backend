@@ -26,4 +26,7 @@ public interface IUserRepository
     Task<Favorite?> GetFavoriteAsync(string userId, string creatorId);
     Task RemoveFavoriteAsync(string userId, string creatorId);
     Task<bool> IsUserFollowingCreatorAsync(string userId, string creatorId);
+    Task<int> GetCreatorsFollowingCountAsync(string userId);
+    Task<int> GetUsersFollowingCreatorCountAsync(string creatorId);
+    Task<List<UserFollowerDto>> GetUsersFollowingCreatorDetailsAsync(string creatorId);
 }

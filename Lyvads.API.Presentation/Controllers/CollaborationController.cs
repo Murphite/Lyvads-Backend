@@ -110,15 +110,23 @@ public class CollaborationController : ControllerBase
         var response = await _collaborationService.GetRequestDetailsAsync(requestId);
         if (!response.IsSuccessful)
         {
-            return NotFound(response);
+            return BadRequest(response.ErrorResponse);
         }
         return Ok(response);
     }
 
     [HttpPost("dispute/open/{requestId}")]
-    public async Task<ActionResult<ServerResponse<DisputeResponseDto>>> OpenDispute(string requestId, [FromBody] OpenDisputeDto disputeDto)
+    public async Task<ActionResult> OpenDispute(string requestId, DisputeReasons disputeReason, 
+        [FromBody] OpenDisputeDto disputeDto)
     {
-        var response = await _collaborationService.OpenDisputeAsync(requestId, disputeDto);
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized("User not authenticated.");
+        }
+
+
+        var response = await _collaborationService.OpenDisputeAsync(user.Id, requestId, disputeReason, disputeDto);
         if (!response.IsSuccessful)
             return BadRequest(response.ErrorResponse);
 
@@ -170,10 +178,14 @@ public class CollaborationController : ControllerBase
         return validExtensions.Contains(extension);
     }
 
-    [HttpGet("fetch-disputes/{userId}")]
-    public async Task<IActionResult> FetchDisputesByCreator(string userId)
+    [HttpGet("fetch-disputes")]
+    public async Task<IActionResult> FetchDisputesByCreator()
     {
-        var response = await _collaborationService.FetchDisputesByCreatorAsync(userId);
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not authenticated.");
+
+        var response = await _collaborationService.FetchDisputesByCreatorAsync(user.Id);
 
         if (!response.IsSuccessful)
         {
@@ -185,9 +197,13 @@ public class CollaborationController : ControllerBase
 
 
     [HttpGet("dispute-details/{disputeId}")]
-    public async Task<IActionResult> GetDisputeDetails(string disputeId, [FromQuery] string userId)
+    public async Task<IActionResult> GetDisputeDetails(string disputeId)
     {
-        var response = await _collaborationService.GetDisputeDetailsByIdAsync(disputeId, userId);
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not authenticated.");
+
+        var response = await _collaborationService.GetDisputeDetailsByIdAsync(disputeId, user.Id);
 
         if (!response.IsSuccessful)
         {

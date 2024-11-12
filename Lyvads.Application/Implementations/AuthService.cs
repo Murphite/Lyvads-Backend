@@ -564,7 +564,7 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<ServerResponse<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto)
+    public async Task<ServerResponse<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto, IFormFile newProfilePicture)
     {
         _logger.LogInformation("******* Inside the RegisterCreator Method ********");
 
@@ -674,7 +674,7 @@ public class AuthService : IAuthService
                 await _creatorRepository.AddAsync(creator);
 
                 // Call the profile picture upload service
-                var uploadResponse = await _profileService.UploadProfilePictureAsync(applicationUser.Id, registerCreatorDto.ProfilePicture);
+                var uploadResponse = await _profileService.UploadProfilePictureAsync(applicationUser.Id, newProfilePicture);
                 if (!uploadResponse.IsSuccessful)
                 {
                     _logger.LogError("Profile picture upload failed for user with ID: {UserId}", applicationUser.Id);

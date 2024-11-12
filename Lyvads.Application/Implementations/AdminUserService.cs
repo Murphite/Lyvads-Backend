@@ -25,7 +25,7 @@ public class AdminUserService : ISuperAdminService
     private readonly IRegularUserRepository _regularUserRepository;
     private readonly ICreatorRepository _creatorRepository;
     private readonly ISuperAdminRepository _superAdminRepository;
-
+    private readonly IRepository _repository;
 
     public AdminUserService(
         UserManager<ApplicationUser> userManager,
@@ -34,8 +34,8 @@ public class AdminUserService : ISuperAdminService
         ILogger<AdminDashboardService> logger,
         ISuperAdminRepository superAdminRepository,
         ICreatorRepository creatorRepository,
-        IRegularUserRepository regularUserRepository
-        )
+        IRegularUserRepository regularUserRepository,
+        IRepository repository)
     {
         _userManager = userManager;
         _adminRepository = adminRepository;
@@ -44,27 +44,31 @@ public class AdminUserService : ISuperAdminService
         _regularUserRepository = regularUserRepository;
         _creatorRepository = creatorRepository;
         _superAdminRepository = superAdminRepository;
+        _repository = repository;
     }
 
-    public async Task<ServerResponse<List<UserDto>>> GetUsers(string role = null!, bool sortByDate = true)
+    public async Task<ServerResponse<List<UserDto>>> GetUsers(string? role = null, bool sortByDate = true)
     {
         try
         {
             var users = _userManager.Users.AsQueryable();
 
+            // Filter by role if a role is provided
             if (!string.IsNullOrEmpty(role))
             {
                 var usersInRole = await _userManager.GetUsersInRoleAsync(role);
                 users = users.Where(u => usersInRole.Contains(u));
             }
 
-            if (sortByDate)
-            {
-                users = users.OrderBy(u => u.CreatedAt);
-            }
+            // Sort by CreatedAt date if required
+            users = sortByDate ? users.OrderBy(u => u.CreatedAt) : users;
 
+            // Execute the query and materialize to list before processing async calls
+            var userList = await users.ToListAsync();
+
+            // Map users to UserDto with async calls outside LINQ
             var userDtos = new List<UserDto>();
-            foreach (var user in users)
+            foreach (var user in userList)
             {
                 var roles = await _userManager.GetRolesAsync(user);
                 var roleName = roles.FirstOrDefault();
@@ -76,7 +80,8 @@ public class AdminUserService : ISuperAdminService
                     LastName = user.LastName,
                     Email = user.Email,
                     Role = roleName,
-                    CreatedAt = user.CreatedAt
+                    CreatedAt = user.CreatedAt,
+                    IsActive = user.IsActive,
                 });
             }
 
@@ -98,6 +103,7 @@ public class AdminUserService : ISuperAdminService
             };
         }
     }
+
 
     public async Task<ServerResponse<AddUserResponseDto>> AddUser(RegisterUserDto registerUserDto)
     {
@@ -167,7 +173,8 @@ public class AdminUserService : ISuperAdminService
             };
         }
 
-        var role = registerUserDto.Role;
+        var role = registerUserDto.Role?.ToUpperInvariant();
+        //var role = registerUserDto.Role;
 
         var names = registerUserDto.FullName.Split(' ', 2);
         var firstName = names[0];
@@ -184,90 +191,136 @@ public class AdminUserService : ISuperAdminService
             UpdatedAt = DateTimeOffset.UtcNow,
             PublicId = Guid.NewGuid().ToString(),
         };
+               
 
-        var result = await _userManager.CreateAsync(applicationUser, registerUserDto.Password);
-        if (!result.Succeeded)
+        // Start a transaction
+        using (var transaction = await _repository.BeginTransactionAsync())
         {
-            _logger.LogError("Error occurred while creating user {UserEmail}", registerUserDto.Email);
-            return new ServerResponse<AddUserResponseDto>
+            try
             {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
+                // Create the user
+                var result = await _userManager.CreateAsync(applicationUser, registerUserDto.Password);
+                if (!result.Succeeded)
                 {
-                    ResponseCode = "500",
-                    ResponseMessage = "User Creation Failed",
-                    ResponseDescription = string.Join(", ", result.Errors.Select(e => e.Description))
+                    _logger.LogError("Error occurred while creating user {UserEmail}", registerUserDto.Email);
+                    return new ServerResponse<AddUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "500",
+                            ResponseMessage = "User Creation Failed",
+                            ResponseDescription = string.Join(", ", result.Errors.Select(e => e.Description))
+                        }
+                    };
                 }
-            };
-        }
 
-        result = await _userManager.AddToRoleAsync(applicationUser, role);
-        if (!result.Succeeded)
-        {
-            return new ServerResponse<AddUserResponseDto>
+                // Add user to role
+                result = await _userManager.AddToRoleAsync(applicationUser, role);
+                if (!result.Succeeded)
+                {
+                    _logger.LogError("Error occurred while assigning role to user {UserEmail}", registerUserDto.Email);
+                    return new ServerResponse<AddUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "500",
+                            ResponseMessage = "Role Assignment Failed",
+                            ResponseDescription = string.Join(", ", result.Errors.Select(e => e.Description))
+                        }
+                    };
+                }
+
+                // Add the user to the corresponding role repository
+                switch (role)
+                {
+                    case RolesConstant.Admin:
+                        await _adminRepository.AddAsync(new Admin
+                        {
+                            ApplicationUserId = applicationUser.Id,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            UpdatedAt = DateTimeOffset.UtcNow,
+                            ApplicationUser = applicationUser
+                        });
+                        break;
+
+                    case RolesConstant.SuperAdmin:
+                        await _superAdminRepository.AddAsync(new SuperAdmin
+                        {
+                            ApplicationUserId = applicationUser.Id,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            UpdatedAt = DateTimeOffset.UtcNow,
+                            ApplicationUser = applicationUser
+                        });
+                        break;
+
+                    case RolesConstant.Creator:
+                        var creator = new Creator
+                        {
+                            ApplicationUserId = applicationUser.Id,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            UpdatedAt = DateTimeOffset.UtcNow,
+                            ApplicationUser = applicationUser,
+                            Instagram = null,
+                            Facebook = null,
+                            XTwitter = null,
+                            Tiktok = null,
+                            // ExclusiveDeals = registerCreatorDto.ExclusiveDeals?.Select(deal => new ExclusiveDeal
+                            // {
+                            //     Industry = deal.Industry!,
+                            //     BrandName = deal.BrandName!,
+                            //     CreatorId = applicationUser.Id
+                            // }).ToList() ?? new List<ExclusiveDeal>() // Default to empty list if null
+                        };
+                        await _creatorRepository.AddAsync(creator);
+                        break;
+
+                    case RolesConstant.RegularUser:
+                        var regularUser = new RegularUser
+                        {
+                            ApplicationUserId = applicationUser.Id,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            UpdatedAt = DateTimeOffset.UtcNow,
+                            ApplicationUser = applicationUser,
+                        };
+                        await _regularUserRepository.AddAsync(regularUser);
+                        break;
+                }
+
+                // Commit transaction if everything is successful
+                await transaction.CommitAsync();
+
+                var addUserResponse = new AddUserResponseDto
+                {
+                    UserId = applicationUser.Id,
+                    Email = applicationUser.Email,
+                    Role = role,
+                    Message = $"{applicationUser.Email} registration successful."
+                };
+
+                _logger.LogInformation("User {c} registered successfully as {UserRole}", applicationUser.Email, role);
+                return new ServerResponse<AddUserResponseDto> { IsSuccessful = true, Data = addUserResponse };
+            }
+            catch (Exception ex)
             {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
+                // Rollback transaction on error
+                await transaction.RollbackAsync();
+                _logger.LogError("Error occurred while processing user registration: {ErrorMessage}", ex.Message);
+                return new ServerResponse<AddUserResponseDto>
                 {
-                    ResponseCode = "500",
-                    ResponseMessage = "Role Assignment Failed",
-                    ResponseDescription = string.Join(", ", result.Errors.Select(e => e.Description))
-                }
-            };
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "500",
+                        ResponseMessage = "Registration Failed",
+                        ResponseDescription = "An error occurred during user registration."
+                    }
+                };
+            }
         }
-
-        // Add the user to the corresponding role repository
-        switch (role)
-        {
-            case RolesConstant.Admin:
-                await _adminRepository.AddAsync(new Admin
-                {
-                    ApplicationUserId = applicationUser.Id,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
-                    ApplicationUser = applicationUser
-                });
-                break;
-            case RolesConstant.SuperAdmin:
-                await _superAdminRepository.AddAsync(new SuperAdmin
-                {
-                    ApplicationUserId = applicationUser.Id,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
-                    ApplicationUser = applicationUser
-                });
-                break;
-            case RolesConstant.Creator:
-                await _creatorRepository.AddAsync(new Creator
-                {
-                    ApplicationUserId = applicationUser.Id,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
-                    ApplicationUser = applicationUser
-                });
-                break;
-            case RolesConstant.RegularUser:
-                await _regularUserRepository.AddAsync(new RegularUser
-                {
-                    ApplicationUserId = applicationUser.Id,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow,
-                    ApplicationUser = applicationUser
-                });
-                break;
-        }
-
-        var addUserResponse = new AddUserResponseDto
-        {
-            UserId = applicationUser.Id,
-            Email = applicationUser.Email,
-            Role = role,
-            Message = $"{role} registration successful."
-        };
-
-        _logger.LogInformation("User {UserEmail} registered successfully as {UserRole}", applicationUser.Email, role);
-        return new ServerResponse<AddUserResponseDto> { IsSuccessful = true, Data = addUserResponse };
     }
+
 
     public async Task<ServerResponse<string>> UpdateUser(UpdateUserDto updateUserDto, string userId)
     {
@@ -341,7 +394,9 @@ public class AdminUserService : ISuperAdminService
             };
         }
 
+        // Soft delete by setting IsActive to false
         var result = await _userManager.DeleteAsync(user);
+
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(error => new ErrorResponse
@@ -375,6 +430,7 @@ public class AdminUserService : ISuperAdminService
         };
     }
 
+
     public async Task<ServerResponse<string>> DisableUser(string userId)
     {
         _logger.LogInformation($"Attempting to disable user with ID: {userId}");
@@ -392,6 +448,7 @@ public class AdminUserService : ISuperAdminService
         }
 
         user.LockoutEnabled = true;
+        user.IsActive = false;
         user.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100);  // Effectively disables user
 
         var result = await _userManager.UpdateAsync(user);
@@ -486,6 +543,87 @@ public class AdminUserService : ISuperAdminService
             IsSuccessful = true,
             ResponseMessage = "User has been activated and verified (if necessary) successfully.",
             Data = "User activation complete"
+        };
+    }
+
+
+    public async Task<ServerResponse<string>> ToggleUserStatusAsync(string userId)
+    {
+        _logger.LogInformation($"Attempting to toggle user status for ID: {userId}");
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning($"User with ID {userId} not found.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found"
+            };
+        }
+
+        // Toggle user's status
+        if (user.IsActive)
+        {
+            // Disable the user
+            user.LockoutEnabled = true;
+            user.IsActive = false;
+            user.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100);  // Effectively disables user
+            _logger.LogInformation($"User with ID {userId} disabled.");
+        }
+        else
+        {
+            // Enable the user
+            user.IsActive = true;
+            user.LockoutEnd = null;  // Removes any lockout, re-enabling the account
+
+            var isCreator = await _userManager.IsInRoleAsync(user, RolesConstant.Creator);
+            if (isCreator && !user.IsVerified)
+            {
+                user.IsVerified = true;  // Verify Creators if necessary
+            }
+            else if (!isCreator && !user.IsVerified)
+            {
+                user.IsVerified = true;  // Optionally verify regular users
+            }
+
+            _logger.LogInformation($"User with ID {userId} activated.");
+        }
+
+        // Update the user in the database
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(error => new ErrorResponse
+            {
+                ResponseCode = error.Code,
+                ResponseMessage = error.Description
+            }).ToList();
+
+            _logger.LogError($"Failed to toggle user status for {userId}. Errors: {string.Join(", ", errors.Select(e => e.ResponseMessage))}");
+
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Failed to toggle user status",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Toggle failed",
+                    ResponseDescription = string.Join(", ", errors.Select(e => e.ResponseMessage))
+                }
+            };
+        }
+
+        string message = user.IsActive ? "User activated successfully" : "User disabled successfully";
+        return new ServerResponse<string>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = message,
+            Data = message
         };
     }
 

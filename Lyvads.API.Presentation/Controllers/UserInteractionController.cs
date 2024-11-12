@@ -166,6 +166,19 @@ public class UserInteractionController : ControllerBase
         return Ok(response);
     }
 
+    [HttpGet("get-creator-to-favorites")]
+    public async Task<IActionResult> AddCreatorToFavorites([FromQuery] string userId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        var response = await _userInteractionService.GetFavoriteCreatorsAsync(userId);
+        if (!response.IsSuccessful)
+            return BadRequest(response.ErrorResponse);
+        return Ok(response);
+    }
+
     [HttpPost("toggle-favorite")]
     public async Task<IActionResult> ToggleFavorite([FromBody] AddFavoriteDto favoriteDto)
     {

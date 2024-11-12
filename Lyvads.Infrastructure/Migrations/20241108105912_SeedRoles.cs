@@ -17,9 +17,9 @@ namespace Lyvads.Infrastructure.Migrations
                 values: new object[,]
                 {
                    { Guid.NewGuid().ToString(), "Admin", "ADMIN", Guid.NewGuid().ToString() },
-                   { Guid.NewGuid().ToString(), "RegularUser", "REGULAR_USER", Guid.NewGuid().ToString() },
+                   { Guid.NewGuid().ToString(), "RegularUser", "REGULARUSER", Guid.NewGuid().ToString() },
                    { Guid.NewGuid().ToString(), "Creator", "CREATOR", Guid.NewGuid().ToString() },
-                   { Guid.NewGuid().ToString(), "SuperAdmin", "SUPER_ADMIN", Guid.NewGuid().ToString() }
+                   { Guid.NewGuid().ToString(), "SuperAdmin", "SUPERADMIN", Guid.NewGuid().ToString() }
                 });
         }
 
@@ -33,5 +33,6 @@ namespace Lyvads.Infrastructure.Migrations
                 keyValues: new object[] { "Admin", "RegularUser", "Creator", "SuperAdmin" });
 
         }
+
     }
 }

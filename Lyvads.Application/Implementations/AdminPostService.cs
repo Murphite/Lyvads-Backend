@@ -88,11 +88,11 @@ public class AdminPostService : IAdminPostService
         };
     }
 
-    public async Task<ServerResponse<bool>> FlagPostAsync(int postId)
+    public async Task<ServerResponse<bool>> FlagPostAsync(string postId)
     {
-        _logger.LogInformation("Attempting to flag post with ID: {PostId}", postId);
+        _logger.LogInformation("Attempting to toggle flag status for post with ID: {PostId}", postId);
 
-        var post = (await _postRepository.GetByIdAsync(postId.ToString())).Data;  // Use GetByIdAsync
+        var post = (await _postRepository.GetByIdAsync(postId.ToString())).Data;
         if (post == null)
         {
             _logger.LogWarning("Post not found for ID: {PostId}", postId);
@@ -103,19 +103,23 @@ public class AdminPostService : IAdminPostService
             };
         }
 
-        post.PostStatus = PostStatus.Flagged;
-        await _postRepository.UpdateAsync(post);  // Use UpdateAsync
-        _logger.LogInformation("Successfully flagged post with ID: {PostId}", postId);
+        // Toggle between Flagged and Live statuses
+        post.PostStatus = post.PostStatus == PostStatus.Flagged ? PostStatus.Live : PostStatus.Flagged;
+        await _postRepository.UpdateAsync(post);
+
+        _logger.LogInformation("Successfully toggled status for post with ID: {PostId} to {Status}", postId, post.PostStatus);
 
         return new ServerResponse<bool>(true)
         {
             ResponseCode = "00",
-            ResponseMessage = "Post flagged successfully.",
+            ResponseMessage = post.PostStatus == PostStatus.Flagged
+                ? "Post flagged successfully."
+                : "Post Live successfully.",
             Data = true
         };
     }
 
-    public async Task<ServerResponse<bool>> DeletePostAsync(int postId)
+    public async Task<ServerResponse<bool>> DeletePostAsync(string postId)
     {
         _logger.LogInformation("Attempting to delete post with ID: {PostId}", postId);
 

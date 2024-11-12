@@ -302,10 +302,11 @@ public class AdminPromotionService : IPromotionService
         }
     }
 
-    public async Task<ServerResponse<object>> TogglePromotionVisibility(string promotionId, bool hide)
+    public async Task<ServerResponse<object>> TogglePromotionVisibility(string promotionId)
     {
         try
         {
+            // Fetch the promotion by ID
             var promotion = await _promotionRepository.GetByIdAsync(promotionId);
             if (promotion == null)
             {
@@ -321,20 +322,74 @@ public class AdminPromotionService : IPromotionService
                 };
             }
 
-            promotion.IsHidden = hide;
+            // Toggle the visibility (if it is hidden, set it to unhidden and vice versa)
+            promotion.IsHidden = !promotion.IsHidden;  // Flip the IsHidden value
+
+            // Update the promotion's update timestamp
             promotion.UpdatedAt = DateTime.UtcNow;
 
+            // Save the updated promotion
             await _promotionRepository.UpdateAsync(promotion);
+
             return new ServerResponse<object>
             {
                 IsSuccessful = true,
-                ResponseMessage = hide ? "Promotion hidden" : "Promotion unhidden"
+                ResponseMessage = promotion.IsHidden ? "Promotion hidden" : "Promotion unhidden"
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error toggling promotion visibility for ID {PromotionId}", promotionId);
             return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Internal Server Error",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
+    }
+
+    public async Task<ServerResponse<List<PromotionDto>>> GetAllPromotions(bool? isHidden = null)
+    {
+        try
+        {
+            // Retrieve promotions from the repository, with optional filtering
+            var promotions = await _promotionRepository.GetAllAsync();
+
+            // Filter promotions if isHidden is provided
+            if (isHidden.HasValue)
+            {
+                promotions = promotions.Where(p => p.IsHidden == isHidden.Value).ToList();
+            }
+
+            // Map promotions to DTOs
+            var promotionDtos = promotions.Select(promotion => new PromotionDto
+            {
+                Id = promotion.Id,
+                Title = promotion.Title,
+                ShortDescription = promotion.ShortDescription,
+                Price = promotion.Price,
+                MediaUrl = promotion.MediaUrl,
+                IsHidden = promotion.IsHidden,
+                CreatedAt = promotion.CreatedAt,
+                UpdatedAt = promotion.UpdatedAt
+            }).ToList();
+
+            return new ServerResponse<List<PromotionDto>>
+            {
+                IsSuccessful = true,
+                Data = promotionDtos,
+                ResponseMessage = "Promotions retrieved successfully."
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving promotions");
+            return new ServerResponse<List<PromotionDto>>
             {
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse

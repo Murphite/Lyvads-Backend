@@ -61,19 +61,72 @@ public class AdminRepository : IAdminRepository
     public async Task<List<ApplicationUser>> GetAllAdminsAsync()
     {
         var superAdmins = await _userManager.GetUsersInRoleAsync(RolesConstant.SuperAdmin);
-
         var admins = await _userManager.GetUsersInRoleAsync(RolesConstant.Admin);
 
-        // Combine the two lists (Admin + SuperAdmin)
+        // Log the counts to debug
+        Console.WriteLine($"SuperAdmins Count: {superAdmins.Count}");
+        Console.WriteLine($"Admins Count: {admins.Count}");
+
         var allAdmins = superAdmins.Concat(admins).ToList();
 
         return allAdmins;
     }
 
-
-    public async Task AddAsync(AdminPermission permission)
+    public async Task<ApplicationUser?> GetAdminByIdAsync(string adminUserId)
     {
-        await _context.AdminPermissions.AddAsync(permission);
+        // Check for Admin
+        var admin = await _context.Admins
+            .Include(a => a.ApplicationUser)
+            .FirstOrDefaultAsync(a => a.Id == adminUserId);
+
+        if (admin != null)
+        {
+            var roles = await _userManager.GetRolesAsync(admin.ApplicationUser!);
+            if (roles.Any(role => role.Equals(RolesConstant.Admin, StringComparison.OrdinalIgnoreCase)))
+            {
+                return admin.ApplicationUser;
+            }
+        }
+
+        // Check for SuperAdmin
+        var superAdmin = await _context.SuperAdmins
+            .Include(sa => sa.ApplicationUser)
+            .FirstOrDefaultAsync(sa => sa.Id == adminUserId);
+
+        if (superAdmin != null)
+        {
+            var roles = await _userManager.GetRolesAsync(superAdmin.ApplicationUser!);
+            if (roles.Any(role => role.Equals(RolesConstant.SuperAdmin, StringComparison.OrdinalIgnoreCase)))
+            {
+                return superAdmin.ApplicationUser;
+            }
+        }
+
+        return null;
+    }
+
+
+
+
+
+    // Retrieve existing permissions for a specific user by their ID
+    public async Task<AdminPermission?> GetByUserIdAsync(string userId)
+    {
+        return await _context.AdminPermissions
+                             .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
+    }
+
+    // Add new permissions
+    public async Task AddAsync(AdminPermission adminPermission)
+    {
+        await _context.AdminPermissions.AddAsync(adminPermission);
+        await _context.SaveChangesAsync();
+    }
+
+    // Update existing permissions
+    public async Task UpdateAsync(AdminPermission adminPermission)
+    {
+        _context.AdminPermissions.Update(adminPermission);
         await _context.SaveChangesAsync();
     }
 
@@ -91,4 +144,6 @@ public class AdminRepository : IAdminRepository
         await _context.AdminRoles.AddAsync(role);
         await _context.SaveChangesAsync(); 
     }
+
+    
 }

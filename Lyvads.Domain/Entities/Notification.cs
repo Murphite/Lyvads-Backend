@@ -9,5 +9,5 @@ public class Notification : Entity
     public string UserId { get; set; } = default!;
     public ApplicationUser User { get; set; } = default!;
     public DateTimeOffset CreatedAt { get; set; }
-    public bool Seen { get; set; } = false; // Optional: Track if notification has been read
+    public bool Seen { get; set; } = false;
 }

@@ -10,4 +10,5 @@ public interface IPromotionRepository
     Task UpdateAsync(Promotion promotion);
     Task DeleteAsync(Promotion promotion);
     Task<Promotion> GetByIdAsync(string id);
+    Task<List<Promotion>> GetAllAsync();
 }

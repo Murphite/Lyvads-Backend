@@ -46,6 +46,14 @@ public class CollabRateDto
     public decimal TotalAmount { get; set; }
 }
 
+public class UserFollowerDto
+{
+    public string UserId { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string ProfileImageUrl { get; set; } = string.Empty;
+}
+
+
 public class ViewPostDto
 {
     public string? Id { get; set; }

@@ -9,7 +9,7 @@ namespace Lyvads.API.Presentation.Controllers;
 
 
 [ApiController]
-[Authorize]
+//[Authorize]
 [Route("api/[controller]")]
 public class AdminActivityLogController : ControllerBase
 {

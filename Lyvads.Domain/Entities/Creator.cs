@@ -22,11 +22,9 @@ public class Creator : Entity, IAuditable
 
 
     // Creator SetUp Rates
-    public string? SimpleAdvert { get; set; }
-    public string? WearBrand { get; set; }
-    public string? SongAdvert { get; set; }
-    public string? Request { get; set; }
-    
+    public List<Rate> Rates { get; set; } = new List<Rate>();   
+    //public ICollection<CollaborationRate>? CollabRates { get; set; }
+
 
     // Exclusive Deal Properties
     public bool HasExclusiveDeal { get; set; }
@@ -43,7 +41,6 @@ public class Creator : Entity, IAuditable
 
     [NotMapped]
     public int EngagementCount => Posts.Sum(p => p.Likes.Count + p.Comments.Count);
-    public ICollection<CollaborationRate>? CollabRates { get; set; }
 
 }
 
@@ -56,12 +53,15 @@ public class ExclusiveDeal : Entity
 }
 
 
-public class CollaborationRate : Entity
-{
-    public RequestType RequestType { get; set; }
-    [Column(TypeName = "decimal(18, 2)")]
-    public decimal Rate { get; set; } // Rate for the request
 
+public class Rate : Entity, IAuditable
+{
+    public string? Type { get; set; }
+    [Column(TypeName = "decimal(18, 2)")]
+    public decimal Price { get; set; }
     public string? CreatorId { get; set; }
     public Creator? Creator { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }
+

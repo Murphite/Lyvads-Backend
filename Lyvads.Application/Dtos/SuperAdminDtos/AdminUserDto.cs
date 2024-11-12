@@ -19,7 +19,7 @@ public class AdminUserDto
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? Email { get; set; }
-    public AdminRoleType Role { get; set; } 
+    public string? Role { get; set; } 
     public bool IsActive { get; set; }
     public DateTimeOffset LastActive { get; set; }
 }
@@ -49,22 +49,31 @@ public class AdminPermissionsDto
 
 public class AddAdminUserDto
 {
+    public string? UserId { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public string? Email { get; set; }
     public string? Password { get; set; }
-    public AdminRoleType Role { get; set; } // Assuming RoleType is an enum (Admin, SuperAdmin, etc.)
+    public string? Role { get; set; } // Assuming RoleType is an enum (Admin, SuperAdmin, etc.)
 }
 
 public class EditAdminUserDto
 {
-    public string? Id { get; set; } // Admin user ID
+    //public string? Id { get; set; } // Admin user ID
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public AdminRoleType Role { get; set; }
     public bool IsActive { get; set; }
 }
 
+public class EditResponseAdminUserDto
+{
+    public string? Id { get; set; } // Admin user ID
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? Role { get; set; }
+    public bool IsActive { get; set; }
+}
 
 
 

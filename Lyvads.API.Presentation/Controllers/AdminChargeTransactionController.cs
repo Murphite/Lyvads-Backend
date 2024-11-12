@@ -1,6 +1,8 @@
 ﻿using Lyvads.Application.Dtos;
 using Lyvads.Application.Implementations;
+using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -13,12 +15,16 @@ public class AdminChargeTransactionController : ControllerBase
 {
     private readonly AdminChargeTransactionService _chargeTransactionService;
     private readonly ILogger<AdminChargeTransactionController> _logger;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public AdminChargeTransactionController(
         AdminChargeTransactionService chargeTransactionService,
-        ILogger<AdminChargeTransactionController> logger)
+        ILogger<AdminChargeTransactionController> logger,
+        UserManager<ApplicationUser> userManager
+)
     {
         _chargeTransactionService = chargeTransactionService;
+        _userManager = userManager;
         _logger = logger;
     }
 
@@ -26,6 +32,11 @@ public class AdminChargeTransactionController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllChargeTransactions()
     {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
         _logger.LogInformation("Fetching all charge transactions...");
         var response = await _chargeTransactionService.GetAllChargeTransactionsAsync();
         if (response.IsSuccessful)
@@ -42,6 +53,11 @@ public class AdminChargeTransactionController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetChargeTransactionById(string id)
     {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
         _logger.LogInformation("Fetching charge transaction with ID: {Id}", id);
         var response = await _chargeTransactionService.GetChargeTransactionByIdAsync(id);
         if (response.IsSuccessful)

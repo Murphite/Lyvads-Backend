@@ -10,6 +10,6 @@ public interface IAdminPostService
 {
     Task<ServerResponse<List<AdminPostDto>>> GetAllPostsAsync();
     Task<ServerResponse<AdminPostDetailsDto>> GetPostDetailsAsync(string postId);
-    Task<ServerResponse<bool>> FlagPostAsync(int postId);
-    Task<ServerResponse<bool>> DeletePostAsync(int postId);
+    Task<ServerResponse<bool>> FlagPostAsync(string postId);
+    Task<ServerResponse<bool>> DeletePostAsync(string postId);
 }

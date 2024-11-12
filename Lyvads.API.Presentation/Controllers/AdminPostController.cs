@@ -1,5 +1,7 @@
 ﻿using Lyvads.Application.Interfaces;
+using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Lyvads.API.Presentation.Controllers;
@@ -11,23 +13,31 @@ public class AdminPostController : ControllerBase
 {
     private readonly IAdminPostService _adminPostService;
     private readonly ILogger<AdminPostController> _logger;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public AdminPostController(IAdminPostService adminPostService, ILogger<AdminPostController> logger)
+    public AdminPostController(IAdminPostService adminPostService, 
+        ILogger<AdminPostController> logger,
+        UserManager<ApplicationUser> userManager)
     {
         _adminPostService = adminPostService;
         _logger = logger;
+        _userManager = userManager;
     }
 
     
     [HttpGet("GetAllPosts")]
     public async Task<IActionResult> GetAllPostsAsync()
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
         _logger.LogInformation("Request received for fetching all posts.");
+
         var response = await _adminPostService.GetAllPostsAsync();
         if (!response.IsSuccessful)
-        {
             return BadRequest(response);
-        }
+
         return Ok(response);
     }
 
@@ -35,38 +45,55 @@ public class AdminPostController : ControllerBase
     [HttpGet("GetPostDetails/{postId}")]
     public async Task<IActionResult> GetPostDetailsAsync(string postId)
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
         _logger.LogInformation("Request received for fetching details for post ID: {PostId}", postId);
         var response = await _adminPostService.GetPostDetailsAsync(postId);
+
         if (!response.IsSuccessful)
-        {
-            return NotFound(response);
-        }
+            return BadRequest(response);
+
         return Ok(response);
     }
 
-    
-    [HttpPost("FlagPost/{postId}")]
-    public async Task<IActionResult> FlagPostAsync(int postId)
+
+    [HttpPost("TogglePostStatus/{postId}")]
+    public async Task<IActionResult> TogglePostStatusAsync(string postId)
     {
-        _logger.LogInformation("Request received to flag post with ID: {PostId}", postId);
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        _logger.LogInformation("Request received to toggle status for post with ID: {PostId}", postId);
         var response = await _adminPostService.FlagPostAsync(postId);
+
         if (!response.IsSuccessful)
-        {
-            return NotFound(response);
-        }
+            return BadRequest(response);
+
         return Ok(response);
     }
 
-    
+
+
     [HttpDelete("DeletePost/{postId}")]
-    public async Task<IActionResult> DeletePostAsync(int postId)
+    public async Task<IActionResult> DeletePostAsync(string postId)
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || (!roles.Contains("SuperAdmin") && !roles.Contains("Admin")))
+            return Unauthorized("Only Super Admins and Admins are authorized");
+
         _logger.LogInformation("Request received to delete post with ID: {PostId}", postId);
+
         var response = await _adminPostService.DeletePostAsync(postId);
         if (!response.IsSuccessful)
-        {
-            return NotFound(response);
-        }
+            return BadRequest(response);
+
         return Ok(response);
     }
 }

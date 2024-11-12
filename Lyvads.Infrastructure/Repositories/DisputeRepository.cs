@@ -3,6 +3,7 @@ using Lyvads.Domain.Repositories;
 using Lyvads.Domain.Responses;
 using Lyvads.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 
 namespace Lyvads.Infrastructure.Repositories;
@@ -10,25 +11,33 @@ namespace Lyvads.Infrastructure.Repositories;
 public class DisputeRepository : IDisputeRepository
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<DisputeRepository> _logger;    
 
-    public DisputeRepository(AppDbContext context)
+    public DisputeRepository(AppDbContext context,
+        ILogger<DisputeRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<List<Dispute>> GetAllAsync()
     {
         return await _context.Disputes
             .Include(d => d.RegularUser)
+                .ThenInclude(ru => ru.ApplicationUser) 
             .Include(d => d.Creator)
+                .ThenInclude(c => c.ApplicationUser) 
             .ToListAsync();
     }
+
 
     public async Task<Dispute> GetByIdAsync(string id)
     {
         var disputeID = await _context.Disputes
             .Include(d => d.RegularUser)
+                .ThenInclude(ru => ru.ApplicationUser)
             .Include(d => d.Creator)
+                .ThenInclude(c => c.ApplicationUser)
             .FirstOrDefaultAsync(d => d.Id == id);
 
         if (disputeID == null)
@@ -67,17 +76,21 @@ public class DisputeRepository : IDisputeRepository
     public IQueryable<Dispute> GetDisputesByCreator(string creatorId)
     {
         return _context.Disputes
-                       .Include(d => d.RequestId) 
+                       //.Include(d => d.ApplicationUser) 
                        .Where(d => d.CreatorId == creatorId); 
     }
 
     public async Task<Dispute> GetDisputeById(string disputeId)
     {
-        var getDisputeById =  await _context.Disputes.FindAsync(disputeId);
+        var dispute = await _context.Disputes.Include(d => d.ApplicationUser).FirstOrDefaultAsync(d => d.Id == disputeId);
 
-        if (getDisputeById == null)
-            throw new Exception("Dispute Id Not Found");
+        if (dispute == null)
+        {
+            // Log or throw a more informative error
+            _logger.LogWarning("Dispute with ID {DisputeId} not found.", disputeId);
+            throw new Exception("Dispute ID not found");
+        }
 
-        return getDisputeById;
+        return dispute;
     }
 }

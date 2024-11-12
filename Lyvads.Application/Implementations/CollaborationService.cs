@@ -405,11 +405,29 @@ public class CollaborationService : ICollaborationService
         };
     }
 
-    public async Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string requestId, OpenDisputeDto disputeDto)
+    public async Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string userId, string requestId, DisputeReasons disputeReason, OpenDisputeDto disputeDto)
     {
-        _logger.LogInformation("Opening dispute for request: {RequestId}, Reason: {Reason}", requestId, disputeDto.DisputeReason);
+        _logger.LogInformation("Opening dispute for request: {RequestId}, Reason: {Reason}", requestId, disputeReason);
 
-        var request = await _requestRepository.GetRequestByIdAsync(requestId); // Use the requestId parameter directly
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        var roles = await _userManager.GetRolesAsync(user!);
+        if (roles == null || !roles.Contains("RegularUser"))
+        {
+            _logger.LogWarning("User with ID: {UserId} is not authorized to send videos.", userId);
+            return new ServerResponse<DisputeResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "403",
+                ResponseMessage = "You are not authorized to open disputes.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "403",
+                    ResponseMessage = "You are not authorized to open disputes."
+                }
+            };
+        }
+
+        var request = await _requestRepository.GetRequestByIdAsync(requestId);
         if (request == null)
         {
             return new ServerResponse<DisputeResponseDto>
@@ -418,17 +436,52 @@ public class CollaborationService : ICollaborationService
                 ResponseCode = "404",
                 ResponseMessage = "Request not found."
             };
+        }        
+
+        var regularUser = await _regularUserRepository.GetByIdWithApplicationUser(request.RegularUserId!);
+        if (regularUser == null || regularUser.ApplicationUser == null)
+        {
+            _logger.LogWarning("User with ID: {UserId} or associated ApplicationUser not found.", request.RegularUserId);
+            return new ServerResponse<DisputeResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User or associated ApplicationUser not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User or associated ApplicationUser not found."
+                }
+            };
+        }
+        //var regularUser = await _userRepository.GetUserByIdAsync(dispute.RegularUserId!);
+        var creator = await _creatorRepository.GetCreatorByIdWithApplicationUser(request.CreatorId!);
+        if (creator == null || creator.ApplicationUser == null)
+        {
+            _logger.LogWarning("User with ID: {UserId} or associated ApplicationUser not found.", request.CreatorId);
+            return new ServerResponse<DisputeResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User or associated ApplicationUser not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User or associated ApplicationUser not found."
+                }
+            };
         }
 
         var dispute = new Dispute
         {
-            Id = Guid.NewGuid().ToString(), // Assuming dispute ID is generated, not the same as requestId
-            Reason = disputeDto.DisputeReason,
+            Id = Guid.NewGuid().ToString(),
+            Reason = disputeReason,
             DisputeMessage = disputeDto.Message,
             Status = DisputeStatus.Pending,
             CreatedAt = DateTime.UtcNow,
             RegularUserId = request.RegularUserId,
             CreatorId = request.CreatorId,
+            ApplicationUserId = userId,
             Amount = request.Amount
         };
 
@@ -443,18 +496,15 @@ public class CollaborationService : ICollaborationService
             };
         }
 
-        var regularUser = await _userRepository.GetUserByIdAsync(dispute.RegularUserId!);
-        var creator = await _userRepository.GetUserByIdAsync(dispute.CreatorId!);
-
         var disputeResponse = new DisputeResponseDto
         {
-            RequestId = requestId,  // Still returning the requestId in the response
-            Reason = dispute.Reason,
+            RequestId = requestId,
+            Reason = disputeReason.ToString(),
             DisputeMessage = dispute.DisputeMessage,
-            Status = dispute.Status,
+            Status = dispute.Status.ToString(),
             CreatedAt = dispute.CreatedAt,
-            RegularUserFullName = $"{regularUser.FirstName} {regularUser.LastName}",
-            CreatorFullName = $"{creator.FirstName} {creator.LastName}",
+            RegularUserFullName = $"{regularUser.ApplicationUser.FullName}",
+            CreatorFullName = $"{creator.ApplicationUser.FullName}",
             Amount = dispute.Amount
         };
 
@@ -629,7 +679,7 @@ public class CollaborationService : ICollaborationService
 
         // Check if the logged-in user has the 'Creator' role
         var roles = await _userManager.GetRolesAsync(user);
-        if (!roles.Contains(RolesConstant.Creator))
+        if (roles == null || !roles.Contains("Creator"))
         {
             _logger.LogWarning("Unauthorized access attempt by UserId: {UserId}", userId);
             return new ServerResponse<List<FetchDisputeDto>>
@@ -646,10 +696,28 @@ public class CollaborationService : ICollaborationService
             };
         }
 
+        var creator = await _creatorRepository.GetCreatorByApplicationUserIdAsync(userId);
+        if (creator == null || creator.ApplicationUser == null)
+        {
+            _logger.LogWarning("User with ID: {UserId} or associated ApplicationUser not found.", userId);
+            return new ServerResponse<List<FetchDisputeDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User or associated ApplicationUser not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User or associated ApplicationUser not found."
+                }
+            };
+        }
+
         // Fetch disputes associated with the creator
-        var disputes = await _disputeRepository.GetDisputesByCreator(user.Id)
+        var disputes = await _disputeRepository.GetDisputesByCreator(creator.Id)
             .Include(d => d.Request)
-            .ThenInclude(r => r!.RegularUser)
+            .Include(r => r!.RegularUser)
+            .ThenInclude(u => u.ApplicationUser)
             .ToListAsync();
 
         if (disputes == null || !disputes.Any())
@@ -673,7 +741,7 @@ public class CollaborationService : ICollaborationService
         var disputeDtos = disputes.Select(d => new FetchDisputeDto
         {
             DisputeId = d.Id,
-            RegularUserFullName = $"{d.Request!.RegularUser!.ApplicationUser!.FirstName} {d.Request.RegularUser!.ApplicationUser.LastName}",
+            RegularUserFullName = $"{d.ApplicationUser!.FullName}",
             CreatedAt = d.CreatedAt.UtcDateTime,
             DisputeType = DisputeType.DisputedVideo,
             Status = d.Status
@@ -707,7 +775,7 @@ public class CollaborationService : ICollaborationService
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        if (!roles.Contains(RolesConstant.Creator.ToString()))
+        if (roles == null || !roles.Contains("Creator"))
         {
             _logger.LogWarning("Unauthorized access attempt by UserId: {UserId}", userId);
             return new ServerResponse<DisputeDetailsDto>
@@ -726,7 +794,7 @@ public class CollaborationService : ICollaborationService
 
         // Fetch dispute details by disputeId and creatorId
         var dispute = await _disputeRepository.GetDisputeById(disputeId);
-        if (dispute == null || dispute.Request!.CreatorId != user.Id)
+        if (dispute == null)
         {
             _logger.LogWarning("Dispute with DisputeId: {DisputeId} not found for CreatorId: {CreatorId}", disputeId, user.Id);
             return new ServerResponse<DisputeDetailsDto>
@@ -747,7 +815,7 @@ public class CollaborationService : ICollaborationService
         var disputeDetailsDto = new DisputeDetailsDto
         {
             DisputeId = dispute.Id,
-            RegularUserFullName = $"{dispute.Request.RegularUser!.ApplicationUser!.FirstName} {dispute.Request.RegularUser!.ApplicationUser.LastName}",
+            RegularUserFullName = $"{dispute.ApplicationUser.FullName}",
             CreatedAt = dispute.CreatedAt.UtcDateTime,
             DisputeReason = dispute.Reason,
             DisputeMessage = dispute.DisputeMessage

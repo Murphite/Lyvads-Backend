@@ -22,9 +22,7 @@ public class UserRepository : IUserRepository
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
-        {
-            throw new Exception("User not found");
-        }
+            return null!;
         return user;
     }
 
@@ -109,28 +107,29 @@ public class UserRepository : IUserRepository
 
     public async Task<ApplicationUser?> GetUserWithCreatorAsync(string userId)
     {
+        if (string.IsNullOrEmpty(userId))
+            return null;
+
         return await _context.Users
             .Include(u => u.Creator)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
-
-
     public async Task<CreatorProfileDto> GetCreatorByIdAsync(string creatorId)
     {
         var creator = await _context.Creators
             .Include(c => c.ApplicationUser)
-            .Include(c => c.CollabRates)
+            .Include(c => c.Rates)
             .FirstOrDefaultAsync(c => c.Id == creatorId);
 
         if (creator == null)
             return null!;
 
-        var collabRatesDto = creator.CollabRates?
+        var collabRatesDto = creator.Rates?
             .Select(cr => new CollabRateDto
             {
-                RequestType = cr.RequestType.ToString(),
-                TotalAmount = cr.Rate
+                RequestType = cr.Type?.ToString(),
+                TotalAmount = cr.Price
             })
             .ToList();
 
@@ -148,37 +147,11 @@ public class UserRepository : IUserRepository
         };
     }
 
-
-    //public async Task<Creator?> GetCreatorByIdAsync(string creatorId)
-    //{
-    //    return await _context.Creators
-    //        .Include(c => c.CollabRates) // Make sure to include CollabRates
-    //        .FirstOrDefaultAsync(c => c.Id == creatorId);
-    //}
-
     public async Task<Favorite?> GetFavoriteAsync(string userId, string creatorId)
     {
         return await _context.Favorites
             .FirstOrDefaultAsync(f => f.UserId == userId && f.CreatorId == creatorId);
     }
-
-
-    //public async Task<List<CreatorResponseDto>> GetCreatorsWithMostEngagementAndFollowersAsync(int count)
-    //{
-    //    return await _context.Creators
-    //        .Select(c => new CreatorResponseDto
-    //        {
-    //            Id = c.Id,
-    //            // Use a conditional expression to handle null values explicitly
-    //            Name = c.ApplicationUser != null ? c.ApplicationUser.FullName! : "Unknown",
-    //            EngagementCount = c.Posts.Sum(p => p.Likes.Count + p.Comments.Count),
-    //            FollowersCount = _context.Follows.Count(f => f.CreatorId == c.Id) // Count followers from the Follow entity
-    //        })
-    //        .OrderByDescending(c => c.FollowersCount) // Sort by FollowerCount
-    //        .ThenByDescending(c => c.EngagementCount) // Sort by EngagementCount
-    //        .Take(count)
-    //        .ToListAsync();
-    //}
 
     public IQueryable<CreatorResponseDto> GetCreatorsWithMostEngagementAndFollowersAsync()
     {
@@ -219,6 +192,7 @@ public class UserRepository : IUserRepository
         }).ToList();
     }
 
+   
     public async Task RemoveFavoriteAsync(string userId, string creatorId)
     {
         // Fetch the favorite entry from the database
@@ -275,6 +249,33 @@ public class UserRepository : IUserRepository
             .AnyAsync(f => f.UserId == userId && f.CreatorId == creatorId);
     }
 
-    
+    public async Task<int> GetCreatorsFollowingCountAsync(string userId)
+    {
+        return await _context.Follows
+            .Where(f => f.UserId == userId)
+            .CountAsync();
+    }
+
+    public async Task<int> GetUsersFollowingCreatorCountAsync(string creatorId)
+    {
+        return await _context.Follows
+            .Where(f => f.CreatorId == creatorId)
+            .CountAsync();
+    }
+
+    public async Task<List<UserFollowerDto>> GetUsersFollowingCreatorDetailsAsync(string creatorId)
+    {
+        return await _context.Follows
+            .Where(f => f.CreatorId == creatorId)
+            .Select(f => new UserFollowerDto
+            {
+                UserId = f.Id,
+                FullName = f.Follower!.FullName!,
+                ProfileImageUrl = f.Follower!.ImageUrl!
+            })
+            .ToListAsync();
+    }
+
+
 
 }

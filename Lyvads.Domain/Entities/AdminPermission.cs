@@ -13,8 +13,8 @@ public class AdminPermission : Entity
     public bool CanManageDisputes { get; set; }
     public bool CanManagePromotions { get; set; }
 
-    public string ApplicationUserId { get; set; } = default!;
-    public virtual ApplicationUser ApplicationUser { get; set; } = default!;
+    public string? ApplicationUserId { get; set; }
+    public virtual ApplicationUser? ApplicationUser { get; set; }
     public string? AdminRoleId { get; set; }  
     public virtual AdminRole? AdminRole { get; set; } 
 }

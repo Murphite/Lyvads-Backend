@@ -15,6 +15,7 @@ using Lyvads.Infrastructure.Repositories;
 using Lyvads.Application.Utilities;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Lyvads.Application.Implementations;
 
@@ -286,238 +287,7 @@ public class CreatorService : ICreatorService
         // Default to image if the type cannot be determined
         return "image";
     }
-
-    //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
-    //{
-    //    _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
-
-    //    // Check if the creator exists in the database by UserId
-    //    var creator = await _repository.FindByCondition<Creator>(c => c.ApplicationUserId == userId);
-    //    if (creator == null)
-    //    {
-    //        _logger.LogWarning("Creator with User ID: {UserId} not found.", userId);
-    //        return new ServerResponse<PostResponseDto>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "404",
-    //            ResponseMessage = "Creator does not exist.",
-    //            ErrorResponse = new ErrorResponse
-    //            {
-    //                ResponseCode = "404",
-    //                ResponseMessage = "Creator not found."
-    //            }
-    //        };
-    //    }
-
-    //    // Upload image to Cloudinary if a photo is provided
-    //    string mediaUrl = null!;
-    //    if (photo != null)
-    //    {
-    //        var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
-    //        if (uploadResult["Code"] != "200")
-    //        {
-    //            return new ServerResponse<PostResponseDto>
-    //            {
-    //                IsSuccessful = false,
-    //                ResponseCode = "400",
-    //                ResponseMessage = "Image upload failed.",
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "400",
-    //                    ResponseMessage = "Failed to upload the image."
-    //                }
-    //            };
-    //        }
-    //        mediaUrl = uploadResult["Url"];
-    //    }
-
-    //    // Create the new post
-    //    var post = new Post
-    //    {
-    //        CreatorId = creator.Id,
-    //        Caption = postDto.Caption,
-    //        MediaUrl = mediaUrl!,  // Use the uploaded image URL
-    //        Location = postDto.Location,
-    //        Visibility = visibility,
-    //        CreatedAt = DateTimeOffset.UtcNow,
-    //        UpdatedAt = DateTimeOffset.UtcNow
-    //    };
-
-    //    _logger.LogInformation("Post object created: {Post}", post);
-
-    //    try
-    //    {
-    //        await _repository.Add(post);
-    //        await _unitOfWork.SaveChangesAsync();
-
-    //        _logger.LogInformation("Post created successfully for creator with User ID: {UserId}", userId);
-
-    //        var postResponse = new PostResponseDto
-    //        {
-    //            PostId = post.Id,
-    //            CreatorId = creator.Id,
-    //            CreatorName = creator.ApplicationUser?.FullName,
-    //            Caption = post.Caption,
-    //            MediaUrl = post.MediaUrl,
-    //            Location = post.Location,
-    //            Visibility = post.Visibility.ToString(),
-    //            CreatedAt = post.CreatedAt,
-    //            UpdatedAt = post.UpdatedAt
-    //        };
-
-    //        return new ServerResponse<PostResponseDto>
-    //        {
-    //            IsSuccessful = true,
-    //            ResponseCode = "00",
-    //            ResponseMessage = "Post created successfully.",
-    //            Data = postResponse
-    //        };
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error creating post for creator with User ID: {UserId}", userId);
-    //        return new ServerResponse<PostResponseDto>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "500",
-    //            ResponseMessage = "An error occurred while creating the post.",
-    //            ErrorResponse = new ErrorResponse
-    //            {
-    //                ResponseCode = "500",
-    //                ResponseMessage = "Internal server error",
-    //                ResponseDescription = ex.Message
-    //            }
-    //        };
-    //    }
-    //}
-
-    //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo, IFormFile video)
-    //{
-    //    _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
-
-    //    // Check if the creator exists in the database by UserId
-    //    var creator = await _repository.FindByCondition<Creator>(c => c.ApplicationUserId == userId);
-    //    if (creator == null)
-    //    {
-    //        _logger.LogWarning("Creator with User ID: {UserId} not found.", userId);
-    //        return new ServerResponse<PostResponseDto>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "404",
-    //            ResponseMessage = "Creator does not exist.",
-    //            ErrorResponse = new ErrorResponse
-    //            {
-    //                ResponseCode = "404",
-    //                ResponseMessage = "Creator not found."
-    //            }
-    //        };
-    //    }
-
-    //    // Initialize media URL for either photo or video
-    //    string mediaUrl = null;
-
-    //    // Upload image to Cloudinary if a photo is provided
-    //    if (photo != null)
-    //    {
-    //        var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
-    //        if (uploadResult["Code"] != "200")
-    //        {
-    //            return new ServerResponse<PostResponseDto>
-    //            {
-    //                IsSuccessful = false,
-    //                ResponseCode = "400",
-    //                ResponseMessage = "Image upload failed.",
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "400",
-    //                    ResponseMessage = "Failed to upload the image."
-    //                }
-    //            };
-    //        }
-    //        mediaUrl = uploadResult["Url"];
-    //    }
-
-    //    // Upload video to Cloudinary if a video is provided
-    //    if (video != null)
-    //    {
-    //        var uploadResult = await _mediaService.UploadVideoAsync(video, "post_videos"); // Assuming you have a 'post_videos' folder in Cloudinary
-    //        if (uploadResult["Code"] != "200")
-    //        {
-    //            return new ServerResponse<PostResponseDto>
-    //            {
-    //                IsSuccessful = false,
-    //                ResponseCode = "400",
-    //                ResponseMessage = "Video upload failed.",
-    //                ErrorResponse = new ErrorResponse
-    //                {
-    //                    ResponseCode = "400",
-    //                    ResponseMessage = "Failed to upload the video."
-    //                }
-    //            };
-    //        }
-    //        mediaUrl = uploadResult["Url"]; // Use the video URL if uploaded successfully
-    //    }
-
-    //    // Create the new post
-    //    var post = new Post
-    //    {
-    //        CreatorId = creator.Id,
-    //        Caption = postDto.Caption,
-    //        MediaUrl = mediaUrl,  // Use the uploaded media URL (image or video)
-    //        Location = postDto.Location,
-    //        Visibility = visibility,
-    //        CreatedAt = DateTimeOffset.UtcNow,
-    //        UpdatedAt = DateTimeOffset.UtcNow
-    //    };
-
-    //    _logger.LogInformation("Post object created: {Post}", post);
-
-    //    try
-    //    {
-    //        await _repository.Add(post);
-    //        await _unitOfWork.SaveChangesAsync();
-
-    //        _logger.LogInformation("Post created successfully for creator with User ID: {UserId}", userId);
-
-    //        var postResponse = new PostResponseDto
-    //        {
-    //            PostId = post.Id,
-    //            CreatorId = creator.Id,
-    //            CreatorName = creator.ApplicationUser?.FullName,
-    //            Caption = post.Caption,
-    //            MediaUrl = post.MediaUrl,
-    //            Location = post.Location,
-    //            Visibility = post.Visibility.ToString(),
-    //            CreatedAt = post.CreatedAt,
-    //            UpdatedAt = post.UpdatedAt
-    //        };
-
-    //        return new ServerResponse<PostResponseDto>
-    //        {
-    //            IsSuccessful = true,
-    //            ResponseCode = "00",
-    //            ResponseMessage = "Post created successfully.",
-    //            Data = postResponse
-    //        };
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error creating post for creator with User ID: {UserId}", userId);
-    //        return new ServerResponse<PostResponseDto>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "500",
-    //            ResponseMessage = "An error occurred while creating the post.",
-    //            ErrorResponse = new ErrorResponse
-    //            {
-    //                ResponseCode = "500",
-    //                ResponseMessage = "Internal server error",
-    //                ResponseDescription = ex.Message
-    //            }
-    //        };
-    //    }
-    //}
-
+  
     public async Task<ServerResponse<PostResponseDto>> UpdatePostAsync(string postId, UpdatePostDto postDto,
      PostVisibility visibility, string userId, List<IFormFile> mediaFiles)
     {
@@ -1469,7 +1239,7 @@ public class CreatorService : ICreatorService
             CreatorId = p.CreatorId,
             CreatorName = p.Creator?.ApplicationUser?.FullName ?? "Unknown",
             Caption = p.Caption,
-            MediaUrls = p.MediaFiles.Select(m => m.Url).ToList(),
+            MediaUrls = p.MediaFiles.Select(m => m.Url).ToList()!,
             Location = p.Location,
             Visibility = p.Visibility.ToString(),
             CreatedAt = p.CreatedAt,
@@ -1485,15 +1255,13 @@ public class CreatorService : ICreatorService
         };
     }
 
-   
-    public async Task<ServerResponse<CreatorProfileResponseDto>> UpdateCreatorSetUpRatesAsync(UpdateCreatorProfileDto dto, string userId)
+    public async Task<ServerResponse<CreatorRateResponseDto>> UpdateCreatorRatesAsync(UpdateCreatorRateDto dto, string userId)
     {
         // Find the user by ID
         var user = await _userManager.FindByIdAsync(userId);
-
         if (user == null)
-            //return new Error[] { new("User.Error", "User Not Found") };
-            return new ServerResponse<CreatorProfileResponseDto>
+        {
+            return new ServerResponse<CreatorRateResponseDto>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
@@ -1504,14 +1272,16 @@ public class CreatorService : ICreatorService
                     ResponseMessage = "User not found."
                 }
             };
+        }
 
         // Find the creator associated with the user
         var creator = _repository.GetAll<Creator>()
+            .Include(c => c.Rates)
             .FirstOrDefault(x => x.ApplicationUserId == user.Id);
 
         if (creator == null)
-            //return new Error[] { new("Creator.Error", "Creator Not Found") };
-            return new ServerResponse<CreatorProfileResponseDto>
+        {
+            return new ServerResponse<CreatorRateResponseDto>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
@@ -1522,36 +1292,196 @@ public class CreatorService : ICreatorService
                     ResponseMessage = "Creator not found."
                 }
             };
+        }
 
-        // Update the creator's details
-        creator.SimpleAdvert = dto.SimpleAdvert ?? creator.SimpleAdvert;
-        creator.WearBrand = dto.WearBrand ?? creator.WearBrand;
-        creator.SongAdvert = dto.SongAdvert ?? creator.SongAdvert;
-        creator.Request = dto.Request ?? creator.Request;        
+        // Limit rates to 10 entries
+        if (dto.Rates.Count > 10)
+        {
+            return new ServerResponse<CreatorRateResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Cannot add more than 10 rates.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Maximum of 10 rates allowed."
+                }
+            };
+        }
+
+        // Clear existing rates and add new ones
+        creator.Rates.Clear();
+        foreach (var rateDto in dto.Rates)
+        {
+            creator.Rates.Add(new Rate
+            {
+                Type = rateDto.Type,
+                Price = rateDto.Price
+            });
+        }
 
         // Save the updates to the database
         _repository.Update(creator);
-        await _userManager.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
         // Prepare the response DTO
-        var creatorProfileResponse = new CreatorProfileResponseDto
-        {           
-            SimpleAdvert = creator.SimpleAdvert,
-            WearBrand = creator.WearBrand,
-            SongAdvert = creator.SongAdvert,
-            Request = creator.Request,
+        var creatorProfileResponse = new CreatorRateResponseDto
+        {
+            CreatorId = creator.Id,
+            Rates = creator.Rates.Select(rate => new RateDto
+            {
+                RateId = rate.Id, 
+                Type = rate.Type!,
+                Price = rate.Price
+            }).ToList()
         };
 
-        return new ServerResponse<CreatorProfileResponseDto>
+        return new ServerResponse<CreatorRateResponseDto>
         {
             IsSuccessful = true,
             ResponseCode = "00",
             ResponseMessage = "Creator's profile updated successfully.",
             Data = creatorProfileResponse
         };
-       
     }
+
+
+    public async Task<ServerResponse<string>> DeleteCreatorRateAsync(string rateId, string userId)
+    {
+        // Find the user by ID
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        // Find the creator associated with the user
+        var creator = _repository.GetAll<Creator>()
+            .Include(c => c.Rates) // Include Rates
+            .FirstOrDefault(c => c.ApplicationUserId == user.Id);
+
+        if (creator == null)
+        {
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Creator not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Creator not found."
+                }
+            };
+        }
+
+        // Find the rate by ID within the creator's rates
+        var rate = creator.Rates.FirstOrDefault(r => r.Id == rateId);
+        if (rate == null)
+        {
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Rate not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Rate not found."
+                }
+            };
+        }
+
+        // Remove the rate
+        creator.Rates.Remove(rate);
+        _repository.Update(creator);
+        await _unitOfWork.SaveChangesAsync();
+
+        return new ServerResponse<string>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Rate deleted successfully.",
+            Data = "Rate deleted successfully."
+        };
+    }
+
+
+    //public async Task<ServerResponse<CreatorProfileResponseDto>> UpdateCreatorSetUpRatesAsync(UpdateCreatorProfileDto dto, string userId)
+    //{
+    //    // Find the user by ID
+    //    var user = await _userManager.FindByIdAsync(userId);
+
+    //    if (user == null)
+    //        return new ServerResponse<CreatorProfileResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "404",
+    //            ResponseMessage = "User not found.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "404",
+    //                ResponseMessage = "User not found."
+    //            }
+    //        };
+
+    //    // Find the creator associated with the user
+    //    var creator = _repository.GetAll<Creator>()
+    //        .FirstOrDefault(x => x.ApplicationUserId == user.Id);
+
+    //    if (creator == null)
+    //        return new ServerResponse<CreatorProfileResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "404",
+    //            ResponseMessage = "Creator not found.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "404",
+    //                ResponseMessage = "Creator not found."
+    //            }
+    //        };
+
+    //    // Update the creator's details
+    //    creator.SimpleAdvert = dto.SimpleAdvert ?? creator.SimpleAdvert;
+    //    creator.WearBrand = dto.WearBrand ?? creator.WearBrand;
+    //    creator.SongAdvert = dto.SongAdvert ?? creator.SongAdvert;
+    //    creator.Request = dto.Request ?? creator.Request;        
+
+    //    // Save the updates to the database
+    //    _repository.Update(creator);
+    //    await _userManager.UpdateAsync(user);
+    //    await _unitOfWork.SaveChangesAsync();
+
+    //    // Prepare the response DTO
+    //    var creatorProfileResponse = new CreatorProfileResponseDto
+    //    {           
+    //        SimpleAdvert = creator.SimpleAdvert,
+    //        WearBrand = creator.WearBrand,
+    //        SongAdvert = creator.SongAdvert,
+    //        Request = creator.Request,
+    //    };
+
+    //    return new ServerResponse<CreatorProfileResponseDto>
+    //    {
+    //        IsSuccessful = true,
+    //        ResponseCode = "00",
+    //        ResponseMessage = "Creator's profile updated successfully.",
+    //        Data = creatorProfileResponse
+    //    };
+
+    //}
 
     public async Task<ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>> SearchCreatorsAsync(
     decimal? minPrice, decimal? maxPrice, string? location, string? industry, string? keyword, PaginationFilter paginationFilter)
@@ -1757,4 +1687,237 @@ public class CreatorService : ICreatorService
         var random = new Random();
         return random.Next(10000, 99999).ToString();
     }
+
+
+    //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
+    //{
+    //    _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
+
+    //    // Check if the creator exists in the database by UserId
+    //    var creator = await _repository.FindByCondition<Creator>(c => c.ApplicationUserId == userId);
+    //    if (creator == null)
+    //    {
+    //        _logger.LogWarning("Creator with User ID: {UserId} not found.", userId);
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "404",
+    //            ResponseMessage = "Creator does not exist.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "404",
+    //                ResponseMessage = "Creator not found."
+    //            }
+    //        };
+    //    }
+
+    //    // Upload image to Cloudinary if a photo is provided
+    //    string mediaUrl = null!;
+    //    if (photo != null)
+    //    {
+    //        var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
+    //        if (uploadResult["Code"] != "200")
+    //        {
+    //            return new ServerResponse<PostResponseDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ResponseCode = "400",
+    //                ResponseMessage = "Image upload failed.",
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "400",
+    //                    ResponseMessage = "Failed to upload the image."
+    //                }
+    //            };
+    //        }
+    //        mediaUrl = uploadResult["Url"];
+    //    }
+
+    //    // Create the new post
+    //    var post = new Post
+    //    {
+    //        CreatorId = creator.Id,
+    //        Caption = postDto.Caption,
+    //        MediaUrl = mediaUrl!,  // Use the uploaded image URL
+    //        Location = postDto.Location,
+    //        Visibility = visibility,
+    //        CreatedAt = DateTimeOffset.UtcNow,
+    //        UpdatedAt = DateTimeOffset.UtcNow
+    //    };
+
+    //    _logger.LogInformation("Post object created: {Post}", post);
+
+    //    try
+    //    {
+    //        await _repository.Add(post);
+    //        await _unitOfWork.SaveChangesAsync();
+
+    //        _logger.LogInformation("Post created successfully for creator with User ID: {UserId}", userId);
+
+    //        var postResponse = new PostResponseDto
+    //        {
+    //            PostId = post.Id,
+    //            CreatorId = creator.Id,
+    //            CreatorName = creator.ApplicationUser?.FullName,
+    //            Caption = post.Caption,
+    //            MediaUrl = post.MediaUrl,
+    //            Location = post.Location,
+    //            Visibility = post.Visibility.ToString(),
+    //            CreatedAt = post.CreatedAt,
+    //            UpdatedAt = post.UpdatedAt
+    //        };
+
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = true,
+    //            ResponseCode = "00",
+    //            ResponseMessage = "Post created successfully.",
+    //            Data = postResponse
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error creating post for creator with User ID: {UserId}", userId);
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "500",
+    //            ResponseMessage = "An error occurred while creating the post.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "500",
+    //                ResponseMessage = "Internal server error",
+    //                ResponseDescription = ex.Message
+    //            }
+    //        };
+    //    }
+    //}
+
+    //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo, IFormFile video)
+    //{
+    //    _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);
+
+    //    // Check if the creator exists in the database by UserId
+    //    var creator = await _repository.FindByCondition<Creator>(c => c.ApplicationUserId == userId);
+    //    if (creator == null)
+    //    {
+    //        _logger.LogWarning("Creator with User ID: {UserId} not found.", userId);
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "404",
+    //            ResponseMessage = "Creator does not exist.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "404",
+    //                ResponseMessage = "Creator not found."
+    //            }
+    //        };
+    //    }
+
+    //    // Initialize media URL for either photo or video
+    //    string mediaUrl = null;
+
+    //    // Upload image to Cloudinary if a photo is provided
+    //    if (photo != null)
+    //    {
+    //        var uploadResult = await _mediaService.UploadImageAsync(photo, "post_images"); // Assuming you have a 'post_images' folder in Cloudinary
+    //        if (uploadResult["Code"] != "200")
+    //        {
+    //            return new ServerResponse<PostResponseDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ResponseCode = "400",
+    //                ResponseMessage = "Image upload failed.",
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "400",
+    //                    ResponseMessage = "Failed to upload the image."
+    //                }
+    //            };
+    //        }
+    //        mediaUrl = uploadResult["Url"];
+    //    }
+
+    //    // Upload video to Cloudinary if a video is provided
+    //    if (video != null)
+    //    {
+    //        var uploadResult = await _mediaService.UploadVideoAsync(video, "post_videos"); // Assuming you have a 'post_videos' folder in Cloudinary
+    //        if (uploadResult["Code"] != "200")
+    //        {
+    //            return new ServerResponse<PostResponseDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ResponseCode = "400",
+    //                ResponseMessage = "Video upload failed.",
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "400",
+    //                    ResponseMessage = "Failed to upload the video."
+    //                }
+    //            };
+    //        }
+    //        mediaUrl = uploadResult["Url"]; // Use the video URL if uploaded successfully
+    //    }
+
+    //    // Create the new post
+    //    var post = new Post
+    //    {
+    //        CreatorId = creator.Id,
+    //        Caption = postDto.Caption,
+    //        MediaUrl = mediaUrl,  // Use the uploaded media URL (image or video)
+    //        Location = postDto.Location,
+    //        Visibility = visibility,
+    //        CreatedAt = DateTimeOffset.UtcNow,
+    //        UpdatedAt = DateTimeOffset.UtcNow
+    //    };
+
+    //    _logger.LogInformation("Post object created: {Post}", post);
+
+    //    try
+    //    {
+    //        await _repository.Add(post);
+    //        await _unitOfWork.SaveChangesAsync();
+
+    //        _logger.LogInformation("Post created successfully for creator with User ID: {UserId}", userId);
+
+    //        var postResponse = new PostResponseDto
+    //        {
+    //            PostId = post.Id,
+    //            CreatorId = creator.Id,
+    //            CreatorName = creator.ApplicationUser?.FullName,
+    //            Caption = post.Caption,
+    //            MediaUrl = post.MediaUrl,
+    //            Location = post.Location,
+    //            Visibility = post.Visibility.ToString(),
+    //            CreatedAt = post.CreatedAt,
+    //            UpdatedAt = post.UpdatedAt
+    //        };
+
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = true,
+    //            ResponseCode = "00",
+    //            ResponseMessage = "Post created successfully.",
+    //            Data = postResponse
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error creating post for creator with User ID: {UserId}", userId);
+    //        return new ServerResponse<PostResponseDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "500",
+    //            ResponseMessage = "An error occurred while creating the post.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "500",
+    //                ResponseMessage = "Internal server error",
+    //                ResponseDescription = ex.Message
+    //            }
+    //        };
+    //    }
+    //}
+
 }
