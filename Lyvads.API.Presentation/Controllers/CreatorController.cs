@@ -251,24 +251,6 @@ public class CreatorController : ControllerBase
 
     
    
-
-    
-    [HttpGet("wallet-balance")]
-    public async Task<IActionResult> ViewWalletBalance()
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not found or unauthorized.");
-        var result = await _creatorService.ViewWalletBalanceAsync(user.Id);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }
-
-    
-   
     [HttpPost("handle-request")]
     public async Task<IActionResult> HandleRequest(string requestId, RequestStatus status)
     {
@@ -279,9 +261,7 @@ public class CreatorController : ControllerBase
 
         return Ok(result);
     }
-
-
-    
+       
     
     [HttpGet("notifications")]
     public async Task<IActionResult> GetNotifications()

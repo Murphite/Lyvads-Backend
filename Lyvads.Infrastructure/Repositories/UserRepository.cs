@@ -94,7 +94,7 @@ public class UserRepository : IUserRepository
 
     public async Task FollowCreatorAsync(string userId, string creatorId)
     {
-        var follow = new Follow { UserId = userId, CreatorId = creatorId };
+        var follow = new Follow { ApplicationUserId = userId, CreatorId = creatorId };
         await _context.Follows.AddAsync(follow);
         await _context.SaveChangesAsync();
     }
@@ -128,6 +128,7 @@ public class UserRepository : IUserRepository
         var collabRatesDto = creator.Rates?
             .Select(cr => new CollabRateDto
             {
+                RateId = cr.Id,
                 RequestType = cr.Type?.ToString(),
                 TotalAmount = cr.Price
             })
@@ -180,19 +181,42 @@ public class UserRepository : IUserRepository
     {
         var favorites = await _context.Favorites
             .Where(f => f.UserId == userId)
-            .Select(f => f.Creator)
+            .Include(f => f.Creator.ApplicationUser)
             .ToListAsync();
 
-        return favorites.Select(c => new CreatorResponseDto
+        return favorites.Select(f => new CreatorResponseDto
         {
-            Id = c!.Id,
-            Name = c.ApplicationUser?.FullName!,
-            EngagementCount = c.EngagementCount,
-            // Add other relevant properties
+            Id = f.Creator!.Id,
+            Name = f.Creator.ApplicationUser!.FullName ?? "N/A",
+            ProfilePicture = f.Creator.ApplicationUser.ImageUrl ?? string.Empty,
+            Industry = f.Creator.ApplicationUser.Occupation ?? string.Empty,
+            AppUserName = f.Creator.ApplicationUser.AppUserName ?? string.Empty,
+            FollowersCount = _context.Follows.Count(fol => fol.CreatorId == f.Creator.Id),
+            EngagementCount = f.Creator.EngagementCount
         }).ToList();
     }
 
-   
+    public async Task<Creator> GetCreatorByIdWithApplicationUser(string id)
+    {
+        return await _context.Creators
+            .Include(r => r.ApplicationUser)
+            .FirstOrDefaultAsync(r => r.Id == id);
+    }
+
+    public async Task<List<UserFollowerDto>> GetUsersFollowingCreatorDetailsAsync(string creatorId)
+    {
+        return await _context.Follows
+            .Include(f => f.Creator!.ApplicationUser)
+            .Where(f => f.CreatorId == creatorId && f.Creator != null)
+            .Select(f => new UserFollowerDto
+            {
+                UserId = f.Creator!.Id,
+                FullName = f.Creator!.ApplicationUser!.FullName!,
+                ProfileImageUrl = f.Creator!.ApplicationUser.ImageUrl!
+            })
+            .ToListAsync();
+    }
+
     public async Task RemoveFavoriteAsync(string userId, string creatorId)
     {
         // Fetch the favorite entry from the database
@@ -235,7 +259,7 @@ public class UserRepository : IUserRepository
     public async Task UnfollowCreatorAsync(string userId, string creatorId)
     {
         var follow = await _context.Follows
-            .FirstOrDefaultAsync(f => f.UserId == userId && f.CreatorId == creatorId);
+            .FirstOrDefaultAsync(f => f.ApplicationUserId == userId && f.CreatorId == creatorId);
         if (follow != null)
         {
             _context.Follows.Remove(follow);
@@ -246,13 +270,13 @@ public class UserRepository : IUserRepository
     public async Task<bool> IsUserFollowingCreatorAsync(string userId, string creatorId)
     {
         return await _context.Follows
-            .AnyAsync(f => f.UserId == userId && f.CreatorId == creatorId);
+            .AnyAsync(f => f.ApplicationUserId == userId && f.CreatorId == creatorId);
     }
 
     public async Task<int> GetCreatorsFollowingCountAsync(string userId)
     {
         return await _context.Follows
-            .Where(f => f.UserId == userId)
+            .Where(f => f.ApplicationUserId == userId)
             .CountAsync();
     }
 
@@ -263,19 +287,11 @@ public class UserRepository : IUserRepository
             .CountAsync();
     }
 
-    public async Task<List<UserFollowerDto>> GetUsersFollowingCreatorDetailsAsync(string creatorId)
+    public async Task<bool> IsCreatorInUserFavoritesAsync(string userId, string creatorId)
     {
-        return await _context.Follows
-            .Where(f => f.CreatorId == creatorId)
-            .Select(f => new UserFollowerDto
-            {
-                UserId = f.Id,
-                FullName = f.Follower!.FullName!,
-                ProfileImageUrl = f.Follower!.ImageUrl!
-            })
-            .ToListAsync();
+        return await _context.Favorites
+            .AnyAsync(f => f.UserId == userId && f.CreatorId == creatorId);
     }
-
 
 
 }

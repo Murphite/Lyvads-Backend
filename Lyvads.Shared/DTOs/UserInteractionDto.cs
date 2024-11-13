@@ -42,6 +42,7 @@ public class CreatorProfileDto
 
 public class CollabRateDto
 {
+    public string RateId { get; set; } = default!;
     public string? RequestType { get; set; }
     public decimal TotalAmount { get; set; }
 }

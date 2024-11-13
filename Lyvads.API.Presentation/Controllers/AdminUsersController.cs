@@ -46,7 +46,7 @@ public class AdminUsersController : Controller
 
 
     [HttpPost("add-user")]
-    public async Task<IActionResult> AddUser([FromBody] RegisterUserDto registerUserDto)
+    public async Task<IActionResult> AddUser([FromBody] AdminRegisterUserDto registerUserDto)
     {
         // Get the logged-in user's ID
         var user = await _userManager.GetUserAsync(User);

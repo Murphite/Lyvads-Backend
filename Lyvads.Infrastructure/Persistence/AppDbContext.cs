@@ -223,7 +223,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(l => l.ContentId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Follow>()
+        .HasOne(f => f.ApplicationUser)
+        .WithMany()
+        .HasForeignKey(f => f.ApplicationUserId)
+        .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Follow>()
+            .HasOne(f => f.Creator)
+            .WithMany()
+            .HasForeignKey(f => f.CreatorId)
+            .OnDelete(DeleteBehavior.Cascade);
 
     }
 

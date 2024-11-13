@@ -16,7 +16,10 @@ namespace Lyvads.Application.Implementations;
 
 using Lyvads.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
-
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 public class AuthService : IAuthService
 {
@@ -528,6 +531,9 @@ public class AuthService : IAuthService
 
                 await transaction.CommitAsync();
 
+                // Automatically log in the user
+                var token = await GenerateJwtToken(applicationUser);
+
                 return new ServerResponse<RegisterUserResponseDto>
                 {
                     IsSuccessful = true,
@@ -562,6 +568,30 @@ public class AuthService : IAuthService
                 };
             }
         }
+    }
+
+    private async Task<string> GenerateJwtToken(ApplicationUser user)
+    {
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var authClaims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, user.UserName!),
+        new Claim(ClaimTypes.Email, user.Email!),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
+
+        authClaims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]!));
+        var token = new JwtSecurityToken(
+            issuer: _configuration["JWT:ValidIssuer"],
+            audience: _configuration["JWT:ValidAudience"],
+            expires: DateTime.Now.AddHours(3),
+            claims: authClaims,
+            signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public async Task<ServerResponse<RegisterUserResponseDto>> RegisterCreator(RegisterCreatorDto registerCreatorDto, IFormFile newProfilePicture)

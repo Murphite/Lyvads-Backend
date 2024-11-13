@@ -1,6 +1,7 @@
 ﻿
 using Lyvads.Domain.Entities;
 using Lyvads.Shared.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lyvads.Domain.Repositories;
 
@@ -14,6 +15,7 @@ public interface IUserRepository
     Task UpdateWalletBalanceAsync(string userId, decimal amount);
     Task<ApplicationUser?> GetUserWithCreatorAsync(string userId);
     Task AddFavoriteAsync(string userId, string creatorId);
+    Task<Creator> GetCreatorByIdWithApplicationUser(string id);
     Task FollowCreatorAsync(string userId, string creatorId);
     Task<CreatorProfileDto> GetCreatorByIdAsync(string creatorId);
     Task<bool> CreatorExistsAsync(string creatorId);
@@ -29,4 +31,6 @@ public interface IUserRepository
     Task<int> GetCreatorsFollowingCountAsync(string userId);
     Task<int> GetUsersFollowingCreatorCountAsync(string creatorId);
     Task<List<UserFollowerDto>> GetUsersFollowingCreatorDetailsAsync(string creatorId);
+    Task<bool> IsCreatorInUserFavoritesAsync(string userId, string creatorId);
+
 }

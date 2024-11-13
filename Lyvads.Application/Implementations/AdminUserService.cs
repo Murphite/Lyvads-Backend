@@ -79,6 +79,8 @@ public class AdminUserService : ISuperAdminService
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
+                    Location = user.Location,
+                    ProfilePic = user.ImageUrl,
                     Role = roleName,
                     CreatedAt = user.CreatedAt,
                     IsActive = user.IsActive,
@@ -105,7 +107,7 @@ public class AdminUserService : ISuperAdminService
     }
 
 
-    public async Task<ServerResponse<AddUserResponseDto>> AddUser(RegisterUserDto registerUserDto)
+    public async Task<ServerResponse<AddUserResponseDto>> AddUser(AdminRegisterUserDto registerUserDto)
     {
         var currentUserId = _currentUserService.GetCurrentUserId();
         var currentUser = await _userManager.FindByIdAsync(currentUserId);
@@ -174,17 +176,13 @@ public class AdminUserService : ISuperAdminService
         }
 
         var role = registerUserDto.Role?.ToUpperInvariant();
-        //var role = registerUserDto.Role;
-
-        var names = registerUserDto.FullName.Split(' ', 2);
-        var firstName = names[0];
-        var lastName = names.Length > 1 ? names[1] : string.Empty;
 
         var applicationUser = new ApplicationUser
         {
-            FirstName = firstName,
-            LastName = lastName,
+            FirstName = registerUserDto.FirstName,
+            LastName = registerUserDto.LastName,
             UserName = registerUserDto.Email,
+            Location = registerUserDto.Location,
             Email = registerUserDto.Email,
             PhoneNumber = registerUserDto.PhoneNumber,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -293,8 +291,11 @@ public class AdminUserService : ISuperAdminService
 
                 var addUserResponse = new AddUserResponseDto
                 {
+                    FullName = applicationUser.FullName,
                     UserId = applicationUser.Id,
                     Email = applicationUser.Email,
+                    ProfilePictureUrl = applicationUser.ImageUrl,
+                    Location = applicationUser.Location,
                     Role = role,
                     Message = $"{applicationUser.Email} registration successful."
                 };

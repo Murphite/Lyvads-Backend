@@ -141,4 +141,12 @@ public class WalletRepository : IWalletRepository
         return result > 0; 
     }
 
+    public async Task<Wallet?> GetWalletByUserIdAsync(string userId)
+    {
+        return await _context.Wallets
+            .Include(w => w.ApplicationUser)
+            .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
+    }
+
+
 }

@@ -26,6 +26,7 @@ namespace Lyvads.Application.Implementations;
 public class UserInteractionService : IUserInteractionService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IWalletRepository _walletRepository;
     private readonly IRepository _repository;
     private readonly ILogger<UserInteractionService> _logger;
     private readonly ICreatorRepository _creatorRepository;
@@ -39,7 +40,9 @@ public class UserInteractionService : IUserInteractionService
     private readonly IConfiguration _configuration;
     private readonly IRegularUserRepository _regularUserRepository;
 
-    public UserInteractionService(IUserRepository userRepository, 
+    public UserInteractionService(
+        IUserRepository userRepository,
+        IWalletRepository walletRepository, 
         IConfiguration configuration,
         IRepository repository,
         ILogger<UserInteractionService> logger,
@@ -54,6 +57,7 @@ public class UserInteractionService : IUserInteractionService
         IRegularUserRepository regularUserRepository)
     {
         _userRepository = userRepository;
+        _walletRepository = walletRepository;
         _configuration = configuration;
         _repository = repository;
         _logger = logger;
@@ -1437,6 +1441,7 @@ public class UserInteractionService : IUserInteractionService
             .GroupBy(c => c.RequestType)
             .Select(group => new CollabRateDto
             {
+                RateId = group.First().RateId,
                 RequestType = group.Key?.ToString(),
                 TotalAmount = group.Sum(c => c.TotalAmount)
             })
@@ -1473,7 +1478,6 @@ public class UserInteractionService : IUserInteractionService
             Data = creatorProfile
         };
     }
-
 
     public async Task<ServerResponse<object>> FollowCreatorAsync(string userId, string creatorId)
     {
@@ -1764,6 +1768,92 @@ public class UserInteractionService : IUserInteractionService
             Data = followers
         };
     }
+
+    public async Task<ServerResponse<WalletBalanceDto>> ViewWalletBalanceAsync(string userId)
+    {
+        _logger.LogInformation("Viewing wallet balance for user with ID: {UserId}", userId);
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning("User ID is null or empty.");
+            return new ServerResponse<WalletBalanceDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "User ID is missing.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "User ID is missing."
+                }
+            };
+        }
+
+        var wallet = await _walletRepository.GetWalletByUserIdAsync(userId);
+
+        if (wallet == null)
+        {
+            _logger.LogWarning("Wallet not found for user with ID: {UserId}.", userId);
+            return new ServerResponse<WalletBalanceDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Wallet not found for the user.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Wallet not found."
+                }
+            };
+        }
+
+        var walletBalanceResponse = new WalletBalanceDto
+        {
+            CreatorId = userId,
+            WalletBalance = wallet.Balance,
+            UserName = wallet.ApplicationUser.FullName ?? "N/A"
+        };
+
+        _logger.LogInformation("Wallet balance retrieved for user with ID: {UserId}.", userId);
+
+        return new ServerResponse<WalletBalanceDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Wallet balance successfully fetched.",
+            Data = walletBalanceResponse
+        };
+    }
+
+
+    public async Task<ServerResponse<bool>> CheckIfCreatorIsInUserFavoritesAsync(string userId, string creatorId)
+    {
+        // Check if the creator exists
+        var creatorExists = await _userRepository.CreatorExistsAsync(creatorId);
+        if (!creatorExists)
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "06",
+                    ResponseMessage = "Creator not found."
+                }
+            };
+        }
+
+        // Check if the creator is in the user's favorites
+        var isFavorite = await _userRepository.IsCreatorInUserFavoritesAsync(userId, creatorId);
+
+        return new ServerResponse<bool>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            Data = isFavorite
+        };
+    }
+
 
 
     //public async Task<ServerResponse<object>> CreateRequestAsync(CreateRequestDto createRequestDto)
