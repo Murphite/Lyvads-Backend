@@ -8,6 +8,7 @@ public class UpdateUserDto
     public string? lastName { get; set; }
     public string? email { get; set; }
     public string? phoneNumber { get; set; }
+    public string? location { get; set; }
 }
 
 public class UserDto

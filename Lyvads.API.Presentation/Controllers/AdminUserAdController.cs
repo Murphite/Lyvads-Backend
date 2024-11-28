@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Lyvads.Application.Dtos.SuperAdminDtos;
 using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
@@ -48,15 +49,66 @@ public class AdminUserAdController : ControllerBase
     }
 
 
-    [HttpPost("toggle-activateAd-declineAd/{adId}")]
-    public async Task<IActionResult> ToggleAdStatusAsync(string adId)
+    [HttpPost("add-userAds")]
+    public async Task<IActionResult> AddUserAds([FromBody] AddUserAdDto userAdDto)
     {
         // Get the logged-in user's ID
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return Unauthorized("User not logged in.");
 
-        var response = await _userAdService.ToggleAdStatusAsync(adId);
+        var response = await _userAdService.AddUserAdAsync(userAdDto);
+        if (!response.IsSuccessful)
+        {
+            _logger.LogError("Method Failed: {Error}", response.ErrorResponse.ResponseDescription);
+            return StatusCode(500, response.ErrorResponse);
+        }
+
+        return Ok(response);
+    }
+
+
+    [HttpPost("edit-userAds")]
+    public async Task<IActionResult> EditUserAds([FromQuery] string adId, [FromBody] EditUserAdDto editUserAdDto)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        var response = await _userAdService.EditUserAdAsync(adId, editUserAdDto);
+        if (!response.IsSuccessful)
+        {
+            _logger.LogError("Method Failed: {Error}", response.ErrorResponse.ResponseDescription);
+            return StatusCode(500, response.ErrorResponse);
+        }
+
+        return Ok(response);
+    }
+
+
+    //[HttpPost("toggle-activateAd-declineAd/{adId}")]
+    //public async Task<IActionResult> ToggleAdStatusAsync(string adId)
+    //{
+    //    // Get the logged-in user's ID
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
+    //        return Unauthorized("User not logged in.");
+
+    //    var response = await _userAdService.ToggleAdStatusAsync(adId);
+
+    //    if (!response.IsSuccessful)
+    //    {
+    //        _logger.LogError("Method Failed: {Error}", response.ErrorResponse.ResponseDescription);
+    //        return StatusCode(500, response.ErrorResponse);
+    //    }
+    //    return Ok(response);
+    //}
+
+    [HttpPost("approveAd/{adId}")]
+    public async Task<IActionResult> ApproveAd(string adId)
+    {
+        var response = await _userAdService.ApproveAdAsync(adId);
 
         if (!response.IsSuccessful)
         {
@@ -66,30 +118,17 @@ public class AdminUserAdController : ControllerBase
         return Ok(response);
     }
 
-    //[HttpPost("approveAd/{adId}")]
-    //public async Task<IActionResult> ApproveAd(string adId)
-    //{
-    //    var response = await _userAdService.ApproveAdAsync(adId);
 
-    //    if (!response.IsSuccessful)
-    //    {
-    //        _logger.LogError("Method Failed: {Error}", response.ErrorResponse.ResponseDescription);
-    //        return StatusCode(500, response.ErrorResponse);
-    //    }
-    //    return Ok(response);
-    //}
+    [HttpPost("declineAd/{adId}")]
+    public async Task<IActionResult> DeclineAd(string adId)
+    {
+        var response = await _userAdService.DeclineAdAsync(adId);
 
-
-    //[HttpPost("declineAd/{adId}")]
-    //public async Task<IActionResult> DeclineAd(string adId)
-    //{
-    //    var response = await _userAdService.DeclineAdAsync(adId);
-
-    //    if (!response.IsSuccessful)
-    //    {
-    //        _logger.LogError("Method Failed: {Error}", response.ErrorResponse.ResponseDescription);
-    //        return StatusCode(500, response.ErrorResponse);
-    //    }
-    //    return Ok(response);
-    //}
+        if (!response.IsSuccessful)
+        {
+            _logger.LogError("Method Failed: {Error}", response.ErrorResponse.ResponseDescription);
+            return StatusCode(500, response.ErrorResponse);
+        }
+        return Ok(response);
+    }
 }

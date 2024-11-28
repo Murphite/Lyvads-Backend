@@ -12,8 +12,8 @@ namespace Lyvads.Application.Interfaces;
 public interface ICollaborationService
 {
     Task<ServerResponse<List<CollaborationDto>>> GetCollaborationsAsync();
-    Task<ServerResponse<CollaborationDto>> GetCollaborationDetailsAsync(string collaborationId);
-    //Task<ServerResponse<FileStreamResult>> DownloadReceiptAsync(string collaborationId);
+    Task<ServerResponse<CollaborationDetailsDto>> GetCollaborationDetailsAsync(string collaborationId);
+    Task<ServerResponse<bool>> FlagToggleCollaborationAsync(string collaborationId);
     Task<ServerResponse<List<GetRequestDto>>> GetAllRequestsByUserAsync(string userId, RequestStatus status);
     Task<ServerResponse<RequestDetailsDto>> GetRequestDetailsAsync(string requestId);
     //Task<ServerResponse<bool>> DownloadVideoAsync(string requestId, bool withWatermark);

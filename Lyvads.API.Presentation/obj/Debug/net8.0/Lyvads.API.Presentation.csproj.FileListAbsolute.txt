@@ -69,6 +69,7 @@ C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Newtonsoft.Json.Bson.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Npgsql.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\PayStack.Net.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.AspNetCore.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Serilog.Extensions.Hosting.dll

@@ -73,14 +73,14 @@ public static class ServiceRegistration
 
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAllOrigins",
-                builder =>
-                {
-                    builder
-                    .AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-                });
+            // General-purpose policy for Paystack webhook
+            options.AddPolicy("AllowPaystack",
+            builder =>
+            {
+                builder.WithOrigins("https://api.paystack.co") // Replace or add Paystack-specific domains as needed
+                       .AllowAnyHeader()
+                       .AllowAnyMethod();
+            });
         });
 
         services.AddDistributedMemoryCache(); 

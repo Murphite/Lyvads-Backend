@@ -546,6 +546,7 @@ public class AuthService : IAuthService
                         Email = applicationUser.Email,
                         Location = applicationUser.Location,
                         Role = RolesConstant.RegularUser,
+                        Token = token,
                         Message = "Registration successful. Your account will be activated after Admin verification."
                     }
                 };
@@ -574,15 +575,15 @@ public class AuthService : IAuthService
     {
         var userRoles = await _userManager.GetRolesAsync(user);
         var authClaims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Name, user.UserName!),
-        new Claim(ClaimTypes.Email, user.Email!),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+        {
+            new Claim(ClaimTypes.Name, user.UserName!),
+            new Claim(ClaimTypes.Email, user.Email!),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
 
         authClaims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]!));
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]!));
         var token = new JwtSecurityToken(
             issuer: _configuration["JWT:ValidIssuer"],
             audience: _configuration["JWT:ValidAudience"],
@@ -805,6 +806,21 @@ public class AuthService : IAuthService
                     ResponseCode = "400",
                     ResponseMessage = "Auth.Error",
                     ResponseDescription = "Your email is incorrect"
+                }
+            };
+        }
+
+        if (!user.IsActive) // Check if the user is inactive
+        {
+            _logger.LogWarning("User {email} is inactive", user.Email);
+            return new ServerResponse<LoginResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "403",
+                    ResponseMessage = "Auth.Error",
+                    ResponseDescription = "Your account is inactive. Please contact support."
                 }
             };
         }

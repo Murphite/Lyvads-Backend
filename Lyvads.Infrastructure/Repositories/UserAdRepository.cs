@@ -73,4 +73,22 @@ public class UserAdRepository : IUserAdRepository
         }
     }
 
+    public async Task<UserAd?> GetUserAdByIdAsync(string adId)
+    {
+        return await _context.UserAds
+            .FirstOrDefaultAsync(ad => ad.Id == adId);
+    }
+
+    public async Task UpdateUserAdAsync(UserAd userAd)
+    {
+        _context.UserAds.Update(userAd);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task AddUserAdAsync(UserAd userAd)
+    {
+        await _context.UserAds.AddAsync(userAd);
+        await _context.SaveChangesAsync();
+    }
+
 }

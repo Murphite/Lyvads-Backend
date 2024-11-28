@@ -15,25 +15,31 @@ public class CollaborationRepository : ICollaborationRepository
     }
     
 
-    public IQueryable<Collaboration> GetAllCollaborations()
+    public IQueryable<Request> GetAllCollaborations()
     {
-        return _context.Collaborations.AsQueryable(); 
+        return _context.Requests.AsQueryable(); 
     }
 
-    public async Task<List<Collaboration>> GetAllAsync()
+    public async Task<List<Request>> GetAllAsync()
     {
-        return await _context.Collaborations
-            .Include(c => c.RegularUser)
-            .Include(c => c.Creator)
+        return await _context.Requests
+            .Include(c => c.RegularUser!.ApplicationUser)
+            .Include(c => c.Creator.ApplicationUser)
             .ToListAsync();
     }
 
-    public async Task<Collaboration?> GetByIdAsync(string id)
+    public async Task<Request?> GetByIdAsync(string id)
     {
-        return await _context.Collaborations
+        return await _context.Requests
             .Include(c => c.RegularUser)
             .Include(c => c.Creator)
             .FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    public async Task UpdateAsync(Request entity)
+    {
+        _context.Requests.Update(entity);
+        await _context.SaveChangesAsync();
     }
 
 }

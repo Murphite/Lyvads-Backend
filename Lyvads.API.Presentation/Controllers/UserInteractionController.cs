@@ -275,51 +275,14 @@ public class UserInteractionController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPost("FundWalletViaCardPayment")]
-    public async Task<IActionResult> FundWallet([FromBody] FundWalletDto fundWalletDto)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
-            return Unauthorized("User not authenticated.");
-        }
-
-        var result = await _userInteractionService.FundWalletAsync(userId, fundWalletDto.Amount,
-            fundWalletDto.paymentMethodId!, fundWalletDto.currency);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }
-
-    [HttpPost("FundWalletViaOnlinePayment")]
-    public async Task<IActionResult> FundWalletViaOnlinePayment([FromBody] FundWalletViaOnlinePaymentDto fundWalletDto)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
-            return Unauthorized("User not authenticated.");
-        }
-
-        var result = await _userInteractionService.FundWalletViaOnlinePaymentAsync(userId,
-            fundWalletDto.Amount, fundWalletDto.PaymentMethodId, fundWalletDto.currency);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }
-
 
     [HttpPost("MakeRequest")]
-    public async Task<IActionResult> MakeRequest([FromQuery] string creatorId, [FromQuery] AppPaymentMethod payment, 
-        [FromBody] CreateRequestDto createRequestDto)
+    public async Task<IActionResult> MakeRequest([FromBody] CreateRequestDto createRequestDto)
     {
-        if (createRequestDto == null || string.IsNullOrEmpty(creatorId))
+        if (createRequestDto == null || string.IsNullOrEmpty(createRequestDto.creatorId))
             return BadRequest("Invalid request data");
 
-        var result = await _userInteractionService.MakeRequestAsync(creatorId, payment, createRequestDto);
+        var result = await _userInteractionService.MakeRequestAsync(createRequestDto.creatorId, createRequestDto.payment, createRequestDto);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);

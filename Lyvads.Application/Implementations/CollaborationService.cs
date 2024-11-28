@@ -13,6 +13,7 @@ using Lyvads.Application.Dtos.CreatorDtos;
 using Microsoft.AspNetCore.Http;
 using CloudinaryDotNet;
 using Lyvads.Domain.Constants;
+using Microsoft.Extensions.Hosting;
 
 
 namespace Lyvads.Application.Implementations;
@@ -50,7 +51,6 @@ public class CollaborationService : ICollaborationService
         IRegularUserRepository regularUserRepository,
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWork unitOfWork)
-        //IWebHostEnvironment webHostEnvironment)
     {
         _userManager = userManager;
         _currentUserService = currentUserService;
@@ -91,11 +91,12 @@ public class CollaborationService : ICollaborationService
             {
                 Id = c.Id,
                 RegularUserName = c.RegularUser?.ApplicationUser?.FirstName + " " + c.RegularUser?.ApplicationUser?.LastName,
+                RegularUserPic = c.RegularUser?.ApplicationUser?.ImageUrl,
                 CreatorName = c.Creator?.ApplicationUser?.FirstName + " " + c.Creator?.ApplicationUser?.LastName,
-                Amount = c.Amount,
+                CreatorPic = c.Creator?.ApplicationUser?.ImageUrl,
+                TotalAmount = c.TotalAmount,
                 RequestDate = c.CreatedAt,
-                Status = c.Status,
-                ReceiptUrl = c.ReceiptUrl
+                Status = c.Status.ToString(),
             }).ToList();
 
             _logger.LogInformation("Successfully fetched {Count} collaborations.", collaborationDtos.Count);
@@ -117,7 +118,7 @@ public class CollaborationService : ICollaborationService
         }
     }
 
-    public async Task<ServerResponse<CollaborationDto>> GetCollaborationDetailsAsync(string collaborationId)
+    public async Task<ServerResponse<CollaborationDetailsDto>> GetCollaborationDetailsAsync(string collaborationId)
     {
         _logger.LogInformation("Fetching details for collaboration ID: {CollaborationId}", collaborationId);
 
@@ -127,27 +128,32 @@ public class CollaborationService : ICollaborationService
             if (collaboration == null)
             {
                 _logger.LogWarning("Collaboration not found with ID: {CollaborationId}", collaborationId);
-                return new ServerResponse<CollaborationDto>(false)
+                return new ServerResponse<CollaborationDetailsDto>(false)
                 {
                     ResponseCode = "404",
                     ResponseMessage = "Collaboration not found."
                 };
             }
 
-            var collaborationDto = new CollaborationDto
+            var collaborationDto = new CollaborationDetailsDto
             {
                 Id = collaboration.Id,
                 RegularUserName = collaboration.RegularUser?.ApplicationUser?.FirstName + " " + collaboration.RegularUser?.ApplicationUser?.LastName,
+                RegularUserPic = collaboration.RegularUser?.ApplicationUser?.ImageUrl,
                 CreatorName = collaboration.Creator?.ApplicationUser?.FirstName + " " + collaboration.Creator?.ApplicationUser?.LastName,
-                Amount = collaboration.Amount,
+                CreatorPic = collaboration.Creator?.ApplicationUser?.ImageUrl,
+                TotalAmount = collaboration.TotalAmount,
+                RequestAmount = collaboration.RequestAmount,
                 RequestDate = collaboration.CreatedAt,
-                Status = collaboration.Status,
-                Details = collaboration.Details,
-                ReceiptUrl = collaboration.ReceiptUrl
+                Status = collaboration.Status.ToString(),
+                RequestType = collaboration.RequestType,
+                FastTrackFee = collaboration.FastTrackFee,
+                Script = collaboration.Script,
+                VideoUrl = collaboration.VideoUrl,
             };
 
             _logger.LogInformation("Successfully fetched details for collaboration ID: {CollaborationId}", collaborationId);
-            return new ServerResponse<CollaborationDto>(true)
+            return new ServerResponse<CollaborationDetailsDto>(true)
             {
                 ResponseCode = "00",
                 ResponseMessage = "Collaboration details fetched successfully.",
@@ -157,13 +163,60 @@ public class CollaborationService : ICollaborationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching collaboration details.");
-            return new ServerResponse<CollaborationDto>(false)
+            return new ServerResponse<CollaborationDetailsDto>(false)
             {
                 ResponseCode = "500",
                 ResponseMessage = "An error occurred while fetching collaboration details."
             };
         }
     }
+
+    public async Task<ServerResponse<bool>> FlagToggleCollaborationAsync(string collaborationId)
+    {
+        _logger.LogInformation("Flagging collaboration ID: {CollaborationId} as done.", collaborationId);
+
+        try
+        {
+            // Retrieve the collaboration from the repository
+            var collaboration = await _collaborationRepository.GetByIdAsync(collaborationId);
+
+            if (collaboration == null)
+            {
+                _logger.LogWarning("Collaboration not found with ID: {CollaborationId}", collaborationId);
+                return new ServerResponse<bool>(false)
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Collaboration not found."
+                };
+            }
+
+            collaboration.Status = collaboration.Status == RequestStatus.Flagged ? RequestStatus.Pending : RequestStatus.Flagged;
+
+
+            // Save changes to the repository
+            await _collaborationRepository.UpdateAsync(collaboration);
+
+            _logger.LogInformation("Successfully flagged collaboration ID: {CollaborationId} as done.", collaborationId);
+            return new ServerResponse<bool>(true)
+            {
+                ResponseCode = "00",
+                ResponseMessage = collaboration.Status == RequestStatus.Flagged
+                ? "Collaboration flagged successfully."
+                : "Collaboration pending successfully.",
+                Data = true
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error flagging collaboration ID: {CollaborationId} as done.", collaborationId);
+            return new ServerResponse<bool>(false)
+            {
+                ResponseCode = "500",
+                ResponseMessage = "An error occurred while flagging the collaboration as done."
+            };
+        }
+    }
+
 
     //public async Task<ServerResponse<FileStreamResult>> DownloadReceiptAsync(string collaborationId)
     //{
@@ -482,7 +535,7 @@ public class CollaborationService : ICollaborationService
             RegularUserId = request.RegularUserId,
             CreatorId = request.CreatorId,
             ApplicationUserId = userId,
-            Amount = request.Amount
+            Amount = request.TotalAmount
         };
 
         var result = await _disputeRepository.CreateDispute(dispute);

@@ -145,5 +145,118 @@ public class AdminRepository : IAdminRepository
         await _context.SaveChangesAsync(); 
     }
 
-    
+    public async Task<ApplicationUser?> GetUserWithRelatedEntitiesAsync(string userId)
+    {
+        return await _context.Users
+            .Include(u => u.RegularUser)
+            .Include(u => u.Creator)
+            .Include(u => u.Admin)
+            .Include(u => u.SuperAdmin)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
+    public async Task DeleteRelatedEntitiesAsync(ApplicationUser user)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+
+        foreach (var role in roles)
+        {
+            switch (role)
+            {
+                case "RegularUser":
+                    if (user.RegularUser != null)
+                    {
+                        await DeleteRegularUserAsync(user.RegularUser.Id);
+                        //_context.RegularUsers.Remove(user.RegularUser);
+                    }
+                    break;
+                case "Creator":
+                    if (user.Creator != null)
+                    {
+                        await DeleteCreatorAsync(user.Creator.Id);
+                        //_context.Creators.Remove(user.Creator);
+                    }
+                    break;
+                case "Admin":
+                    if (user.Admin != null)
+                    {
+                        _context.Admins.Remove(user.Admin);
+                    }
+                    break;
+                case "SuperAdmin":
+                    if (user.SuperAdmin != null)
+                    {
+                        _context.SuperAdmins.Remove(user.SuperAdmin);
+                    }
+                    break;
+            }
+        }
+        // Save changes to ensure related entities are removed
+        await _context.SaveChangesAsync();
+    }
+
+
+    public async Task DeleteRegularUserAsync(string regularUserId)
+    {
+        // Delete Disputes
+        var disputes = _context.Disputes.Where(d => d.RegularUserId == regularUserId);
+        _context.Disputes.RemoveRange(disputes);
+
+        // Delete Comments
+        var comments = _context.Comments.Where(c => c.RegularUserId == regularUserId);
+        _context.Comments.RemoveRange(comments);
+
+        // Delete Follows
+        var follows = _context.Follows.Where(f => f.CreatorId == regularUserId);
+        _context.Follows.RemoveRange(follows);
+
+        // Delete Requests
+        var requests = _context.Requests.Where(r => r.RegularUserId == regularUserId);
+        _context.Requests.RemoveRange(requests);
+
+        // Finally, delete the RegularUser
+        var regularUser = await _context.RegularUsers.FindAsync(regularUserId);
+        if (regularUser != null)
+        {
+            _context.RegularUsers.Remove(regularUser);
+        }
+
+        // Save changes to database
+        await _context.SaveChangesAsync();
+    }
+
+
+    public async Task DeleteCreatorAsync(string creatorId)
+    {
+        // Delete Disputes related to the Creator (if any)
+        var disputes = _context.Disputes.Where(d => d.CreatorId == creatorId);
+        _context.Disputes.RemoveRange(disputes);
+
+        // Delete Posts related to the Creator (if any)
+        var posts = _context.Posts.Where(p => p.CreatorId == creatorId);
+        _context.Posts.RemoveRange(posts);
+
+        // Delete Follows related to the Creator (if any)
+        var follows = _context.Follows.Where(f => f.CreatorId == creatorId);
+        _context.Follows.RemoveRange(follows);
+
+        // Delete Requests related to the Creator (if any)
+        var requests = _context.Requests.Where(r => r.CreatorId == creatorId);
+        _context.Requests.RemoveRange(requests);
+
+        // Delete Rates related to the Creator (if any) - FIX for FK constraint
+        var rates = _context.Rates.Where(r => r.CreatorId == creatorId);
+        _context.Rates.RemoveRange(rates);
+
+        // Finally, delete the Creator
+        var creator = await _context.Creators.FindAsync(creatorId);
+        if (creator != null)
+        {
+            _context.Creators.Remove(creator);
+        }
+
+        // Save changes to the database
+        await _context.SaveChangesAsync();
+    }
+
 }

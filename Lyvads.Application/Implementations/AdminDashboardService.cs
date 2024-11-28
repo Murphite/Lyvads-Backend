@@ -376,15 +376,15 @@ public class AdminDashboardService : IAdminUserService
     public async Task<ServerResponse<List<TopCreatorDto>>> GetTopCreators()
     {
         var creatorsData = await _creatorRepository.GetCreators()
-            .Include(c => c.Collaborations)
+            .Include(c => c.Requests)
             .Select(c => new
             {
                 CreatorId = c.Id,
                 CreatorName = c.ApplicationUser!.FirstName + " " + c.ApplicationUser.LastName,
                 ProfilePic = c.ApplicationUser.ImageUrl,
                 Industry = c.ApplicationUser.Occupation,
-                NumberOfCollaborations = c.Collaborations.Count,
-                TotalAmountEarned = c.Collaborations.Sum(collab => collab.Amount)
+                NumberOfCollaborations = c.Requests.Count,
+                TotalAmountEarned = c.Requests.Sum(collab => collab.TotalAmount)
             })
             .ToListAsync();
 
@@ -416,15 +416,15 @@ public class AdminDashboardService : IAdminUserService
         var now = DateTime.UtcNow;
 
         var successfulCollaborations = await _collaborationRepository.GetAllCollaborations()
-            .Where(c => c.Status == CollaborationStatus.Completed && c.CreatedAt.Year == now.Year)
+            .Where(c => c.Status == RequestStatus.Completed && c.CreatedAt.Year == now.Year)
             .CountAsync();
 
         var pendingCollaborations = await _collaborationRepository.GetAllCollaborations()
-            .Where(c => c.Status == CollaborationStatus.Pending && c.CreatedAt.Year == now.Year)
+            .Where(c => c.Status == RequestStatus.Pending && c.CreatedAt.Year == now.Year)
             .CountAsync();
 
         var declinedCollaborations = await _collaborationRepository.GetAllCollaborations()
-            .Where(c => c.Status == CollaborationStatus.Declined && c.CreatedAt.Year == now.Year)
+            .Where(c => c.Status == RequestStatus.Declined && c.CreatedAt.Year == now.Year)
             .CountAsync();
 
         var collaborationStatusReport = new List<CollaborationStatusDto>

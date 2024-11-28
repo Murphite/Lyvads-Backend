@@ -8,9 +8,8 @@ namespace Lyvads.Domain.Entities;
 public class Creator : Entity, IAuditable
 {
     public ICollection<Content> Contents { get; set; } = new List<Content>();
-    public ICollection<Deal> Deals { get; set; } = new List<Deal>();
     public ICollection<Post> Posts { get; set; } = new List<Post>();
-    public ICollection<Collaboration> Collaborations { get; set; } = new List<Collaboration>();
+    public ICollection<Request> Requests { get; set; } = new List<Request>();
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Price { get; set; }
 

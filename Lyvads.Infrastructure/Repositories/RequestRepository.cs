@@ -65,5 +65,23 @@ public class RequestRepository : IRequestRepository
                        .Where(r => r.RegularUserId == userId); // Filter by RegularUserId
     }
 
+    public async Task<Request> GetRequestByTransactionRefAsync(string trxRef)
+    {
+        var request = await _context.Requests
+            .FirstOrDefaultAsync(r => r.Transactions.Any(t => t.TrxRef == trxRef));
+
+        return request;
+    }
+
+
+    public async Task UpdateRequestAsync(Request request)
+    {
+        if (request != null)
+        {
+            _context.Requests.Update(request);
+
+            await _context.SaveChangesAsync();
+        }
+    }
 
 }

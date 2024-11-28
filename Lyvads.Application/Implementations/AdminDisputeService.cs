@@ -29,13 +29,12 @@ public class AdminDisputeService : IDisputeService
             var disputeDtos = disputes.Select(d => new DisputeDto
             {
                 Id = d.Id,
-                RegularUserName = d.RegularUser?.ApplicationUser != null
-                    ? $"{d.RegularUser.ApplicationUser.FirstName} {d.RegularUser.ApplicationUser.LastName}"
-                    : "N/A",
-                CreatorName = d.Creator?.ApplicationUser != null
-                    ? $"{d.Creator.ApplicationUser.FirstName} {d.Creator.ApplicationUser.LastName}"
-                    : "N/A",
+                RegularUserName = $"{d.RegularUser.ApplicationUser!.FirstName} {d.RegularUser.ApplicationUser.LastName}",
+                RegularUserProfilePic = d.RegularUser.ApplicationUser!.ImageUrl,
+                CreatorName = $"{d.Creator.ApplicationUser!.FirstName} {d.Creator.ApplicationUser.LastName}",
+                CreatorProfilePic = d.Creator.ApplicationUser!.ImageUrl,
                 Amount = d.Amount,
+                DisputeDesc = d.DisputeMessage,
                 Reason = d.Reason.ToString(),
                 FlaggedDate = d.CreatedAt,
                 Status = d.Status.ToString()
@@ -87,9 +86,12 @@ public class AdminDisputeService : IDisputeService
             {
                 Id = dispute.Id,
                 RegularUserName = $"{dispute.RegularUser.ApplicationUser!.FirstName} {dispute.RegularUser.ApplicationUser.LastName}",
+                RegularUserProfilePic = dispute.RegularUser.ApplicationUser!.ImageUrl,
                 CreatorName = $"{dispute.Creator.ApplicationUser!.FirstName} {dispute.Creator.ApplicationUser.LastName}",
+                CreatorProfilePic = dispute.Creator.ApplicationUser!.ImageUrl,
                 Amount = dispute.Amount,
                 Reason = dispute.Reason.ToString(),
+                DisputeDesc = dispute.DisputeMessage,
                 FlaggedDate = dispute.CreatedAt,
                 Status = dispute.Status.ToString()
             };

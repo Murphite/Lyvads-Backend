@@ -30,8 +30,11 @@ public class ApplicationUser : IdentityUser, IAuditable
     public ICollection<Like>? Likes { get; set; } = new List<Like>();
     public string? StripeAccountId { get; set; } = default!;
     public bool IsActive { get; set; } = true;
+
     //public int Followers { get; set; }
     public AdminPermission AdminPermissions { get; set; } = default!;
     public RegularUser? RegularUser { get; set; }
     public Creator? Creator { get; set; }
+    public Admin? Admin { get; set; }
+    public SuperAdmin? SuperAdmin { get; set; }
 }

@@ -24,8 +24,8 @@ public interface IUserInteractionService
     Task<ServerResponse<object>> DeleteCommentAsync(string userId, string commentId);
     Task<ServerResponse<object>> LikeContentAsync(string userId, string contentId);
     Task<ServerResponse<object>> UnlikeContentAsync(string userId, string contentId);
-    Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string currency);
-    Task<ServerResponse<string>> FundWalletViaOnlinePaymentAsync(string userId, decimal amount, string paymentMethodId, string currency);
+   // Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string currency);
+    //Task<ServerResponse<string>> FundWalletViaOnlinePaymentAsync(string userId, decimal amount, string paymentMethodId, string currency);
     Task<ServerResponse<object>> ConfirmPaymentAsync(string paymentIntentId, string userId, decimal amount);
     Task<ServerResponse<int>> GetNumberOfLikesAsync(string postId);
     Task<ServerResponse<int>> GetNumberOfCommentsAsync(string postId);

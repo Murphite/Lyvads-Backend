@@ -19,6 +19,21 @@ public class WalletRepository : IWalletRepository
         _logger = logger;
     }
 
+    public async Task<Wallet> GetWalletWithTransactionsAsync(string userId)
+    {       
+        var wallet = await _context.Wallets
+            .Include(w => w.Transactions) 
+            .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
+
+        if (wallet == null)
+        {
+            throw new Exception($"Wallet not found for userId: {userId}");
+        }
+
+        return wallet;
+    }
+
+
     public async Task<Wallet> GetByUserIdAsync(string userId)
     {
         if (string.IsNullOrEmpty(userId))
@@ -34,7 +49,6 @@ public class WalletRepository : IWalletRepository
 
         return wallet;
     }
-
 
     public async Task SaveTransferDetailsAsync(string userId, decimal amount, string transferReference)
     {
@@ -59,6 +73,34 @@ public class WalletRepository : IWalletRepository
         _context.Transfers.Add(transfer);
         await _context.SaveChangesAsync();
     }
+
+    //public async Task<Wallet> GetByRequestIdAsync(string requestId)
+    //{
+    //    if (string.IsNullOrEmpty(requestId))
+    //    {
+    //        throw new ArgumentException("Request ID cannot be null or empty.", nameof(requestId));
+    //    }
+
+    //    // Assuming you have a DbContext with a DbSet<Wallet> named Wallets
+    //    return await _context.Wallets
+    //        .Include(w => w.ApplicationUser)
+    //        .FirstOrDefaultAsync(w => w.RequestId == requestId);
+    //}
+
+    public async Task<Wallet?> GetByRequestIdAsync(string requestId)
+    {
+        if (string.IsNullOrEmpty(requestId))
+        {
+            throw new ArgumentException("Request ID cannot be null or empty.", nameof(requestId));
+        }
+
+        var request = await _context.Requests
+            .Include(r => r.Wallet) 
+            .FirstOrDefaultAsync(r => r.Id == requestId);
+
+        return request?.Wallet;
+    }
+
 
 
     public async Task<Transfer> GetTransferDetailsAsync(string transferReference)
@@ -141,6 +183,13 @@ public class WalletRepository : IWalletRepository
         return result > 0; 
     }
 
+    public async Task<bool> SaveWalletChangesAsync(Wallet wallet)
+    {
+        _context.Wallets.Update(wallet);
+        var result = await _context.SaveChangesAsync();
+        return result > 0;
+    }
+
     public async Task<Wallet?> GetWalletByUserIdAsync(string userId)
     {
         return await _context.Wallets
@@ -148,5 +197,36 @@ public class WalletRepository : IWalletRepository
             .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
     }
 
+    public async Task<Transaction> AddTransactionAsync(Transaction transaction)
+    {
+        if (transaction == null)
+            throw new ArgumentNullException(nameof(transaction));
 
+        await _context.Transactions.AddAsync(transaction);
+        await _context.SaveChangesAsync();
+
+        return transaction;
+    }
+
+    public async Task<Wallet> GetWalletByIdAsync(string walletId)
+    {
+        return await _context.Wallets
+            .Include(w => w.Transactions)
+            .FirstOrDefaultAsync(w => w.Id == walletId);
+    }
+
+    public async Task<Transaction> GetTransactionByTrxRefAsync(string trxRef)
+    {
+        return await _context.Transactions
+            .FirstOrDefaultAsync(t => t.TrxRef == trxRef);
+    }
+
+  
+    public async Task UpdateTransactionAsync(Transaction transaction)
+    {
+        _context.Transactions.Update(transaction);
+        await _context.SaveChangesAsync();
+    }
+
+  
 }

@@ -3,22 +3,18 @@ using Lyvads.Domain.Repositories;
 using Lyvads.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using Lyvads.Application.Dtos;
-using Lyvads.Infrastructure.Repositories;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Lyvads.Domain.Enums;
-using Stripe.Checkout;
 using Lyvads.Domain.Responses;
-using Lyvads.Application.Dtos.AuthDtos;
 using Microsoft.EntityFrameworkCore;
 using Lyvads.Shared.DTOs;
 using Lyvads.Domain.Constants;
 using Lyvads.Application.Utilities;
-using Microsoft.AspNetCore.Mvc;
-using Stripe;
+using Org.BouncyCastle.Asn1.Cmp;
 
 
 namespace Lyvads.Application.Implementations;
@@ -26,6 +22,7 @@ namespace Lyvads.Application.Implementations;
 public class UserInteractionService : IUserInteractionService
 {
     private readonly IUserRepository _userRepository;
+    private readonly ITransactionRepository _transactionRepository;
     private readonly IWalletRepository _walletRepository;
     private readonly IRepository _repository;
     private readonly ILogger<UserInteractionService> _logger;
@@ -39,9 +36,11 @@ public class UserInteractionService : IUserInteractionService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IConfiguration _configuration;
     private readonly IRegularUserRepository _regularUserRepository;
+    private readonly IChargeTransactionRepository _chargeTransactionRepository;
 
     public UserInteractionService(
         IUserRepository userRepository,
+        ITransactionRepository transactionRepository,
         IWalletRepository walletRepository, 
         IConfiguration configuration,
         IRepository repository,
@@ -54,9 +53,11 @@ public class UserInteractionService : IUserInteractionService
         IRequestRepository requestRepository,
         IPostRepository postRepository,
         IHttpContextAccessor httpContextAccessor,
-        IRegularUserRepository regularUserRepository)
+        IRegularUserRepository regularUserRepository, 
+        IChargeTransactionRepository chargeTransactionRepository)
     {
         _userRepository = userRepository;
+        _transactionRepository = transactionRepository;
         _walletRepository = walletRepository;
         _configuration = configuration;
         _repository = repository;
@@ -70,12 +71,341 @@ public class UserInteractionService : IUserInteractionService
         _httpContextAccessor = httpContextAccessor;
         _postRepository = postRepository;
         _regularUserRepository = regularUserRepository;
+        _chargeTransactionRepository = chargeTransactionRepository;
     }
 
-   
+    //public async Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId,
+    //AppPaymentMethod payment, CreateRequestDto createRequestDto)
+    //{
+    //    try
+    //    {
+    //        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+    //        if (user == null)
+    //        {
+    //            _logger.LogWarning("User not found.");
+    //            return new ServerResponse<MakeRequestDetailsDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "User.Error",
+    //                    ResponseMessage = "User not found"
+    //                }
+    //            };
+    //        }
+
+    //        // Check if the user is a regular user
+    //        var roles = await _userManager.GetRolesAsync(user);
+    //        _logger.LogInformation("User roles for {UserId}: {Roles}", user.Id, string.Join(", ", roles));
+
+    //        if (!roles.Contains("RegularUser"))
+    //        {
+    //            _logger.LogWarning("User is not a regular user.");
+    //            return new ServerResponse<MakeRequestDetailsDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "RegularUser.Error",
+    //                    ResponseMessage = "Regular User not found"
+    //                }
+    //            };
+    //        }
+
+    //        var creator = await _creatorRepository.GetCreatorByIdAsync(creatorId);
+    //        if (creator == null)
+    //        {
+    //            _logger.LogWarning("Creator not found.");
+    //            return new ServerResponse<MakeRequestDetailsDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "Creator.Error",
+    //                    ResponseMessage = "Creator not found"
+    //                }
+    //            };
+    //        }
+
+    //        var regularUser = await _regularUserRepository.GetRegularUserByApplicationUserIdAsync(user.Id);
+    //        if (regularUser == null)
+    //        {
+    //            _logger.LogWarning("Regular user not found.");
+    //            return new ServerResponse<MakeRequestDetailsDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "RegularUser.Error",
+    //                    ResponseMessage = "Regular user not found."
+    //                }
+    //            };
+    //        }
+
+    //        // Fetch charges from the Charge table (or related service)
+    //        var charges = await _chargeTransactionRepository.GetChargeDetailsAsync();
+    //        if (charges == null)
+    //        {
+    //            _logger.LogWarning("Charge details not found.");
+    //            return new ServerResponse<MakeRequestDetailsDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "ChargeDetails.Error",
+    //                    ResponseMessage = "Failed to retrieve charge details."
+    //                }
+    //            };
+    //        }
+
+    //        int baseAmount = createRequestDto.Amount;
+
+    //        // Retrieve individual charges
+    //        var withholdingTax = charges.FirstOrDefault(c => c.ChargeName == "Withholding Tax");
+    //        var watermarkFee = charges.FirstOrDefault(c => c.ChargeName == "WaterMark");
+    //        var creatorPostFee = charges.FirstOrDefault(c => c.ChargeName == "Creator Post Fee");
+    //        var fastTrackFee = charges.FirstOrDefault(c => c.ChargeName == "Fast Track Fee");
+
+
+    //        // Additional charges
+    //        var feeDetails = CalculateTotalAmountWithCharges(createRequestDto.Amount, charges);
+    //        int totalAmount = feeDetails.TotalAmount;
+
+    //        var paymentSummary = $"Subtotal: {baseAmount:C}\n" +
+    //                             $"Withholding Tax: {feeDetails.WithholdingTax:C}\n" +
+    //                             $"Watermark Fee: {feeDetails.WatermarkFee:C}\n" +
+    //                             $"Creator Post Fee: {feeDetails.CreatorPostFee:C}\n" +
+    //                             $"Fast Track Fee: {feeDetails.FastTrackFee:C}\n" +
+    //                             $"Total Amount: {totalAmount:C}";
+
+
+    //        _logger.LogInformation("Payment Summary: {PaymentSummary}", paymentSummary);
+
+    //        string paymentReference = string.Empty;
+    //        string authorizationUrl = string.Empty;
+    //        string cancelUrl = string.Empty;
+
+    //        if (payment == AppPaymentMethod.Paystack)
+    //        {
+    //            var paystackResponse = await _paymentGatewayService.InitializePaymentAsync(totalAmount, user.Email, user.FullName);
+    //            if (!paystackResponse.IsSuccessful || paystackResponse.Data == null)
+    //            {
+    //                return new ServerResponse<MakeRequestDetailsDto>
+    //                {
+    //                    IsSuccessful = false,
+    //                    ErrorResponse = new ErrorResponse
+    //                    {
+    //                        ResponseCode = "PaystackInitialization.Error",
+    //                        ResponseMessage = "Failed to initialize payment with Paystack."
+    //                    }
+    //                };
+    //            }
+
+    //            // Assign payment reference
+    //            paymentReference = paystackResponse.Data.PaymentReference;
+    //            authorizationUrl = paystackResponse.Data.AuthorizationUrl;
+    //            cancelUrl = paystackResponse.Data.CancelUrl;
+
+    //            // Create the request (before payment completion)
+    //            var request = new Request
+    //            {
+    //                Script = createRequestDto.Script!,
+    //                CreatorId = creatorId,
+    //                FastTrackFee = feeDetails.FastTrackFee,
+    //                RegularUserId = regularUser.Id,
+    //                RequestType = createRequestDto.RequestType,
+    //                CreatedAt = DateTimeOffset.UtcNow,
+    //                UpdatedAt = DateTimeOffset.UtcNow,
+    //                PaymentMethod = AppPaymentMethod.Paystack,
+    //                TotalAmount = totalAmount,
+    //                RequestAmount = baseAmount,
+    //                TransactionStatus = false // Transaction is pending until payment is confirmed
+    //            };
+
+    //            var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
+    //            if (!requestResultIsSuccess)
+    //            {
+    //                _logger.LogWarning("Failed to create request.");
+    //                return new ServerResponse<MakeRequestDetailsDto>
+    //                {
+    //                    IsSuccessful = false,
+    //                    ErrorResponse = new ErrorResponse
+    //                    {
+    //                        ResponseCode = "RequestCreation.Error",
+    //                        ResponseMessage = "Failed to create request."
+    //                    }
+    //                };
+    //            }
+
+    //            // Create a transaction to track the payment
+    //            var transaction = new Transaction
+    //            {
+    //                Name = user.FullName,
+    //                Amount = totalAmount,
+    //                TrxRef = paymentReference,
+    //                Email = user.Email,
+    //                Status = false, 
+    //                CreatedAt = DateTimeOffset.UtcNow,
+    //                UpdatedAt = DateTimeOffset.UtcNow,
+    //                RequestId = request.Id,
+    //                WalletId = null, 
+    //                Type = TransactionType.Payment
+    //            };
+
+    //            // Save transaction to the database
+    //            await _transactionRepository.CreateTransactionAsync(transaction);
+
+    //            await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+
+    //            // Return response including authorization URL for Paystack
+    //            var requestDetailsWithSession = new MakeRequestDetailsDto
+    //            {
+    //                CreatorId = creatorId,
+    //                CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
+    //                RequestType = createRequestDto.RequestType,
+    //                Script = createRequestDto.Script,
+    //                CreatedAt = DateTimeOffset.UtcNow,
+    //                PaymentMethod = payment.ToString(),
+    //                TotalAmount = totalAmount,
+    //                RequestAmount = baseAmount,
+    //                PaymentSummary = paymentSummary,
+    //                PaymentReference = paymentReference,
+    //                AuthorizationUrl = authorizationUrl,
+    //                CancelUrl = cancelUrl
+    //            };
+
+    //            return new ServerResponse<MakeRequestDetailsDto>
+    //            {
+    //                IsSuccessful = true,
+    //                Data = requestDetailsWithSession
+    //            };
+    //        }
+    //        else if (payment == AppPaymentMethod.Wallet)
+    //        {
+    //            // Wallet payment handling (as before)
+    //            var walletBalance = await _walletService.GetBalanceAsync(user.Id);
+    //            if (walletBalance < totalAmount)
+    //            {
+    //                _logger.LogWarning("Insufficient wallet balance.");
+    //                return new ServerResponse<MakeRequestDetailsDto>
+    //                {
+    //                    IsSuccessful = false,
+    //                    ErrorResponse = new ErrorResponse
+    //                    {
+    //                        ResponseCode = "WalletBalance.Error",
+    //                        ResponseMessage = "Insufficient wallet balance."
+    //                    }
+    //                };
+    //            }
+
+    //            var result = await _walletService.DeductBalanceAsync(user.Id, totalAmount);
+    //            if (result)
+    //            {
+    //                var request = new Request
+    //                {
+    //                    Script = createRequestDto.Script!,
+    //                    CreatorId = creatorId,
+    //                    FastTrackFee = feeDetails.FastTrackFee,
+    //                    RegularUserId = regularUser.Id,
+    //                    RequestType = createRequestDto.RequestType,
+    //                    CreatedAt = DateTimeOffset.UtcNow,
+    //                    UpdatedAt = DateTimeOffset.UtcNow,
+    //                    PaymentMethod = AppPaymentMethod.Wallet,
+    //                    TotalAmount = totalAmount,
+    //                    RequestAmount = baseAmount,
+    //                    WalletId = user.Wallet.Id,
+    //                    TransactionStatus = true // Wallet payment is successful
+    //                };
+
+    //                var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
+    //                if (requestResultIsSuccess)
+    //                {
+    //                    // Create and save the transaction for the wallet payment
+    //                    var transaction = new Transaction
+    //                    {
+    //                        Name = user.FullName,
+    //                        Amount = totalAmount,
+    //                        TrxRef = request.Id.ToString(),
+    //                        Email = user.Email,
+    //                        Status = true,
+    //                        CreatedAt = DateTimeOffset.UtcNow,
+    //                        UpdatedAt = DateTimeOffset.UtcNow,
+    //                        RequestId = request.Id,
+    //                        WalletId = user.Wallet.Id,
+    //                        Type = TransactionType.Payment
+    //                    };
+
+    //                    await _transactionRepository.CreateTransactionAsync(transaction);
+
+    //                    await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+
+    //                    var requestDetails = new MakeRequestDetailsDto
+    //                    {
+    //                        CreatorId = creatorId,
+    //                        CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
+    //                        RequestType = createRequestDto.RequestType,
+    //                        Script = request.Script,
+    //                        CreatedAt = request.CreatedAt,
+    //                        PaymentMethod = AppPaymentMethod.Wallet.ToString(),
+    //                        TotalAmount = totalAmount,
+    //                        RequestAmount = baseAmount,
+    //                        PaymentSummary = paymentSummary,
+    //                        PaymentReference = request.Id.ToString()
+    //                    };
+
+    //                    return new ServerResponse<MakeRequestDetailsDto>
+    //                    {
+    //                        IsSuccessful = true,
+    //                        Data = requestDetails
+    //                    };
+    //                }
+    //            }
+
+    //            _logger.LogWarning("Failed to process wallet payment.");
+    //            return new ServerResponse<MakeRequestDetailsDto>
+    //            {
+    //                IsSuccessful = false,
+    //                ErrorResponse = new ErrorResponse
+    //                {
+    //                    ResponseCode = "WalletPayment.Error",
+    //                    ResponseMessage = "Failed to process wallet payment."
+    //                }
+    //            };
+    //        }
+
+    //        _logger.LogWarning("Unsupported payment method.");
+    //        return new ServerResponse<MakeRequestDetailsDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "PaymentMethod.Error",
+    //                ResponseMessage = "Unsupported payment method."
+    //            }
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError("Error in MakeRequestAsync: {ExceptionMessage}", ex.Message);
+    //        return new ServerResponse<MakeRequestDetailsDto>
+    //        {
+    //            IsSuccessful = false,
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "Exception.Error",
+    //                ResponseMessage = "An error occurred while processing the request."
+    //            }
+    //        };
+    //    }
+    //}
+
+    // Method to calculate total amount with charges applied
+
     public async Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId,
-     AppPaymentMethod payment, CreateRequestDto createRequestDto)
+AppPaymentMethod payment, CreateRequestDto createRequestDto)
     {
+        using var transaction = await _repository.BeginTransactionAsync(); 
+
         try
         {
             var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
@@ -141,52 +471,144 @@ public class UserInteractionService : IUserInteractionService
                 };
             }
 
-            // Base amount from the request
-            decimal baseAmount = createRequestDto.Amount;
-
-            // Additional charges
-            decimal fastTrackFee = createRequestDto.FastTrack ? 5000 : 0;
-            decimal removeWatermarkFee = createRequestDto.RemoveWatermark ? 4000 : 0;
-            decimal creatorPostFee = createRequestDto.CreatorPost ? 3000 : 0;
-
-            // Calculate the total amount
-            decimal totalAmount = baseAmount + fastTrackFee + removeWatermarkFee + creatorPostFee;
-
-            // Generate the summary
-            var paymentSummary = $"Subtotal: {baseAmount:C}\n" +
-                                 $"Fast Track Fee: {fastTrackFee:C}\n" +
-                                 $"Remove Watermark Fee: {removeWatermarkFee:C}\n" +
-                                 $"Creator Post Fee: {creatorPostFee:C}\n" +
-                                 $"Total Amount: {totalAmount:C}";
-
-            _logger.LogInformation("Payment Summary: {PaymentSummary}", paymentSummary);
-
-            string? domain = _configuration.GetValue<string>("Lyvads_Client_URL");
-            if (string.IsNullOrEmpty(domain))
+            // Fetch charges from the Charge table (or related service)
+            var charges = await _chargeTransactionRepository.GetChargeDetailsAsync();
+            if (charges == null)
             {
-                _logger.LogError("Client URL is not configured.");
+                _logger.LogWarning("Charge details not found.");
                 return new ServerResponse<MakeRequestDetailsDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
                     {
-                        ResponseCode = "Configuration.Error",
-                        ResponseMessage = "Client URL is not configured."
+                        ResponseCode = "ChargeDetails.Error",
+                        ResponseMessage = "Failed to retrieve charge details."
                     }
                 };
             }
 
-            // Process payment based on the selected payment method
-            Session session;
-            if (payment == AppPaymentMethod.ATMCard)
+            int baseAmount = createRequestDto.Amount;
+
+            // Retrieve individual charges
+            var withholdingTax = charges.FirstOrDefault(c => c.ChargeName == "Withholding Tax");
+            var watermarkFee = charges.FirstOrDefault(c => c.ChargeName == "WaterMark");
+            var creatorPostFee = charges.FirstOrDefault(c => c.ChargeName == "Creator Post Fee");
+            var fastTrackFee = charges.FirstOrDefault(c => c.ChargeName == "Fast Track Fee");
+
+            // Additional charges
+            var feeDetails = CalculateTotalAmountWithCharges(createRequestDto.Amount, charges);
+            int totalAmount = feeDetails.TotalAmount;
+
+            var paymentSummary = $"Subtotal: {baseAmount:C}\n" +
+                                 $"Withholding Tax: {feeDetails.WithholdingTax:C}\n" +
+                                 $"Watermark Fee: {feeDetails.WatermarkFee:C}\n" +
+                                 $"Creator Post Fee: {feeDetails.CreatorPostFee:C}\n" +
+                                 $"Fast Track Fee: {feeDetails.FastTrackFee:C}\n" +
+                                 $"Total Amount: {totalAmount:C}";
+
+            _logger.LogInformation("Payment Summary: {PaymentSummary}", paymentSummary);
+
+            string paymentReference = string.Empty;
+            string authorizationUrl = string.Empty;
+            string cancelUrl = string.Empty;
+
+            if (payment == AppPaymentMethod.Paystack)
             {
-                var paymentDto = new PaymentDTO
+                var paystackResponse = await _paymentGatewayService.InitializePaymentAsync(totalAmount, user.Email, user.FullName);
+                if (!paystackResponse.IsSuccessful || paystackResponse.Data == null)
                 {
-                    Amount = (int)(totalAmount * 100),
-                    ProductName = "Request Payment",
-                    ReturnUrl = "/return-url"
+                    return new ServerResponse<MakeRequestDetailsDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "PaystackInitialization.Error",
+                            ResponseMessage = "Failed to initialize payment with Paystack."
+                        }
+                    };
+                }
+
+                paymentReference = paystackResponse.Data.PaymentReference;
+                authorizationUrl = paystackResponse.Data.AuthorizationUrl;
+                cancelUrl = paystackResponse.Data.CancelUrl;
+
+                // Create the request (before payment completion)
+                var request = new Request
+                {
+                    Script = createRequestDto.Script!,
+                    CreatorId = creatorId,
+                    FastTrackFee = feeDetails.FastTrackFee,
+                    RegularUserId = regularUser.Id,
+                    RequestType = createRequestDto.RequestType,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    PaymentMethod = AppPaymentMethod.Paystack,
+                    TotalAmount = totalAmount,
+                    RequestAmount = baseAmount,
+                    TransactionStatus = false // Transaction is pending until payment is confirmed
                 };
-                session = await _paymentGatewayService.CreateCardPaymentSessionAsync(paymentDto, domain);
+
+                var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
+                if (!requestResultIsSuccess)
+                {
+                    _logger.LogWarning("Failed to create request.");
+                    return new ServerResponse<MakeRequestDetailsDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "RequestCreation.Error",
+                            ResponseMessage = "Failed to create request."
+                        }
+                    };
+                }
+
+                // Create a transaction to track the payment
+                var transact = new Transaction
+                {
+                    Name = user.FullName,
+                    Amount = totalAmount,
+                    TrxRef = paymentReference,
+                    Email = user.Email,
+                    Status = false,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    RequestId = request.Id,
+                    WalletId = null,
+                    Type = TransactionType.Payment
+                };
+
+                // Save transaction to the database
+                await _transactionRepository.CreateTransactionAsync(transact);
+
+                // Save charge transactions
+                await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+
+                // Commit the transaction if all operations are successful
+                await transaction.CommitAsync();
+
+                // Return response including authorization URL for Paystack
+                var requestDetailsWithSession = new MakeRequestDetailsDto
+                {
+                    CreatorId = creatorId,
+                    CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
+                    RequestType = createRequestDto.RequestType,
+                    Script = createRequestDto.Script,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    PaymentMethod = payment.ToString(),
+                    TotalAmount = totalAmount,
+                    RequestAmount = baseAmount,
+                    PaymentSummary = paymentSummary,
+                    PaymentReference = paymentReference,
+                    AuthorizationUrl = authorizationUrl,
+                    CancelUrl = cancelUrl
+                };
+
+                return new ServerResponse<MakeRequestDetailsDto>
+                {
+                    IsSuccessful = true,
+                    Data = requestDetailsWithSession
+                };
             }
             else if (payment == AppPaymentMethod.Wallet)
             {
@@ -212,31 +634,52 @@ public class UserInteractionService : IUserInteractionService
                     {
                         Script = createRequestDto.Script!,
                         CreatorId = creatorId,
+                        FastTrackFee = feeDetails.FastTrackFee,
                         RegularUserId = regularUser.Id,
                         RequestType = createRequestDto.RequestType,
                         CreatedAt = DateTimeOffset.UtcNow,
                         UpdatedAt = DateTimeOffset.UtcNow,
                         PaymentMethod = AppPaymentMethod.Wallet,
-                        Amount = totalAmount
+                        TotalAmount = totalAmount,
+                        RequestAmount = baseAmount,
+                        WalletId = user.Wallet.Id,
+                        TransactionStatus = true
                     };
-                    // Ensure that FirstName and LastName are not null before concatenation
-                    var creatorName = $"{creator.ApplicationUser?.FirstName} {creator.ApplicationUser?.LastName}";
 
                     var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
                     if (requestResultIsSuccess)
                     {
-                        _logger.LogInformation("Wallet payment successful and request created.");
+                        var transact = new Transaction
+                        {
+                            Name = user.FullName,
+                            Amount = totalAmount,
+                            TrxRef = request.Id.ToString(),
+                            Email = user.Email,
+                            Status = true,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            UpdatedAt = DateTimeOffset.UtcNow,
+                            RequestId = request.Id,
+                            WalletId = user.Wallet.Id,
+                            Type = TransactionType.Payment
+                        };
 
-                        // Return both payment summary and request details
+                        await _transactionRepository.CreateTransactionAsync(transact);
+
+                        await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+
+                        // Commit the transaction
+                        await transaction.CommitAsync();
+
                         var requestDetails = new MakeRequestDetailsDto
                         {
                             CreatorId = creatorId,
-                            CreatorName = creatorName,
+                            CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
                             RequestType = createRequestDto.RequestType,
-                            Script = request.Script,
-                            CreatedAt = request.CreatedAt,
-                            PaymentMethod = request.ToString(),
-                            Amount = totalAmount,
+                            Script = createRequestDto.Script,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                            PaymentMethod = payment.ToString(),
+                            TotalAmount = totalAmount,
+                            RequestAmount = baseAmount,
                             PaymentSummary = paymentSummary
                         };
 
@@ -246,99 +689,214 @@ public class UserInteractionService : IUserInteractionService
                             Data = requestDetails
                         };
                     }
-
-                    _logger.LogWarning("Failed to create request after wallet payment.");
+                    else
+                    {
+                        _logger.LogWarning("Failed to create request.");
+                        return new ServerResponse<MakeRequestDetailsDto>
+                        {
+                            IsSuccessful = false,
+                            ErrorResponse = new ErrorResponse
+                            {
+                                ResponseCode = "RequestCreation.Error",
+                                ResponseMessage = "Failed to create request."
+                            }
+                        };
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Wallet deduction failed.");
                     return new ServerResponse<MakeRequestDetailsDto>
                     {
                         IsSuccessful = false,
                         ErrorResponse = new ErrorResponse
                         {
-                            ResponseCode = "CreateRequest.Error",
-                            ResponseMessage = "Failed to create request after wallet payment."
+                            ResponseCode = "WalletDeduction.Error",
+                            ResponseMessage = "Failed to deduct from wallet."
                         }
                     };
                 }
-
-                _logger.LogWarning("Failed to process wallet payment.");
-                return new ServerResponse<MakeRequestDetailsDto>
-                {
-                    IsSuccessful = false,
-                    ErrorResponse = new ErrorResponse
-                    {
-                        ResponseCode = "WalletPayment.Error",
-                        ResponseMessage = "Failed to process wallet payment."
-                    }
-                };
-            }
-            else if (payment == AppPaymentMethod.Online)
-            {
-                var paymentDto = new PaymentDTO
-                {
-                    Amount = (int)(totalAmount * 100),
-                    ProductName = "Request Payment",
-                    ReturnUrl = "/return-url"
-                };
-                session = await _paymentGatewayService.CreateOnlinePaymentSessionAsync(paymentDto, domain);
-            }
-            else
-            {
-                _logger.LogWarning("Unsupported payment method.");
-                return new ServerResponse<MakeRequestDetailsDto>
-                {
-                    IsSuccessful = false,
-                    ErrorResponse = new ErrorResponse
-                    {
-                        ResponseCode = "Payment.Error",
-                        ResponseMessage = "Unsupported payment method."
-                    }
-                };
             }
 
-            if (session == null)
-            {
-                _logger.LogWarning("Failed to create payment session.");
-                return new ServerResponse<MakeRequestDetailsDto>
-                {
-                    IsSuccessful = false,
-                    ErrorResponse = new ErrorResponse
-                    {
-                        ResponseCode = "Session.Error",
-                        ResponseMessage = "Failed to create payment session."
-                    }
-                };
-            }
-
-            // Return the payment session ID and request details
-            var requestDetailsWithSession = new MakeRequestDetailsDto
-            {
-                CreatorId = creatorId,
-                CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
-                RequestType = createRequestDto.RequestType,
-                Script = createRequestDto.Script,
-                CreatedAt = DateTimeOffset.UtcNow,
-                PaymentMethod = payment.ToString(),
-                Amount = totalAmount,
-                PaymentSummary = paymentSummary
-            };
-
-            return new ServerResponse<MakeRequestDetailsDto>
-            {
-                IsSuccessful = true,
-                Data = requestDetailsWithSession
-            };
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Error occurred while making request.");
             return new ServerResponse<MakeRequestDetailsDto>
             {
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
                 {
-                    ResponseCode = "Exception.Error",
-                    ResponseMessage = e.Message
+                    ResponseCode = "InvalidPaymentMethod.Error",
+                    ResponseMessage = "Invalid payment method selected."
                 }
             };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred during request creation.");
+            // Rollback the transaction if an exception occurs
+            await transaction.RollbackAsync();
+
+            return new ServerResponse<MakeRequestDetailsDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "RequestCreation.Error",
+                    ResponseMessage = "An error occurred while processing the request."
+                }
+            };
+        }
+    }
+
+    private FeeDetailsDto CalculateTotalAmountWithCharges(int amount, List<Charge> charges)
+    {
+        int totalAmount = amount;
+        int withholdingTaxAmount = 0;
+        int watermarkFeeAmount = 0;
+        int creatorPostFeeAmount = 0;
+        int fastTrackFeeAmount = 0;
+
+        var withholdingTax = charges.FirstOrDefault(c => c.ChargeName == "Withholding Tax");
+        var watermarkFee = charges.FirstOrDefault(c => c.ChargeName == "WaterMark");
+        var creatorPostFee = charges.FirstOrDefault(c => c.ChargeName == "Creator Post Fee");
+        var fastTrackFee = charges.FirstOrDefault(c => c.ChargeName == "Fast Track Fee");
+
+        // Calculate withholding tax if applicable
+        if (withholdingTax != null && totalAmount >= withholdingTax.MinAmount)
+        {
+            withholdingTaxAmount = (int)(totalAmount * (withholdingTax.Percentage / 100m));  // Use 100m for decimal
+            totalAmount += withholdingTaxAmount;
+        }
+
+        // Calculate watermark fee if applicable
+        if (watermarkFee != null && totalAmount >= watermarkFee.MinAmount)
+        {
+            watermarkFeeAmount = (int)(totalAmount * (watermarkFee.Percentage / 100m));
+            totalAmount += watermarkFeeAmount;
+        }
+
+        // Calculate creator post fee if applicable
+        if (creatorPostFee != null && totalAmount >= creatorPostFee.MinAmount)
+        {
+            creatorPostFeeAmount = (int)(totalAmount * (creatorPostFee.Percentage / 100m));
+            totalAmount += creatorPostFeeAmount;
+        }
+
+        // Calculate fast track fee if applicable
+        if (fastTrackFee != null && totalAmount >= fastTrackFee.MinAmount)
+        {
+            fastTrackFeeAmount = (int)(totalAmount * (fastTrackFee.Percentage / 100m));
+            totalAmount += fastTrackFeeAmount;
+        }
+
+        // Return the total amount and individual charges in a FeeDetails object
+        return new FeeDetailsDto
+        {
+            TotalAmount = totalAmount,
+            WithholdingTax = withholdingTaxAmount,
+            WatermarkFee = watermarkFeeAmount,
+            CreatorPostFee = creatorPostFeeAmount,
+            FastTrackFee = fastTrackFeeAmount
+        };
+    }
+
+    private async Task SaveChargeTransactionsAsync(List<Charge> charges, int totalAmount, string requestId)
+    {
+        // Try to fetch the transaction from the transaction table
+        var transaction = await _transactionRepository.GetByIdAsync(requestId);
+
+        // If not found, try to fetch it from the wallet table
+        if (transaction == null)
+        {
+            var wallet = await _walletRepository.GetByRequestIdAsync(requestId); 
+            if (wallet == null)
+            {
+                throw new InvalidOperationException($"Transaction with ID {requestId} not found in both Transaction and Wallet tables.");
+            }
+
+            // Create a pseudo-transaction object based on wallet details
+            transaction = new Transaction
+            {
+                Id = requestId,
+                Wallet = wallet
+            };
+        }
+
+        var withholdingTax = charges.FirstOrDefault(c => c.ChargeName == "Withholding Tax");
+        var watermarkFee = charges.FirstOrDefault(c => c.ChargeName == "WaterMark");
+        var creatorPostFee = charges.FirstOrDefault(c => c.ChargeName == "Creator Post Fee");
+        var fastTrackFee = charges.FirstOrDefault(c => c.ChargeName == "Fast Track Fee");
+
+        var chargeTransactions = new List<ChargeTransaction>();
+
+        // Add withholding tax transaction if applicable
+        if (withholdingTax != null && totalAmount >= withholdingTax.MinAmount)
+        {
+            chargeTransactions.Add(new ChargeTransaction
+            {
+                ChargeName = withholdingTax.ChargeName,
+                Amount = (decimal)(totalAmount * (withholdingTax.Percentage / 100m)),
+                Description = "Withholding tax charge",
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow,
+                TransactionId = requestId,
+                Transaction = transaction,
+                Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                ApplicationUserId = transaction.Wallet.ApplicationUserId
+            });
+        }
+
+        // Add other fee transactions (similar logic as above)
+        if (watermarkFee != null && totalAmount >= watermarkFee.MinAmount)
+        {
+            chargeTransactions.Add(new ChargeTransaction
+            {
+                ChargeName = watermarkFee.ChargeName,
+                Amount = (decimal)(totalAmount * (watermarkFee.Percentage / 100m)),
+                Description = "Watermark fee charge",
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow,
+                TransactionId = requestId,
+                Transaction = transaction,
+                Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                ApplicationUserId = transaction.Wallet.ApplicationUserId
+            });
+        }
+
+        if (creatorPostFee != null && totalAmount >= creatorPostFee.MinAmount)
+        {
+            chargeTransactions.Add(new ChargeTransaction
+            {
+                ChargeName = creatorPostFee.ChargeName,
+                Amount = (decimal)(totalAmount * (creatorPostFee.Percentage / 100m)),
+                Description = "Creator post fee charge",
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow,
+                TransactionId = requestId,
+                Transaction = transaction,
+                Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                ApplicationUserId = transaction.Wallet.ApplicationUserId
+            });
+        }
+
+        if (fastTrackFee != null && totalAmount >= fastTrackFee.MinAmount)
+        {
+            chargeTransactions.Add(new ChargeTransaction
+            {
+                ChargeName = fastTrackFee.ChargeName,
+                Amount = (decimal)(totalAmount * (fastTrackFee.Percentage / 100m)),
+                Description = "Fast track fee charge",
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow,
+                TransactionId = requestId,
+                Transaction = transaction,
+                Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                ApplicationUserId = transaction.Wallet.ApplicationUserId
+            });
+        }
+
+        // Save all charge transactions to the database
+        if (chargeTransactions.Any())
+        {
+            await _chargeTransactionRepository.AddRangeAsync(chargeTransactions);
         }
     }
 
@@ -781,182 +1339,182 @@ public class UserInteractionService : IUserInteractionService
         };
     }
 
-    public async Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string? currency)
-    {
-        // Check if the user exists
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            _logger.LogWarning("User not found for ID: {UserId}", userId);
-            return new ServerResponse<object>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "06",
-                    ResponseMessage = "User not found"
-                }
-            };
-        }
+    //public async Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string? currency)
+    //{
+    //    // Check if the user exists
+    //    var user = await _userRepository.GetUserByIdAsync(userId);
+    //    if (user == null)
+    //    {
+    //        _logger.LogWarning("User not found for ID: {UserId}", userId);
+    //        return new ServerResponse<object>
+    //        {
+    //            IsSuccessful = false,
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "06",
+    //                ResponseMessage = "User not found"
+    //            }
+    //        };
+    //    }
 
-        // Validate the currency if needed
-        if (string.IsNullOrEmpty(currency))
-        {
-            _logger.LogWarning("Currency is not specified.");
-            return new ServerResponse<object>
-            {
-                IsSuccessful = false,
-                ResponseCode = "Currency.Error",
-                ResponseMessage = "Currency must be specified.",
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "Currency.Error",
-                    ResponseMessage = "Currency must be specified."
-                }
-            };
-        }
+    //    // Validate the currency if needed
+    //    if (string.IsNullOrEmpty(currency))
+    //    {
+    //        _logger.LogWarning("Currency is not specified.");
+    //        return new ServerResponse<object>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "Currency.Error",
+    //            ResponseMessage = "Currency must be specified.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "Currency.Error",
+    //                ResponseMessage = "Currency must be specified."
+    //            }
+    //        };
+    //    }
 
-        // Check if the user is a regular user
-        var roles = await _userManager.GetRolesAsync(user);
-        _logger.LogInformation("User roles for {UserId}: {Roles}", user.Id, string.Join(", ", roles));
-        if (!roles.Contains("RegularUser"))
-        {
-            _logger.LogWarning("User is not a regular user.");
-            return new ServerResponse<object>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "RegularUser.Error",
-                    ResponseMessage = "Regular User not found",
-                    ResponseDescription = "Only Regular Users can fund their wallets.",
-                }
-            };
-        }
+    //    // Check if the user is a regular user
+    //    var roles = await _userManager.GetRolesAsync(user);
+    //    _logger.LogInformation("User roles for {UserId}: {Roles}", user.Id, string.Join(", ", roles));
+    //    if (!roles.Contains("RegularUser"))
+    //    {
+    //        _logger.LogWarning("User is not a regular user.");
+    //        return new ServerResponse<object>
+    //        {
+    //            IsSuccessful = false,
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "RegularUser.Error",
+    //                ResponseMessage = "Regular User not found",
+    //                ResponseDescription = "Only Regular Users can fund their wallets.",
+    //            }
+    //        };
+    //    }
 
-        // Fund the wallet via card and check if the payment is successful
-        var fundingResult = await _walletService.FundWalletViaCardAsync(userId, amount, paymentMethodId, currency);
-        if (!fundingResult.IsSuccessful)
-        {
-            return new ServerResponse<object>
-            {
-                IsSuccessful = false,
-                ResponseCode = "500",
-                ResponseMessage = "Failed to fund wallet via card.",
-                ErrorResponse = fundingResult.ErrorResponse
-            };
-        }
+    //    // Fund the wallet via card and check if the payment is successful
+    //    var fundingResult = await _walletService.FundWalletViaCardAsync(userId, amount, paymentMethodId, currency);
+    //    if (!fundingResult.IsSuccessful)
+    //    {
+    //        return new ServerResponse<object>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "500",
+    //            ResponseMessage = "Failed to fund wallet via card.",
+    //            ErrorResponse = fundingResult.ErrorResponse
+    //        };
+    //    }
 
-        // Update the wallet balance after successful payment
-        await _userRepository.UpdateWalletBalanceAsync(userId, amount);
-        _logger.LogInformation("User with ID: {UserId} funded wallet by amount: {Amount} in currency: {Currency}", userId, amount, currency);
+    //    // Update the wallet balance after successful payment
+    //    await _userRepository.UpdateWalletBalanceAsync(userId, amount);
+    //    _logger.LogInformation("User with ID: {UserId} funded wallet by amount: {Amount} in currency: {Currency}", userId, amount, currency);
 
-        // Return success response including the amount funded, the card token, and user information
-        return new ServerResponse<object>
-        {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            ResponseMessage = "Wallet funded successfully",
-            Data = new
-            {
-                UserId = userId,
-                Amount = amount,
-                Currency = currency,
-                CardToken = paymentMethodId,
-                UserName = user.UserName
-            }
-        };
-    }
+    //    // Return success response including the amount funded, the card token, and user information
+    //    return new ServerResponse<object>
+    //    {
+    //        IsSuccessful = true,
+    //        ResponseCode = "00",
+    //        ResponseMessage = "Wallet funded successfully",
+    //        Data = new
+    //        {
+    //            UserId = userId,
+    //            Amount = amount,
+    //            Currency = currency,
+    //            CardToken = paymentMethodId,
+    //            UserName = user.UserName
+    //        }
+    //    };
+    //}
 
-    public async Task<ServerResponse<string>> FundWalletViaOnlinePaymentAsync(string userId, decimal amount, string paymentMethodId, string currency)
-    {
-        // Validate the currency if needed
-        if (string.IsNullOrEmpty(currency))
-        {
-            _logger.LogWarning("Currency is not specified.");
-            return new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "Currency.Error",
-                ResponseMessage = "Currency must be specified.",
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "Currency.Error",
-                    ResponseMessage = "Currency must be specified."
-                }
-            };
-        }
+    //public async Task<ServerResponse<string>> FundWalletViaOnlinePaymentAsync(string userId, decimal amount, string paymentMethodId, string currency)
+    //{
+    //    // Validate the currency if needed
+    //    if (string.IsNullOrEmpty(currency))
+    //    {
+    //        _logger.LogWarning("Currency is not specified.");
+    //        return new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "Currency.Error",
+    //            ResponseMessage = "Currency must be specified.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "Currency.Error",
+    //                ResponseMessage = "Currency must be specified."
+    //            }
+    //        };
+    //    }
 
-        // Create options for PaymentIntent
-        var options = new PaymentIntentCreateOptions
-        {
-            Amount = (long)(amount * 100),  // Convert amount to cents
-            Currency = currency,
-            PaymentMethod = paymentMethodId,  // PaymentMethodId from frontend
-            ConfirmationMethod = "manual",   // Set to manual for frontend confirmation
-            CaptureMethod = "automatic",
-        };
+    //    // Create options for PaymentIntent
+    //    var options = new PaymentIntentCreateOptions
+    //    {
+    //        Amount = (long)(amount * 100),  // Convert amount to cents
+    //        Currency = currency,
+    //        PaymentMethod = paymentMethodId,  // PaymentMethodId from frontend
+    //        ConfirmationMethod = "manual",   // Set to manual for frontend confirmation
+    //        CaptureMethod = "automatic",
+    //    };
 
-        var service = new PaymentIntentService();
-        try
-        {
-            // Create the payment intent via Stripe
-            PaymentIntent intent = await service.CreateAsync(options);
+    //    var service = new PaymentIntentService();
+    //    try
+    //    {
+    //        // Create the payment intent via Stripe
+    //        PaymentIntent intent = await service.CreateAsync(options);
 
-            // Check if further action is required
-            if (intent.Status == "requires_action" || intent.Status == "requires_confirmation")
-            {
-                return new ServerResponse<string>
-                {
-                    IsSuccessful = true,
-                    ResponseCode = "200",
-                    ResponseMessage = "Authentication required.",
-                    Data = intent.ClientSecret  // Frontend will use this to complete payment authentication
-                };
-            }
+    //        // Check if further action is required
+    //        if (intent.Status == "requires_action" || intent.Status == "requires_confirmation")
+    //        {
+    //            return new ServerResponse<string>
+    //            {
+    //                IsSuccessful = true,
+    //                ResponseCode = "200",
+    //                ResponseMessage = "Authentication required.",
+    //                Data = intent.ClientSecret  // Frontend will use this to complete payment authentication
+    //            };
+    //        }
 
-            // Return success response if no further action is required
-            return new ServerResponse<string>
-            {
-                IsSuccessful = true,
-                ResponseCode = "200",
-                ResponseMessage = "Payment intent created successfully.",
-                Data = intent.ClientSecret  // Return the client secret for frontend
-            };
-        }
-        catch (StripeException stripeEx)
-        {
-            _logger.LogError(stripeEx, "Online payment failed.");
-            return new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "400",
-                ResponseMessage = "Failed to process online payment",
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "400",
-                    ResponseMessage = "StripeError",
-                    ResponseDescription = stripeEx.Message
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Online payment failed.");
-            return new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "500",
-                ResponseMessage = "An error occurred while processing your payment.",
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "500",
-                    ResponseMessage = "PaymentError",
-                    ResponseDescription = ex.Message
-                }
-            };
-        }
-    }
+    //        // Return success response if no further action is required
+    //        return new ServerResponse<string>
+    //        {
+    //            IsSuccessful = true,
+    //            ResponseCode = "200",
+    //            ResponseMessage = "Payment intent created successfully.",
+    //            Data = intent.ClientSecret  // Return the client secret for frontend
+    //        };
+    //    }
+    //    catch (StripeException stripeEx)
+    //    {
+    //        _logger.LogError(stripeEx, "Online payment failed.");
+    //        return new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "400",
+    //            ResponseMessage = "Failed to process online payment",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "400",
+    //                ResponseMessage = "StripeError",
+    //                ResponseDescription = stripeEx.Message
+    //            }
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Online payment failed.");
+    //        return new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "500",
+    //            ResponseMessage = "An error occurred while processing your payment.",
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "500",
+    //                ResponseMessage = "PaymentError",
+    //                ResponseDescription = ex.Message
+    //            }
+    //        };
+    //    }
+    //}
 
     public async Task<ServerResponse<object>> ConfirmPaymentAsync(string paymentIntentId, string userId, decimal amount)
     {

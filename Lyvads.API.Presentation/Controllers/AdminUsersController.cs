@@ -1,4 +1,5 @@
 ﻿using Lyvads.Application.Dtos.AuthDtos;
+using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -46,7 +47,7 @@ public class AdminUsersController : Controller
 
 
     [HttpPost("add-user")]
-    public async Task<IActionResult> AddUser([FromBody] AdminRegisterUserDto registerUserDto)
+    public async Task<IActionResult> AddUser([FromBody] AdminRegisterUsersDto registerUserDto)
     {
         // Get the logged-in user's ID
         var user = await _userManager.GetUserAsync(User);
@@ -58,6 +59,41 @@ public class AdminUsersController : Controller
         {
             _logger.LogError("User registration failed: {Error}", response.ErrorResponse.ResponseDescription);
             return StatusCode(400, response.ErrorResponse);
+        }
+        return Ok(response);
+    }
+
+
+    [HttpPost("edit-users")]
+    public async Task<IActionResult> EditUsers([FromQuery] string userId, [FromForm] EditUserDto editUserDto, [FromForm] UpdateProfilePictureDto picdto)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        // Validate the file (photo) if provided
+        if (picdto.NewProfilePictureUrl != null && !IsValidFile(picdto.NewProfilePictureUrl))
+        {
+            return BadRequest(new { message = "Invalid File Extension" });
+        }
+
+        // Convert IFormFile to byte array
+        byte[] fileBytes = null!;
+        if (picdto.NewProfilePictureUrl != null)
+        {
+            using (var stream = new MemoryStream())
+            {
+                await picdto.NewProfilePictureUrl.CopyToAsync(stream);
+                fileBytes = stream.ToArray();
+            }
+        }
+
+        var response = await _superAdminService.EditUserAsync(userId, editUserDto, picdto.NewProfilePictureUrl!);
+        if (!response.IsSuccessful)
+        {
+            _logger.LogError("Failed to fetch users: {Error}", response.ErrorResponse.ResponseDescription);
+            return StatusCode(500, response.ErrorResponse);
         }
         return Ok(response);
     }
@@ -100,28 +136,10 @@ public class AdminUsersController : Controller
 
 
 
-    //[HttpPost("{userId}/disable")]
-    //public async Task<IActionResult> DisableUser(string userId)
-    //{
-    //    var response = await _superAdminService.DisableUser(userId);
-    //    if (!response.IsSuccessful)
-    //    {
-    //        _logger.LogError("User disable failed: {Error}", response.ErrorResponse.ResponseDescription);
-    //        return StatusCode(500, response.ErrorResponse);
-    //    }
-    //    return Ok(response);
-    //}
-
-
-    //[HttpPost("{userId}/activate")]
-    //public async Task<IActionResult> ActivateUser(string userId)
-    //{
-    //    var response = await _superAdminService.ActivateUserAsync(userId);
-    //    if (!response.IsSuccessful)
-    //    {
-    //        _logger.LogError("User activation failed: {Error}", response.ErrorResponse.ResponseDescription);
-    //        return StatusCode(500, response.ErrorResponse);
-    //    }
-    //    return Ok(response);
-    //}
+    private bool IsValidFile(IFormFile file)
+    {
+        var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        return validExtensions.Contains(extension);
+    }
 }

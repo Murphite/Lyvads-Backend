@@ -26,15 +26,15 @@ public class RequestCompletionService : BackgroundService
             using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var requests = await dbContext.Collaborations
-                    .Where(r => r.Status == CollaborationStatus.Pending &&
+                var requests = await dbContext.Requests
+                    .Where(r => r.Status == RequestStatus.Pending &&
                                 DateTimeOffset.UtcNow - r.UpdatedAt > TimeSpan.FromDays(3))
                     .ToListAsync(stoppingToken);
 
                 foreach (var request in requests)
                 {
-                    request.Status = CollaborationStatus.Completed;
-                    dbContext.Collaborations.Update(request);
+                    request.Status = RequestStatus.Completed;
+                    dbContext.Requests.Update(request);
                 }
 
                 // Save changes to the database

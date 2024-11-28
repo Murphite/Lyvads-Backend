@@ -19,7 +19,7 @@ public class AdminChargeController : ControllerBase
     private readonly IAdminActivityLogService _activityLogService;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public AdminChargeController(AdminChargeTransactionService chargeTransactionService,
+    public AdminChargeController(IAdminChargeTransactionService chargeTransactionService,
         ILogger<AdminChargeController> logger,
         IAdminActivityLogService activityLogService,
         UserManager<ApplicationUser> userManager)
@@ -31,7 +31,7 @@ public class AdminChargeController : ControllerBase
     }
 
     // GET: api/Charge
-    [HttpGet]
+    [HttpGet("GetAllCharges")]
     public async Task<IActionResult> GetAllCharges()
     {
         // Get the logged-in user's ID
@@ -49,7 +49,7 @@ public class AdminChargeController : ControllerBase
     }
 
     // GET: api/Charge/{id}
-    [HttpGet("{id}")]
+    [HttpGet("ChargeById")]
     public async Task<IActionResult> GetChargeById(string id)
     {
         // Get the logged-in user's ID
@@ -67,7 +67,7 @@ public class AdminChargeController : ControllerBase
     }
 
     // POST: api/ChargeTransaction
-    [HttpPost]
+    [HttpPost("AddNewCharge")]
     public async Task<IActionResult> AddNewCharge([FromBody] CreateChargeDto chargeDto)
     {
         // Get the logged-in user's ID
@@ -86,7 +86,7 @@ public class AdminChargeController : ControllerBase
     }
 
     // PUT: api/ChargeTransaction/{id}
-    [HttpPut("{id}")]
+    [HttpPost("EditCharge")]
     public async Task<IActionResult> EditCharge(string id, [FromBody] EditChargeDto chargeDto)
     {
         // Get the logged-in user's ID

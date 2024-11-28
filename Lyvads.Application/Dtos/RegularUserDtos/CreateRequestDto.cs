@@ -5,12 +5,14 @@ namespace Lyvads.Application.Dtos.RegularUserDtos;
 
 public class CreateRequestDto
 {
+    public string? creatorId {  get; set; }
     public string? Script { get; set; }
     public string? RequestType { get; set; }
-    public decimal Amount { get; set; }
+    public int Amount { get; set; }
     public bool FastTrack { get; set; } 
     public bool RemoveWatermark { get; set; } 
     public bool CreatorPost { get; set; } 
+    public AppPaymentMethod payment {  get; set; }
 }
 
 public class PaymentDTO

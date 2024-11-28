@@ -115,6 +115,7 @@ public class CollaborationController : ControllerBase
         return Ok(response);
     }
 
+
     [HttpPost("dispute/open/{requestId}")]
     public async Task<ActionResult> OpenDispute(string requestId, DisputeReasons disputeReason, 
         [FromBody] OpenDisputeDto disputeDto)
@@ -132,6 +133,7 @@ public class CollaborationController : ControllerBase
 
         return Ok(response);
     }
+
 
     [HttpPost("send-video/{requestId}")]
     public async Task<IActionResult> SendVideoToUser(string requestId, [FromForm] UploadVideo videoDto)
@@ -178,6 +180,7 @@ public class CollaborationController : ControllerBase
         return validExtensions.Contains(extension);
     }
 
+   
     [HttpGet("fetch-disputes")]
     public async Task<IActionResult> FetchDisputesByCreator()
     {

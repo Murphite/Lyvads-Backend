@@ -10,7 +10,8 @@ namespace Lyvads.Domain.Entities;
 
 public class UserAd : Entity, IAuditable
 {
-    public string UserName { get; set; } = default!;
+    public string FullName { get; set; } = default!;
+    public string Email { get; set; } = default!;
     public string Description { get; set; } = default!;
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Amount { get; set; }

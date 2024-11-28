@@ -34,7 +34,7 @@ public class CreatorRepository : ICreatorRepository
 
     public IQueryable<Creator> GetCreatorsWithDetails()
     {
-        return _context.Creators.Include(c => c.Collaborations);
+        return _context.Creators.Include(c => c.Requests);
     }
 
     public async Task<Creator?> GetCreatorByApplicationUserIdAsync(string applicationUserId)

@@ -8,7 +8,10 @@ public class DisputeDto
 {
     public string? Id { get; set; }
     public string? RegularUserName { get; set; }
+    public string? RegularUserProfilePic { get; set; }
     public string? CreatorName { get; set; }
+    public string? CreatorProfilePic { get; set; }
+    public string? DisputeDesc { get; set; }
     public decimal Amount { get; set; }
     public string? Reason { get; set; }
     public DateTimeOffset FlaggedDate { get; set; }

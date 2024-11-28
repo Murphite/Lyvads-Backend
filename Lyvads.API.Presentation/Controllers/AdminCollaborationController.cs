@@ -20,7 +20,7 @@ public class AdminCollaborationController : ControllerBase
     private readonly ILogger<AdminCollaborationController> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public AdminCollaborationController(CollaborationService collaborationService, 
+    public AdminCollaborationController(ICollaborationService collaborationService, 
         ILogger<AdminCollaborationController> logger,
         UserManager<ApplicationUser> userManager)
     {
@@ -50,7 +50,8 @@ public class AdminCollaborationController : ControllerBase
         return Ok(response);
     }
 
-    // GET: api/collaboration/{id}
+    
+    // GET: api/collaboration/{id}    
     [HttpGet("{collaborationId}")]
     public async Task<ActionResult<ServerResponse<CollaborationDto>>> GetCollaborationDetails(string collaborationId)
     {
@@ -71,19 +72,20 @@ public class AdminCollaborationController : ControllerBase
         return Ok(response);
     }
 
-    // GET: api/collaboration/download-receipt/{id}
-    //[HttpGet("download-receipt/{collaborationId}")]
-    //public async Task<ActionResult<ServerResponse<FileStreamResult>>> DownloadReceipt(string collaborationId)
-    //{
-    //    _logger.LogInformation("Handling request to download receipt for collaboration ID: {CollaborationId}", collaborationId);
-    //    var response = await _collaborationService.DownloadReceiptAsync(collaborationId);
 
-    //    if (!response.IsSuccessful)
-    //    {
-    //        _logger.LogWarning("Failed to download receipt: {ResponseMessage}", response.ResponseMessage);
-    //        return NotFound(response);
-    //    }
+    [HttpPost("ToggleCollaborationStatus/collaborationId")]
+    public async Task<IActionResult> FlagToggleCollaboration(string collaborationId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
 
-    //    return File(response.Data.FileStream, "application/pdf", response.Data.FileDownloadName);
-    //}
+        _logger.LogInformation("Request received to toggle status for post with ID: {PostId}", collaborationId);
+        var response = await _collaborationService.FlagToggleCollaborationAsync(collaborationId);
+
+        if (!response.IsSuccessful)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
 }

@@ -46,3 +46,13 @@ public enum UserRoleEnum
     Admin = 1,
     SuperAdmin = 2
 }
+
+public class AdminRegisterUsersDto
+{
+    [Required] public required string FirstName { get; init; }
+    [Required] public required string LastName { get; init; }
+    [Required] public required string PhoneNumber { get; init; }
+    [Required] public required string Location { get; init; }
+    [EmailAddress] public required string Email { get; init; }
+    public string? Role { get; set; }
+}

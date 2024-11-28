@@ -8,6 +8,7 @@ using Lyvads.Application.Interfaces;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Lyvads.Domain.Constants;
+using Microsoft.AspNetCore.Identity;
 
 namespace Lyvads.Application.Implementations;
 
@@ -17,16 +18,22 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
     private readonly IChargeTransactionRepository _chargeTransactionRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAdminActivityLogService _adminActivityLogService;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public AdminChargeTransactionService(ILogger<AdminChargeTransactionService> logger,
         IChargeTransactionRepository chargeTransactionRepository,
         IHttpContextAccessor httpContextAccessor,
-        IAdminActivityLogService adminActivityLogService)
+        IAdminActivityLogService adminActivityLogService,
+        ICurrentUserService currentUserService,
+        UserManager<ApplicationUser> userManager)
     {
         _logger = logger;
         _chargeTransactionRepository = chargeTransactionRepository;
         _httpContextAccessor = httpContextAccessor;
         _adminActivityLogService = adminActivityLogService;
+        _currentUserService = currentUserService;
+        _userManager = userManager;
     }
 
     // Get all ChargeTransactions
@@ -38,7 +45,7 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
 
             var result = chargeTransactions.Select(ct => new ChargeTransactionDto
             {
-                UserName = ct.UserName,
+                UserName = ct.ApplicationUser.FullName,
                 ChargeName = ct.ChargeName,
                 Amount = ct.Amount,
                 DateCharged = ct.CreatedAt,
@@ -70,10 +77,11 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
     }
 
     // Add new Charge
-    public async Task<ServerResponse<string>> AddNewChargeAsync(CreateChargeDto chargeDto)
+    public async Task<ServerResponse<CreateChargeResponse>> AddNewChargeAsync(CreateChargeDto chargeDto)
     {
         try
         {
+            // Create the new charge
             var charge = new Charge
             {
                 ChargeName = chargeDto.ChargeName,
@@ -83,40 +91,82 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
                 Status = ChargeStatus.Active
             };
 
+            // Add the charge to the repository
             await _chargeTransactionRepository.AddAsync(charge);
 
-            // Get the currently logged-in admin user's ID and username
+            // Get the currently logged-in admin user's ID
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var username = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Name);
 
-            // Ensure userId and username are not null before proceeding
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username))
+            // Use current user service to fetch the current admin username
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+            // Check if the current user is in any required role
+            var rolesToCheck = new[] { RolesConstant.SuperAdmin, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.Creator };
+            string? userRole = null;
+
+            foreach (var role in rolesToCheck)
             {
-                _logger.LogWarning("User ID or Username is null. Activity log will not be recorded.");
+                if (await _userManager.IsInRoleAsync(currentUser, role))
+                {
+                    userRole = role;
+                    break;
+                }
+            }
+
+            if (userRole == null)
+            {
+                _logger.LogWarning("User does not have the required roles.");
+                return new ServerResponse<CreateChargeResponse>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "403",
+                        ResponseMessage = "Forbidden",
+                        ResponseDescription = "User does not have permission to add a charge."
+                    }
+                };
+            }
+
+            // Ensure user ID and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || currentUser == null)
+            {
+                _logger.LogWarning("User ID or current user is null. Activity log will not be recorded.");
             }
             else
             {
                 // Log the admin activity
                 await _adminActivityLogService.LogActivityAsync(
                     userId,
-                    username,
-                    RolesConstant.Admin,
-                    "Added new charge: " + chargeDto.ChargeName,
+                    currentUser.FullName!,
+                    userRole,
+                    $"Added new charge: {chargeDto.ChargeName}",
                     "Charge Management");
             }
 
-            return new ServerResponse<string>
+            // Prepare the response with the charge ID
+            var response = new CreateChargeResponse
+            {
+                Id = charge.Id, // Assuming the Charge entity has an Id property
+                ChargeName = chargeDto.ChargeName,
+                Percentage = chargeDto.Percentage,
+                MinAmount = chargeDto.MinAmount,
+                MaxAmount = chargeDto.MaxAmount
+            };
+
+            return new ServerResponse<CreateChargeResponse>
             {
                 IsSuccessful = true,
                 ResponseCode = "00",
                 ResponseMessage = "Charge added successfully",
-                Data = "Charge has been created"
+                Data = response
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding new charge");
-            return new ServerResponse<string>
+            return new ServerResponse<CreateChargeResponse>
             {
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
@@ -129,15 +179,16 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
         }
     }
 
+
     // Edit Charge by Id
-    public async Task<ServerResponse<string>> EditChargeAsync(string chargeId, EditChargeDto chargeDto)
+    public async Task<ServerResponse<EditChargeResponse>> EditChargeAsync(string chargeId, EditChargeDto chargeDto)
     {
         try
         {
             var charge = await _chargeTransactionRepository.GetChargeByIdAsync(chargeId);
             if (charge == null)
             {
-                return new ServerResponse<string>
+                return new ServerResponse<EditChargeResponse>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -157,18 +208,28 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
 
             await _chargeTransactionRepository.UpdateAsync(charge);
 
-            return new ServerResponse<string>
+            var response = new EditChargeResponse
+            {
+                Id = charge.Id, // Assuming the Charge entity has an Id property
+                ChargeName = chargeDto.ChargeName,
+                Percentage = chargeDto.Percentage,
+                MinAmount = chargeDto.MinAmount,
+                MaxAmount = chargeDto.MaxAmount,
+                Status = chargeDto.Status.ToString()
+            };
+
+            return new ServerResponse<EditChargeResponse>
             {
                 IsSuccessful = true,
                 ResponseCode = "00",
                 ResponseMessage = "Charge updated successfully",
-                Data = "Charge has been updated"
+                Data = response
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating charge");
-            return new ServerResponse<string>
+            return new ServerResponse<EditChargeResponse>
             {
                 IsSuccessful = false,
                 ErrorResponse = new ErrorResponse
@@ -203,7 +264,7 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
 
             var result = new ChargeTransactionDto
             {
-                UserName = chargeTransaction.UserName,
+                UserName = chargeTransaction.ApplicationUser.FullName,
                 ChargeName = chargeTransaction.ChargeName,
                 Amount = chargeTransaction.Amount,
                 DateCharged = chargeTransaction.CreatedAt,
@@ -289,11 +350,12 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
 
             var result = charges.Select(c => new ChargeDto
             {
+                Id = c.Id,
                 ChargeName = c.ChargeName,
                 Percentage = c.Percentage,
                 MinAmount = c.MinAmount,
                 MaxAmount = c.MaxAmount,
-                Status = c.Status
+                Status = c.Status.ToString(),
             }).ToList();
 
             return new ServerResponse<List<ChargeDto>>
@@ -342,11 +404,12 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
 
             var result = new ChargeDto
             {
+                Id = chargeId,
                 ChargeName = charge.ChargeName,
                 Percentage = charge.Percentage,
                 MinAmount = charge.MinAmount,
                 MaxAmount = charge.MaxAmount,
-                Status = charge.Status
+                Status = charge.Status.ToString()
             };
 
             return new ServerResponse<ChargeDto>

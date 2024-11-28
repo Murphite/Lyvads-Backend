@@ -5,8 +5,7 @@ namespace Lyvads.Domain.Enums;
 public enum AppPaymentMethod
 {
     Wallet,
-    Online,
-    ATMCard
+    Paystack
 }
 
 public enum PaymentStatus

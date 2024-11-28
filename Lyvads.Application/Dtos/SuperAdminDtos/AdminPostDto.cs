@@ -8,9 +8,13 @@ public class AdminPostDto
 {
     public string? PostId { get; set; }
     public string? CreatorName { get; set; }
+    public string? CreatorAppName { get; set; }
+    public string? CreatorProfilePic { get; set; }
     public string? Caption { get; set; }
     public DateTimeOffset DatePosted { get; set; }
-    public PostStatus Status { get; set; }
+    public string? Status { get; set; }
+    public int CommentCount { get; set; } 
+    public int LikeCount { get; set; }
 }
 
 public class AdminPostDetailsDto
@@ -22,6 +26,8 @@ public class AdminPostDetailsDto
     public PostStatus Status { get; set; }
     public List<AdminCommentDto>? Comments { get; set; }
     public List<AdminLikeDto>? Likes { get; set; }
+    public int CommentCount { get; set; }
+    public int LikeCount { get; set; }
 }
 
 public class AdminCommentDto

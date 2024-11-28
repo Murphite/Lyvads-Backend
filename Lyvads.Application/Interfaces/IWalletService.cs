@@ -1,12 +1,16 @@
 ﻿
 
 using Lyvads.Application.Dtos;
+using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Domain.Responses;
+using System.Security.Claims;
 
 namespace Lyvads.Application.Interfaces;
 
 public interface IWalletService
 {
+    Task<ServerResponse<List<WalletTrasactionResponseDto>>> GetWalletTransactions();
+    Task<ServerResponse<PaymentResponseDto>> FundWalletAsync(int amount, string email, string name);
     Task<ServerResponse<string>> FundWalletViaCardAsync(string userId, decimal amount, string paymentMethodId, string currency);
     Task<ServerResponse<string>> ConfirmPaymentAsync(string paymentIntentId, string userId, decimal amount);
     Task<ServerResponse<string>> FundWalletViaOnlinePaymentAsync(string userId, decimal amount, string paymentMethodId, string currency);

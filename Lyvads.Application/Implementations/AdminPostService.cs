@@ -4,6 +4,7 @@ using Lyvads.Domain.Entities;
 using Lyvads.Domain.Enums;
 using Lyvads.Domain.Repositories;
 using Lyvads.Domain.Responses;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Lyvads.Application.Implementations;
@@ -24,14 +25,23 @@ public class AdminPostService : IAdminPostService
     {
         _logger.LogInformation("Fetching all posts.");
 
-        var posts = (await _postRepository.GetAllAsync()).ToList();  // Use GetAllAsync
+        var posts = await _postRepository.GetAllAsync(include: post => post
+                .Include(p => p.Creator.ApplicationUser)
+                .Include(p => p.Comments)
+                .Include(p => p.Likes));
+
+
         var postDtos = posts.Select(post => new AdminPostDto
         {
             PostId = post.Id,
             CreatorName = post.Creator.ApplicationUser?.FirstName + " " + post.Creator.ApplicationUser?.LastName,
+            CreatorAppName = post.Creator.ApplicationUser?.AppUserName,
+            CreatorProfilePic = post.Creator.ApplicationUser?.ImageUrl,
             Caption = post.Caption,
             DatePosted = post.CreatedAt,
-            Status = post.PostStatus
+            Status = post.PostStatus.ToString(),
+            CommentCount = post.Comments?.Count ?? 0,  // Count of comments
+            LikeCount = post.Likes?.Count ?? 0         // Count of likes
         }).ToList();
 
         _logger.LogInformation("Successfully fetched all posts.");
@@ -43,6 +53,7 @@ public class AdminPostService : IAdminPostService
             Data = postDtos
         };
     }
+
 
     public async Task<ServerResponse<AdminPostDetailsDto>> GetPostDetailsAsync(string postId)
     {
@@ -76,7 +87,9 @@ public class AdminPostService : IAdminPostService
             Likes = post.Likes.Select(l => new AdminLikeDto
             {
                 UserName = l.ApplicationUser!.FirstName + " " + l.ApplicationUser.LastName
-            }).ToList()
+            }).ToList(),
+            CommentCount = post.Comments?.Count ?? 0, 
+            LikeCount = post.Likes?.Count ?? 0
         };
 
         _logger.LogInformation("Successfully fetched post details for ID: {PostId}", postId);

@@ -10,6 +10,11 @@ using Lyvads.Application.Dtos.WalletDtos;
 using Lyvads.Domain.Responses;
 using Microsoft.AspNetCore.Mvc;
 using Lyvads.Infrastructure.Repositories;
+using Lyvads.Application.Dtos.RegularUserDtos;
+using Lyvads.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace Lyvads.Application.Implementations;
 
@@ -23,6 +28,7 @@ public class WalletService : IWalletService
     private readonly IBankAccountRepository _bankrepository;
     private readonly IPaymentGatewayService _paymentGatewayService;
     private readonly IBankAccountRepository _bankAccountRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public WalletService(IRepository repository,
         IUnitOfWork unitOfWork,
@@ -31,7 +37,8 @@ public class WalletService : IWalletService
         ILogger<WalletService> logger,
         IBankAccountRepository bankrepository,
         IPaymentGatewayService paymentGatewayService,
-        IBankAccountRepository bankAccountRepository)
+        IBankAccountRepository bankAccountRepository,
+        IHttpContextAccessor httpContextAccessor)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
@@ -41,34 +48,136 @@ public class WalletService : IWalletService
         _bankrepository = bankrepository;
         _paymentGatewayService = paymentGatewayService;
         _bankAccountRepository = bankAccountRepository;
+        _httpContextAccessor = httpContextAccessor;
     }
 
-    //public async Task<Result> FundWalletViaBankTransferAsync(string userId, decimal amount)
-    //{
-    //    // Generate a unique reference for the transfer
-    //    var transferReference = Guid.NewGuid().ToString();
 
-    //    // Assuming a service API call to initiate a bank transfer
-    //    var transferRequest = new BankTransferRequest
-    //    {
-    //        Amount = amount,
-    //        Currency = "usd",
-    //        UserId = userId,
-    //        Reference = transferReference
-    //    };
+    public async Task<ServerResponse<PaymentResponseDto>> FundWalletAsync(int amount, string email, string name)
+    {
+        // Initialize payment via payment gateway service
+        var response = await _paymentGatewayService.InitializePaymentAsync(amount, email, name);
+        if (!response.IsSuccessful)
+        {
+            return new ServerResponse<PaymentResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = response.ResponseMessage
+            };
+        }
 
-    //    var transferResponse = await _paymentGatewayService.InitiateBankTransferAsync(transferRequest);
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            return new ServerResponse<PaymentResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found."
+            };
+        }
 
-    //    if (transferResponse.IsSuccess)
-    //    {
-    //        // Optionally, store transfer details in the database
-    //        await _walletRepository.SaveTransferDetailsAsync(userId, amount, transferReference);
+        var wallet = await _walletRepository.GetWalletWithTransactionsAsync(user.Id);
+        if (wallet == null)
+        {
+            return new ServerResponse<PaymentResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Wallet not found."
+            };
+        }
 
-    //        return Result.Success(transferResponse.TransferInstructions);
-    //    }
 
-    //    return new Error[] { new("BankTransfer.Error", "Failed to initiate bank transfer.") };
-    //}
+        // Create a new transaction for the wallet funding
+        var transaction = new Transaction
+        {
+            Amount = amount,
+            Email = user.Email,
+            Name = user.FullName,
+            TrxRef = response.Data.PaymentReference,
+            WalletId = wallet.Id,
+            Status = false, // Initially false, waiting for webhook confirmation
+            Type = TransactionType.Funding,
+            CreatedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now
+        };
+
+
+        // Save transaction using the repository
+        var savedTransaction = await _walletRepository.AddTransactionAsync(transaction);
+
+        // Update the wallet balance
+        //wallet.Balance += amount;
+        //await _walletRepository.UpdateWalletAsync(wallet);
+
+        var paymentResponseDto = new PaymentResponseDto
+        {
+            PaymentReference = response.Data.PaymentReference,
+            AuthorizationUrl = response.Data.AuthorizationUrl,
+            CancelUrl = response.Data.CancelUrl,
+            UserName = user.FullName,
+            UserEmail = user.Email,
+            Amount = amount,
+            WalletId = wallet.Id,
+            DateCreated = transaction.CreatedAt
+        };
+
+        return new ServerResponse<PaymentResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = "Wallet funded successfully.",
+            Data = paymentResponseDto
+        };
+    }
+
+    public async Task<ServerResponse<List<WalletTrasactionResponseDto>>> GetWalletTransactions()
+    {
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            return new ServerResponse<List<WalletTrasactionResponseDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found."
+            };
+        }
+
+        var wallet = await _walletRepository.GetWalletWithTransactionsAsync(user.Id);
+        if (wallet == null)
+        {
+            return new ServerResponse<List<WalletTrasactionResponseDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Wallet not found."
+            };
+        }
+
+        var transactions = wallet.Transactions.Select(t => new WalletTrasactionResponseDto
+        {
+            Id = t.Id,
+            Amount = t.Amount,
+            Name = t.Name,
+            Email = t.Email,
+            TransactionType = t.Type.ToString(),
+            TrxRef = t.TrxRef,
+            DateCreated = t.CreatedAt,
+            Status = t.Status
+        }).ToList();
+
+        return new ServerResponse<List<WalletTrasactionResponseDto>>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = "Transactions retrieved successfully.",
+            Data = transactions
+        };
+    }
+
+
     public async Task<ServerResponse<string>> FundWalletViaCardAsync(string userId, decimal amount, 
         string paymentMethodId, string currency)
     {
@@ -505,6 +614,33 @@ public class WalletService : IWalletService
         public string? ErrorDescription { get; set; }
     }
 
+
+    //public async Task<Result> FundWalletViaBankTransferAsync(string userId, decimal amount)
+    //{
+    //    // Generate a unique reference for the transfer
+    //    var transferReference = Guid.NewGuid().ToString();
+
+    //    // Assuming a service API call to initiate a bank transfer
+    //    var transferRequest = new BankTransferRequest
+    //    {
+    //        Amount = amount,
+    //        Currency = "usd",
+    //        UserId = userId,
+    //        Reference = transferReference
+    //    };
+
+    //    var transferResponse = await _paymentGatewayService.InitiateBankTransferAsync(transferRequest);
+
+    //    if (transferResponse.IsSuccess)
+    //    {
+    //        // Optionally, store transfer details in the database
+    //        await _walletRepository.SaveTransferDetailsAsync(userId, amount, transferReference);
+
+    //        return Result.Success(transferResponse.TransferInstructions);
+    //    }
+
+    //    return new Error[] { new("BankTransfer.Error", "Failed to initiate bank transfer.") };
+    //}
 
     //public async Task<Result> WithdrawFundsAsync(string userId, decimal amount)
     //{

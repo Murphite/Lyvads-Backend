@@ -10,7 +10,8 @@
     <PackageReference Include="CloudinaryDotNet" Version="1.26.2" />
 	<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" /> 
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" /> 
+    <PackageReference Include="Paystack.Net" Version="1.1.1" />
     <PackageReference Include="Stripe.net" Version="46.2.1" />
   </ItemGroup>
 

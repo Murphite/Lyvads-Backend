@@ -69,6 +69,10 @@
               "target": "Package",
               "version": "[8.0.1, )"
             },
+            "Paystack.Net": {
+              "target": "Package",
+              "version": "[1.1.1, )"
+            },
             "Stripe.net": {
               "target": "Package",
               "version": "[46.2.1, )"

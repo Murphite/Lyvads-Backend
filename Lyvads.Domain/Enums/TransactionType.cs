@@ -4,7 +4,8 @@ namespace Lyvads.Domain.Enums;
 
 public enum TransactionType
 {
+    Funding,
+    Withdrawal,
     Payment,
-    Transfer,
-    Withdrawal
+    Refund
 }

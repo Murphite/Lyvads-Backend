@@ -12,43 +12,52 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
-builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
-StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
-//builder.Services.AddRouting(options => options.LowercaseUrls = true);
+// Configure services
 builder.Services.AddControllers()
-.AddNewtonsoftJson()
-.AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
+    .AddNewtonsoftJson()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
-// Add services to the container.
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbServices(builder.Configuration);
 builder.Services.AddServices(builder.Configuration);
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lyvads API", Version = "v1" });
-
     c.OperationFilter<RemoveDefaultResponseFilter>();
     c.OperationFilter<SwaggerFileUploadOperationFilter>();
 });
 
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowPaystack", policy =>
+    {
+        policy.WithOrigins("https://api.paystack.co")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// Logging
 builder.Logging.AddSerilog();
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration.ReadFrom.Configuration(context.Configuration)
-                .ReadFrom.Services(services)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.File("./logs/log-.txt", rollingInterval: RollingInterval.Day);
+                 .ReadFrom.Services(services)
+                 .Enrich.FromLogContext()
+                 .WriteTo.Console()
+                 .WriteTo.File("./logs/log-.txt", rollingInterval: RollingInterval.Day);
 });
 
+// Build app
 var app = builder.Build();
 
-// Run database migrations automatically on startup
+// Database migration
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -63,10 +72,10 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
+// Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();  // Detailed error pages for development
+    app.UseDeveloperExceptionPage();
 }
 else
 {
@@ -74,21 +83,20 @@ else
     app.UseHsts();
 }
 
+app.UseCors("AllowPaystack");
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseSession();
-
-// Custom middleware for exception handling
 app.UseMiddleware<ExceptionMiddleware>();
 
-// Enable CORS
-app.UseCors();
-app.UseRouting();
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
 
 app.Run();

@@ -49,6 +49,7 @@ public class AdminActivityLogService : IAdminActivityLogService
         var activityLogsDto = logs.Select(log => new ActivityLogDto
         {
             Name = log.UserName,
+            UserPic = log.ApplicationUser.ImageUrl,
             Date = log.CreatedAt,
             Role = log.Role!.ToString(), // Ensure this is converted to a string
             Description = log.Description,
@@ -71,6 +72,8 @@ public class AdminActivityLogService : IAdminActivityLogService
         // Map the logs to the ActivityLogDto
         var activityLogsDto = logs.Select(log => new ActivityLogDto
         {
+            UserId = log.ApplicationUserId,
+            UserPic = log.ApplicationUser.ImageUrl,
             Name = log.UserName,
             Date = log.CreatedAt,
             Role = log.Role!.ToString(), // Ensure this is converted to a string
@@ -95,8 +98,8 @@ public class AdminActivityLogService : IAdminActivityLogService
         {
             "CREATOR" => RolesConstant.Creator,
             "ADMIN" => RolesConstant.Admin,
-            "REGULAR_USER" => RolesConstant.RegularUser,
-            "SUPER_ADMIN" => RolesConstant.SuperAdmin,
+            "REGULARUSER" => RolesConstant.RegularUser,
+            "SUPERADMIN" => RolesConstant.SuperAdmin,
             _ => throw new ArgumentException("Invalid role provided.")
         };
     }

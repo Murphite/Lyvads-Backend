@@ -1,5 +1,6 @@
 ﻿using Lyvads.Application.Dtos;
 using Lyvads.Application.Implementations;
+using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,12 +14,12 @@ namespace Lyvads.API.Presentation.Controllers;
 [Route("api/[controller]")]
 public class AdminChargeTransactionController : ControllerBase
 {
-    private readonly AdminChargeTransactionService _chargeTransactionService;
+    private readonly IAdminChargeTransactionService _chargeTransactionService;
     private readonly ILogger<AdminChargeTransactionController> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public AdminChargeTransactionController(
-        AdminChargeTransactionService chargeTransactionService,
+        IAdminChargeTransactionService chargeTransactionService,
         ILogger<AdminChargeTransactionController> logger,
         UserManager<ApplicationUser> userManager
 )
@@ -29,7 +30,7 @@ public class AdminChargeTransactionController : ControllerBase
     }
 
     // GET: api/ChargeTransaction
-    [HttpGet]
+    [HttpGet("GetAllChargeTransactions")]
     public async Task<IActionResult> GetAllChargeTransactions()
     {
         // Get the logged-in user's ID
@@ -50,7 +51,7 @@ public class AdminChargeTransactionController : ControllerBase
     }
 
     // GET: api/ChargeTransaction/{id}
-    [HttpGet("{id}")]
+    [HttpGet("{GetChargeTransactionById}")]
     public async Task<IActionResult> GetChargeTransactionById(string id)
     {
         // Get the logged-in user's ID

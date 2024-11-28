@@ -21,7 +21,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Transfer> Transfers { get; set; }
     public DbSet<Withdrawal> Withdrawals { get; set; }
     public DbSet<Request> Requests { get; set; }
-    public DbSet<Deal> Deals { get; set; }
     public DbSet<Content> Contents { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<Comment> Comments { get; set; }
@@ -29,7 +28,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<ExclusiveDeal> ExclusiveDeals { get; set; }
     public DbSet<VerificationRecord> VerificationRecords { get; set; }
-    public DbSet<Collaboration> Collaborations { get; set; }
     public DbSet<BankAccount> BankAccounts { get; set; }
     public DbSet<Promotion> Promotions { get; set; }
     public DbSet<Charge> Charges { get; set; }
@@ -44,6 +42,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Follow> Follows { get; set; }
     public DbSet<RegularUser> RegularUsers { get; set; }
     public DbSet<Media> Media { get; set; }
+    public DbSet<Rate> Rates { get; set; }
 
 
 
@@ -87,12 +86,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Creator>()
-            .HasMany(c => c.Deals)
-            .WithOne(d => d.Creator)
-            .HasForeignKey(d => d.CreatorId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<Creator>()
             .HasMany(c => c.Posts)
             .WithOne(p => p.Creator)
             .HasForeignKey(p => p.CreatorId)
@@ -123,34 +116,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(m => m.PostId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Request and Deal Configuration
-        modelBuilder.Entity<Request>()
-            .HasMany(r => r.Deals)
-            .WithOne(d => d.Request)
-            .HasForeignKey(d => d.RequestId);
-
         modelBuilder.Entity<Request>()
             .HasOne(r => r.RegularUser)
             .WithMany(u => u.Requests)
             .HasForeignKey(r => r.RegularUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Deal>()
-            .HasOne(d => d.Request)
-            .WithMany(r => r.Deals)
-            .HasForeignKey(d => d.RequestId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<Creator>()
-         .HasMany(c => c.Collaborations)
-         .WithOne(collab => collab.Creator)
-         .HasForeignKey(collab => collab.CreatorId);
-
-        // Ignore the conflicting property 'Request.User' 
-        //modelBuilder.Entity<Request>()
-        //    .Ignore(r => r.RegularUser);
-
-        // Configure the relationship between 'Request' and 'RegularUser'
         modelBuilder.Entity<Request>()
             .HasOne(r => r.RegularUser)
             .WithMany(u => u.Requests)
@@ -169,35 +140,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Impression>()
             .HasOne(i => i.Creator)
-            .WithMany() 
+            .WithMany()
             .HasForeignKey(i => i.CreatorId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Wallet and Transaction Configuration
-        // Transaction has a FromWallet (origin) and a ToWallet (destination)
-        //modelBuilder.Entity<Transaction>()
-        //    .HasOne(t => t.FromWallet)
-        //    .WithMany(w => w.FromTransactions)
-        //    .HasForeignKey(t => t.FromWalletId)
-        //    .OnDelete(DeleteBehavior.Restrict);
-
-        //modelBuilder.Entity<Transaction>()
-        //    .HasOne(t => t.ToWallet)
-        //    .WithMany(w => w.ToTransactions) 
-        //    .HasForeignKey(t => t.ToWalletId)
-        //    .OnDelete(DeleteBehavior.Restrict);
-
-        // Ensure Wallet entity has distinct navigation properties for each relationship
-        //modelBuilder.Entity<Wallet>()
-        //    .HasMany(w => w.FromTransactions)
-        //    .WithOne(t => t.FromWallet)
-        //    .HasForeignKey(t => t.FromWalletId);
-
-        //modelBuilder.Entity<Wallet>()
-        //    .HasMany(w => w.ToTransactions)
-        //    .WithOne(t => t.ToWallet)
-        //    .HasForeignKey(t => t.ToWalletId);
-
 
         // Exclusive Deals Configuration
         modelBuilder.Entity<ExclusiveDeal>()
@@ -224,16 +169,94 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Follow>()
-        .HasOne(f => f.ApplicationUser)
-        .WithMany()
-        .HasForeignKey(f => f.ApplicationUserId)
-        .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(f => f.ApplicationUser)
+            .WithMany()
+            .HasForeignKey(f => f.ApplicationUserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Follow>()
             .HasOne(f => f.Creator)
             .WithMany()
             .HasForeignKey(f => f.CreatorId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ApplicationUser>()
+            .HasOne(user => user.Creator)
+            .WithOne(creator => creator.ApplicationUser)
+            .HasForeignKey<Creator>(creator => creator.ApplicationUserId);
+        modelBuilder.Entity<Follow>();
+
+        modelBuilder.Entity<ApplicationUser>()
+            .HasOne(user => user.RegularUser)
+            .WithOne(regularUser => regularUser.ApplicationUser)
+            .HasForeignKey<RegularUser>(regularUser => regularUser.ApplicationUserId);
+
+        modelBuilder.Entity<ApplicationUser>()
+            .HasOne(user => user.Creator)
+            .WithOne(creator => creator.ApplicationUser)
+            .HasForeignKey<Creator>(creator => creator.ApplicationUserId);
+
+        modelBuilder.Entity<ApplicationUser>()
+           .HasOne(user => user.Admin)
+           .WithOne(admin => admin.ApplicationUser)
+           .HasForeignKey<Admin>(admin => admin.ApplicationUserId);
+
+        modelBuilder.Entity<ApplicationUser>()
+           .HasOne(user => user.SuperAdmin)
+           .WithOne(superAdmin => superAdmin.ApplicationUser)
+           .HasForeignKey<SuperAdmin>(superAdmin => superAdmin.ApplicationUserId);
+
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.Wallet)
+            .WithMany(w => w.Transactions)
+            .HasForeignKey(t => t.WalletId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Transaction>()
+           .HasIndex(t => t.TrxRef)
+           .IsUnique()
+           .HasDatabaseName("IX_Transaction_TrxRef");
+
+        modelBuilder.Entity<Transaction>()
+            .HasOne(t => t.Request)
+            .WithMany(r => r.Transactions)
+            .HasForeignKey(t => t.RequestId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Request>()
+        .HasOne(r => r.Wallet) // Request has one Wallet
+        .WithMany(w => w.Requests) // Wallet has many Requests
+        .HasForeignKey(r => r.WalletId);
+
+        modelBuilder.Entity<Favorite>()
+            .HasOne(f => f.User)
+            .WithMany()
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        //modelBuilder.Entity<ApplicationUser>()
+        //    .HasOne(user => user.RegularUser)
+        //    .WithOne(regularUser => regularUser.ApplicationUser)
+        //    .HasForeignKey<RegularUser>(regularUser => regularUser.ApplicationUserId)
+        //    .OnDelete(DeleteBehavior.Cascade);
+
+        //modelBuilder.Entity<ApplicationUser>()
+        //    .HasOne(user => user.Creator)
+        //    .WithOne(creator => creator.ApplicationUser)
+        //    .HasForeignKey<Creator>(creator => creator.ApplicationUserId)
+        //    .OnDelete(DeleteBehavior.Cascade);
+
+        //modelBuilder.Entity<ApplicationUser>()
+        //    .HasOne(user => user.Admin)
+        //    .WithOne(admin => admin.ApplicationUser)
+        //    .HasForeignKey<Admin>(admin => admin.ApplicationUserId)
+        //    .OnDelete(DeleteBehavior.Cascade);
+
+        //modelBuilder.Entity<ApplicationUser>()
+        //    .HasOne(user => user.SuperAdmin)
+        //    .WithOne(superAdmin => superAdmin.ApplicationUser)
+        //    .HasForeignKey<SuperAdmin>(superAdmin => superAdmin.ApplicationUserId)
+        //    .OnDelete(DeleteBehavior.Cascade);
 
     }
 

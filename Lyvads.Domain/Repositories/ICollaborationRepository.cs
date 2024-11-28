@@ -6,7 +6,8 @@ namespace Lyvads.Domain.Repositories;
 
 public interface ICollaborationRepository
 {
-    IQueryable<Collaboration> GetAllCollaborations();
-    Task<Collaboration?> GetByIdAsync(string id);
-    Task<List<Collaboration>> GetAllAsync();
+    IQueryable<Request> GetAllCollaborations();
+    Task<Request?> GetByIdAsync(string id);
+    Task<List<Request>> GetAllAsync();
+    Task UpdateAsync(Request entity);
 }

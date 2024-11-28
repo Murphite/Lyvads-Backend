@@ -5,6 +5,7 @@ using Lyvads.Domain.Repositories;
 using Lyvads.Domain.Responses;
 using Lyvads.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace Lyvads.Infrastructure.Repositories;
 
@@ -23,12 +24,19 @@ public class PostRepository : IPostRepository
     }
 
 
-    public async Task<IEnumerable<Post>> GetAllAsync()
+    public async Task<IEnumerable<Post>> GetAllAsync(
+    Func<IQueryable<Post>, IIncludableQueryable<Post, object>>? include = null)
     {
-        return await _context.Posts
-            .Include(p => p.Creator)  
-            .ToListAsync();
+        IQueryable<Post> query = _context.Posts;
+
+        if (include != null)
+        {
+            query = include(query);
+        }
+
+        return await query.ToListAsync();
     }
+
 
     public async Task<ServerResponse<Post>> GetByIdAsync(string id)
     {
