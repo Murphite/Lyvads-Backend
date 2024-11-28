@@ -52,6 +52,40 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
                 Status = ct.Status
             }).ToList();
 
+            // Get the currently logged-in admin user's ID
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Use current user service to fetch the current admin username
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+            var rolesToCheck = new[] { RolesConstant.SuperAdmin, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.Creator };
+            string? userRole = null;
+
+            foreach (var role in rolesToCheck)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, role))
+                {
+                    userRole = role;
+                    break;
+                }
+            }
+
+            // Ensure user ID and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || currentUser == null)
+            {
+                _logger.LogWarning("User ID or current user is null. Activity log will not be recorded.");
+            }
+            else
+            {
+                // Log the admin activity
+                await _adminActivityLogService.LogActivityAsync(
+                    userId,
+                    currentUser.FullName!,
+                    userRole!,
+                    "Got All Charge Transactions",
+                    "Charge Management");
+            }
+
             return new ServerResponse<List<ChargeTransactionDto>>
             {
                 IsSuccessful = true,
@@ -208,6 +242,40 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
 
             await _chargeTransactionRepository.UpdateAsync(charge);
 
+            // Get the currently logged-in admin user's ID
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Use current user service to fetch the current admin username
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+            var rolesToCheck = new[] { RolesConstant.SuperAdmin, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.Creator };
+            string? userRole = null;
+
+            foreach (var role in rolesToCheck)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, role))
+                {
+                    userRole = role;
+                    break;
+                }
+            }
+
+            // Ensure user ID and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || currentUser == null)
+            {
+                _logger.LogWarning("User ID or current user is null. Activity log will not be recorded.");
+            }
+            else
+            {
+                // Log the admin activity
+                await _adminActivityLogService.LogActivityAsync(
+                    userId,
+                    currentUser.FullName!,
+                    userRole!,
+                    $"Edited Charge Details: {chargeId}",
+                    "Charge Management");
+            }
+
             var response = new EditChargeResponse
             {
                 Id = charge.Id, // Assuming the Charge entity has an Id property
@@ -242,6 +310,7 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
         }
     }
 
+   
     // Get ChargeTransaction by Id
     public async Task<ServerResponse<ChargeTransactionDto>> GetChargeTransactionByIdAsync(string chargeTransactionId)
     {
@@ -271,6 +340,40 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
                 Status = chargeTransaction.Status
             };
 
+            // Get the currently logged-in admin user's ID
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Use current user service to fetch the current admin username
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+            var rolesToCheck = new[] { RolesConstant.SuperAdmin, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.Creator };
+            string? userRole = null;
+
+            foreach (var role in rolesToCheck)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, role))
+                {
+                    userRole = role;
+                    break;
+                }
+            }
+
+            // Ensure user ID and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || currentUser == null)
+            {
+                _logger.LogWarning("User ID or current user is null. Activity log will not be recorded.");
+            }
+            else
+            {
+                // Log the admin activity
+                await _adminActivityLogService.LogActivityAsync(
+                    userId,
+                    currentUser.FullName!,
+                    userRole!,
+                    "Got Charge Transaction Details By ID",
+                    "Charge Management");
+            }
+
             return new ServerResponse<ChargeTransactionDto>
             {
                 IsSuccessful = true,
@@ -295,6 +398,7 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
         }
     }
 
+   
     // Delete Charge
     public async Task<ServerResponse<string>> DeleteChargeAsync(string chargeId)
     {
@@ -316,6 +420,40 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
             }
 
             await _chargeTransactionRepository.DeleteAsync(charge);
+
+            // Get the currently logged-in admin user's ID
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Use current user service to fetch the current admin username
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+            var rolesToCheck = new[] { RolesConstant.SuperAdmin, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.Creator };
+            string? userRole = null;
+
+            foreach (var role in rolesToCheck)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, role))
+                {
+                    userRole = role;
+                    break;
+                }
+            }
+
+            // Ensure user ID and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || currentUser == null)
+            {
+                _logger.LogWarning("User ID or current user is null. Activity log will not be recorded.");
+            }
+            else
+            {
+                // Log the admin activity
+                await _adminActivityLogService.LogActivityAsync(
+                    userId,
+                    currentUser.FullName!,
+                    userRole!,
+                    $"Deleted Charge: {chargeId}",
+                    "Charge Management");
+            }
 
             return new ServerResponse<string>
             {
@@ -341,6 +479,7 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
         }
     }
 
+
     // Get all Charges
     public async Task<ServerResponse<List<ChargeDto>>> GetAllChargesAsync()
     {
@@ -357,6 +496,40 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
                 MaxAmount = c.MaxAmount,
                 Status = c.Status.ToString(),
             }).ToList();
+
+            // Get the currently logged-in admin user's ID
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Use current user service to fetch the current admin username
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+            var rolesToCheck = new[] { RolesConstant.SuperAdmin, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.Creator };
+            string? userRole = null;
+
+            foreach (var role in rolesToCheck)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, role))
+                {
+                    userRole = role;
+                    break;
+                }
+            }
+
+            // Ensure user ID and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || currentUser == null)
+            {
+                _logger.LogWarning("User ID or current user is null. Activity log will not be recorded.");
+            }
+            else
+            {
+                // Log the admin activity
+                await _adminActivityLogService.LogActivityAsync(
+                    userId,
+                    currentUser.FullName!,
+                    userRole!,
+                    "Got All Charges",
+                    "Charge Management");
+            }
 
             return new ServerResponse<List<ChargeDto>>
             {
@@ -382,6 +555,7 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
         }
     }
 
+    
     // Get Charge by Id
     public async Task<ServerResponse<ChargeDto>> GetChargeByIdAsync(string chargeId)
     {
@@ -411,6 +585,40 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
                 MaxAmount = charge.MaxAmount,
                 Status = charge.Status.ToString()
             };
+
+            // Get the currently logged-in admin user's ID
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // Use current user service to fetch the current admin username
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+            var rolesToCheck = new[] { RolesConstant.SuperAdmin, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.Creator };
+            string? userRole = null;
+
+            foreach (var role in rolesToCheck)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, role))
+                {
+                    userRole = role;
+                    break;
+                }
+            }
+
+            // Ensure user ID and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || currentUser == null)
+            {
+                _logger.LogWarning("User ID or current user is null. Activity log will not be recorded.");
+            }
+            else
+            {
+                // Log the admin activity
+                await _adminActivityLogService.LogActivityAsync(
+                    userId,
+                    currentUser.FullName!,
+                    userRole!,
+                    "Got Charge By ID",
+                    "Charge Management");
+            }
 
             return new ServerResponse<ChargeDto>
             {

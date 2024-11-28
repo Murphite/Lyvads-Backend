@@ -229,16 +229,19 @@ public class AdminUserService : ISuperAdminService
                 // Add user to corresponding role repository
                 await AddUserToRoleRepository(role, applicationUser);
 
-                var wallet = new Wallet
+                if (role == RolesConstant.RegularUser || role == RolesConstant.Creator)
                 {
-                    ApplicationUserId = applicationUser.Id,
-                    Balance = 0,
-                    CreatedAt = DateTimeOffset.UtcNow,
-                    UpdatedAt = DateTimeOffset.UtcNow
-                };
+                    var wallet = new Wallet
+                    {
+                        ApplicationUserId = applicationUser.Id,
+                        Balance = 0,
+                        CreatedAt = DateTimeOffset.UtcNow,
+                        UpdatedAt = DateTimeOffset.UtcNow
+                    };
 
-                // Save the wallet to the database
-                await _walletRepository.AddAsync(wallet);
+                    // Save the wallet to the database
+                    await _walletRepository.AddAsync(wallet);
+                }
 
                 // Commit transaction
                 await transaction.CommitAsync();
