@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Lyvads.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241128090650_updateUserDelete")]
-    partial class updateUserDelete
+    [Migration("20241128140126_initialCommit")]
+    partial class initialCommit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -68,9 +68,6 @@ namespace Lyvads.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ApplicationUserId1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -81,10 +78,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
-
-                    b.HasIndex("ApplicationUserId1")
-                        .IsUnique()
-                        .HasFilter("[ApplicationUserId1] IS NOT NULL");
 
                     b.ToTable("Admins");
                 });
@@ -445,9 +438,6 @@ namespace Lyvads.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ApplicationUserId1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -476,10 +466,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
-
-                    b.HasIndex("ApplicationUserId1")
-                        .IsUnique()
-                        .HasFilter("[ApplicationUserId1] IS NOT NULL");
 
                     b.ToTable("Creators");
                 });
@@ -791,7 +777,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Rate");
+                    b.ToTable("Rates");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.RegularUser", b =>
@@ -800,9 +786,6 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ApplicationUserId1")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -816,10 +799,6 @@ namespace Lyvads.Infrastructure.Migrations
                     b.HasIndex("ApplicationUserId")
                         .IsUnique()
                         .HasFilter("[ApplicationUserId] IS NOT NULL");
-
-                    b.HasIndex("ApplicationUserId1")
-                        .IsUnique()
-                        .HasFilter("[ApplicationUserId1] IS NOT NULL");
 
                     b.ToTable("RegularUsers");
                 });
@@ -869,11 +848,16 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<string>("VideoUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("WalletId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatorId");
 
                     b.HasIndex("RegularUserId");
+
+                    b.HasIndex("WalletId");
 
                     b.ToTable("Requests");
                 });
@@ -887,9 +871,6 @@ namespace Lyvads.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ApplicationUserId1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -900,10 +881,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
-
-                    b.HasIndex("ApplicationUserId1")
-                        .IsUnique()
-                        .HasFilter("[ApplicationUserId1] IS NOT NULL");
 
                     b.ToTable("SuperAdmins");
                 });
@@ -1089,10 +1066,6 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("RequestId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -1100,8 +1073,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
-
-                    b.HasIndex("RequestId");
 
                     b.ToTable("Wallets");
                 });
@@ -1322,14 +1293,10 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.Admin", b =>
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
-                        .WithOne()
-                        .HasForeignKey("Lyvads.Domain.Entities.Admin", "ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", null)
                         .WithOne("Admin")
-                        .HasForeignKey("Lyvads.Domain.Entities.Admin", "ApplicationUserId1");
+                        .HasForeignKey("Lyvads.Domain.Entities.Admin", "ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ApplicationUser");
                 });
@@ -1422,14 +1389,10 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.Creator", b =>
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
-                        .WithOne()
+                        .WithOne("Creator")
                         .HasForeignKey("Lyvads.Domain.Entities.Creator", "ApplicationUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", null)
-                        .WithOne("Creator")
-                        .HasForeignKey("Lyvads.Domain.Entities.Creator", "ApplicationUserId1");
 
                     b.Navigation("ApplicationUser");
                 });
@@ -1583,13 +1546,9 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.RegularUser", b =>
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
-                        .WithOne()
+                        .WithOne("RegularUser")
                         .HasForeignKey("Lyvads.Domain.Entities.RegularUser", "ApplicationUserId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", null)
-                        .WithOne("RegularUser")
-                        .HasForeignKey("Lyvads.Domain.Entities.RegularUser", "ApplicationUserId1");
 
                     b.Navigation("ApplicationUser");
                 });
@@ -1605,22 +1564,25 @@ namespace Lyvads.Infrastructure.Migrations
                         .HasForeignKey("RegularUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Lyvads.Domain.Entities.Wallet", "Wallet")
+                        .WithMany("Requests")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Creator");
 
                     b.Navigation("RegularUser");
+
+                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.SuperAdmin", b =>
                 {
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
-                        .WithOne()
-                        .HasForeignKey("Lyvads.Domain.Entities.SuperAdmin", "ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Lyvads.Domain.Entities.ApplicationUser", null)
                         .WithOne("SuperAdmin")
-                        .HasForeignKey("Lyvads.Domain.Entities.SuperAdmin", "ApplicationUserId1");
+                        .HasForeignKey("Lyvads.Domain.Entities.SuperAdmin", "ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ApplicationUser");
                 });
@@ -1670,15 +1632,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Lyvads.Domain.Entities.Request", "Request")
-                        .WithMany("Wallets")
-                        .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("ApplicationUser");
-
-                    b.Navigation("Request");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Withdrawal", b =>
@@ -1806,12 +1760,12 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.Request", b =>
                 {
                     b.Navigation("Transactions");
-
-                    b.Navigation("Wallets");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Wallet", b =>
                 {
+                    b.Navigation("Requests");
+
                     b.Navigation("Transactions");
                 });
 

@@ -566,6 +566,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 // Create a transaction to track the payment
                 var transact = new Transaction
                 {
+                    ApplicationUserId = user.Id,
                     Name = user.FullName,
                     Amount = totalAmount,
                     TrxRef = paymentReference,
@@ -579,11 +580,24 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 };
 
                 // Save transaction to the database
-                await _transactionRepository.CreateTransactionAsync(transact);
+                var transactResult = await _transactionRepository.CreateTransactionAsync(transact);
+                if (transactResult == null)
+                {
+                    _logger.LogWarning("Transaction could not be created for request ID {RequestId}.", request.Id);
+                    // Rollback the transaction and return an error
+                    await transaction.RollbackAsync();
+                    return new ServerResponse<MakeRequestDetailsDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "TransactionCreation.Error",
+                            ResponseMessage = "Failed to create the transaction."
+                        }
+                    };
+                }
 
-                // Save charge transactions
                 await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
-
                 // Commit the transaction if all operations are successful
                 await transaction.CommitAsync();
 
@@ -651,6 +665,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                     {
                         var transact = new Transaction
                         {
+                            ApplicationUserId = user.Id,
                             Name = user.FullName,
                             Amount = totalAmount,
                             TrxRef = request.Id.ToString(),
@@ -840,7 +855,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 TransactionId = requestId,
                 Transaction = transaction,
                 Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
-                ApplicationUserId = transaction.Wallet.ApplicationUserId
+                ApplicationUserId = transaction.ApplicationUserId!
             });
         }
 
@@ -857,7 +872,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 TransactionId = requestId,
                 Transaction = transaction,
                 Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
-                ApplicationUserId = transaction.Wallet.ApplicationUserId
+                ApplicationUserId = transaction.ApplicationUserId!
             });
         }
 
@@ -873,7 +888,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 TransactionId = requestId,
                 Transaction = transaction,
                 Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
-                ApplicationUserId = transaction.Wallet.ApplicationUserId
+                ApplicationUserId = transaction.ApplicationUserId!
             });
         }
 
@@ -889,7 +904,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 TransactionId = requestId,
                 Transaction = transaction,
                 Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
-                ApplicationUserId = transaction.Wallet.ApplicationUserId
+                ApplicationUserId = transaction.ApplicationUserId!
             });
         }
 

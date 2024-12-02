@@ -3,7 +3,9 @@ using System.Net;
 using System.Text.Json;
 using Lyvads.API.Presentation.Dtos;
 using Lyvads.Application.Dtos;
+using Lyvads.Domain.Responses;
 using Microsoft.AspNetCore.Diagnostics;
+using Newtonsoft.Json;
 
 namespace Lyvads.API.Presentation.Middlewares;
 
@@ -49,16 +51,24 @@ public class ExceptionMiddleware : IExceptionHandler
         response.ContentType = "application/json";
         response.StatusCode = (int)statusCode; // Set the response status code explicitly
 
-        // Return detailed error in non-production environments
+        // Create error response
         var errorDetails = _isProdEnv
             ? errorMessage
             : $"{errorMessage} | Exception: {ex.Message}";  // Include exception message only in non-production
 
-        var result = JsonSerializer.Serialize(ResponseDto<object>.Failure(
-            new Error[] { new("Server.Error", errorDetails) }, (int)statusCode));
+        var errorResponse = new ErrorResponse
+        {
+            ResponseCode = ((int)statusCode).ToString(),
+            ResponseMessage = errorMessage,
+            ResponseDescription = errorDetails
+        };
+
+        var result = JsonConvert.SerializeObject(ServerResponseExtensions.Failure<object>(
+            errorResponse, (int)statusCode));
 
         await response.WriteAsync(result);
     }
+
 
     public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception,
         CancellationToken cancellationToken)

@@ -33,3 +33,18 @@ public class ErrorResponse
     [JsonProperty("responseDescription")]
     public string? ResponseDescription { get; set; }
 }
+
+
+public static class ServerResponseExtensions
+{
+    public static ServerResponse<T> Failure<T>(ErrorResponse error, int statusCode)
+    {
+        return new ServerResponse<T>
+        {
+            IsSuccessful = false,
+            ResponseCode = statusCode.ToString(),
+            ResponseMessage = "Error occurred",
+            ErrorResponse = error
+        };
+    }
+}

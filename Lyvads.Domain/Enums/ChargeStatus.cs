@@ -18,6 +18,5 @@ public enum ChargeReason
 public enum CTransStatus
 {
     Paid,
-    NotPaid,
-    Declined
+    NotPaid
 }

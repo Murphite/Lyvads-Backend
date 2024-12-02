@@ -21,6 +21,10 @@ public class Transaction : Entity, IAuditable
     public string? WalletId { get; set; }
     public Wallet Wallet { get; set; } = default!;
 
+    public string? ApplicationUserId { get; set; }
+    public ApplicationUser ApplicationUser { get; set; } = default!;
+
+
     public TransactionType Type { get; set; }
         
 }

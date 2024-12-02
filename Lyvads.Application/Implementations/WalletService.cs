@@ -54,6 +54,7 @@ public class WalletService : IWalletService
 
     public async Task<ServerResponse<PaymentResponseDto>> FundWalletAsync(int amount, string email, string name)
     {
+
         // Initialize payment via payment gateway service
         var response = await _paymentGatewayService.InitializePaymentAsync(amount, email, name);
         if (!response.IsSuccessful)
@@ -92,6 +93,7 @@ public class WalletService : IWalletService
         // Create a new transaction for the wallet funding
         var transaction = new Transaction
         {
+            ApplicationUserId = user.Id,
             Amount = amount,
             Email = user.Email,
             Name = user.FullName,

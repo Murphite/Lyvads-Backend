@@ -90,11 +90,12 @@ public class CollaborationService : ICollaborationService
             var collaborationDtos = collaborations.Select(c => new CollaborationDto
             {
                 Id = c.Id,
-                RegularUserName = c.RegularUser?.ApplicationUser?.FirstName + " " + c.RegularUser?.ApplicationUser?.LastName,
+                RegularUserName = c.RegularUser?.ApplicationUser?.FullName,
                 RegularUserPic = c.RegularUser?.ApplicationUser?.ImageUrl,
-                CreatorName = c.Creator?.ApplicationUser?.FirstName + " " + c.Creator?.ApplicationUser?.LastName,
+                CreatorName = c.Creator?.ApplicationUser?.FullName,
                 CreatorPic = c.Creator?.ApplicationUser?.ImageUrl,
                 TotalAmount = c.TotalAmount,
+                RequestAmount = c.RequestAmount,
                 RequestDate = c.CreatedAt,
                 Status = c.Status.ToString(),
             }).ToList();
@@ -138,9 +139,9 @@ public class CollaborationService : ICollaborationService
             var collaborationDto = new CollaborationDetailsDto
             {
                 Id = collaboration.Id,
-                RegularUserName = collaboration.RegularUser?.ApplicationUser?.FirstName + " " + collaboration.RegularUser?.ApplicationUser?.LastName,
+                RegularUserName = collaboration.RegularUser?.ApplicationUser?.FullName,
                 RegularUserPic = collaboration.RegularUser?.ApplicationUser?.ImageUrl,
-                CreatorName = collaboration.Creator?.ApplicationUser?.FirstName + " " + collaboration.Creator?.ApplicationUser?.LastName,
+                CreatorName = collaboration.Creator?.ApplicationUser?.FullName,
                 CreatorPic = collaboration.Creator?.ApplicationUser?.ImageUrl,
                 TotalAmount = collaboration.TotalAmount,
                 RequestAmount = collaboration.RequestAmount,

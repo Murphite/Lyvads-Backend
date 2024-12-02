@@ -25,7 +25,6 @@ public class Request : Entity, IAuditable
     public DateTimeOffset UpdatedAt { get; set; }
     public string? VideoUrl { get; set; }
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
-    public ICollection<Wallet> Wallets { get; set; } = new List<Wallet>();
 
 
     public string? WalletId { get; set; }
@@ -34,6 +33,5 @@ public class Request : Entity, IAuditable
     public RegularUser? RegularUser { get; set; }
     public string? CreatorId { get; set; }
     public Creator Creator { get; set; } = default!;
-
 
 }

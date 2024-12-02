@@ -95,7 +95,7 @@ public class WalletRepository : IWalletRepository
         }
 
         var request = await _context.Requests
-            .Include(r => r.Wallet) 
+            .Include(r => r.Wallet)
             .FirstOrDefaultAsync(r => r.Id == requestId);
 
         return request?.Wallet;

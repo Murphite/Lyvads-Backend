@@ -57,20 +57,20 @@ builder.Host.UseSerilog((context, services, configuration) =>
 // Build app
 var app = builder.Build();
 
-// Database migration
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-//    try
-//    {
-//        dbContext.Database.Migrate();
-//    }
-//    catch (Exception ex)
-//    {
-//        Log.Error(ex, "An error occurred while migrating the database.");
-//        throw;
-//    }
-//}
+//Database migration
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while migrating the database.");
+        throw;
+    }
+}
 
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
@@ -94,9 +94,5 @@ app.UseStaticFiles();
 app.UseSession();
 app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-});
-
+app.MapControllers();
 app.Run();

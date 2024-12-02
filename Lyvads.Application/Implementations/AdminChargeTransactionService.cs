@@ -36,6 +36,58 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
         _userManager = userManager;
     }
 
+    public async Task<ServerResponse<ChargeSummaryDto>> GetChargeSummaryAsync()
+    {
+        try
+        {
+            // Fetch all charge transactions from the database
+            var chargeTransactions = await _chargeTransactionRepository.GetAllAsync();
+
+            // Calculate the total sum of all charges
+            var totalCharges = chargeTransactions.Sum(ct => ct.Amount);
+
+            // Calculate the total sum for each charge type
+            var chargeTypeTotals = chargeTransactions
+                .GroupBy(ct => ct.ChargeName)
+                .Select(group => new ChargeTypeTotal
+                {
+                    ChargeName = group.Key,
+                    TotalAmount = group.Sum(ct => ct.Amount)
+                })
+                .ToList();
+
+            // Prepare the response DTO
+            var result = new ChargeSummaryDto
+            {
+                TotalCharges = totalCharges,
+                ChargeTypeTotals = chargeTypeTotals
+            };
+
+            return new ServerResponse<ChargeSummaryDto>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Success",
+                Data = result
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating charge summary");
+            return new ServerResponse<ChargeSummaryDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Internal Server Error",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
+    }
+
+
     // Get all ChargeTransactions
     public async Task<ServerResponse<List<ChargeTransactionDto>>> GetAllChargeTransactionsAsync()
     {
@@ -45,11 +97,12 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
 
             var result = chargeTransactions.Select(ct => new ChargeTransactionDto
             {
+                Id = ct.Id,
                 UserName = ct.ApplicationUser.FullName,
                 ChargeName = ct.ChargeName,
                 Amount = ct.Amount,
                 DateCharged = ct.CreatedAt,
-                Status = ct.Status
+                Status = ct.Status.ToString(),
             }).ToList();
 
             // Get the currently logged-in admin user's ID
@@ -333,11 +386,12 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
 
             var result = new ChargeTransactionDto
             {
+                Id = chargeTransactionId,
                 UserName = chargeTransaction.ApplicationUser.FullName,
                 ChargeName = chargeTransaction.ChargeName,
                 Amount = chargeTransaction.Amount,
                 DateCharged = chargeTransaction.CreatedAt,
-                Status = chargeTransaction.Status
+                Status = chargeTransaction.Status.ToString(),
             };
 
             // Get the currently logged-in admin user's ID

@@ -73,7 +73,7 @@ public class AdminActivityLogService : IAdminActivityLogService
         var activityLogsDto = logs.Select(log => new ActivityLogDto
         {
             UserId = log.ApplicationUserId,
-            UserPic = log.ApplicationUser.ImageUrl,
+            UserPic = log.ApplicationUser.ImageUrl ?? "default-image-url.jpg",
             Name = log.UserName,
             Date = log.CreatedAt,
             Role = log.Role!.ToString(), // Ensure this is converted to a string

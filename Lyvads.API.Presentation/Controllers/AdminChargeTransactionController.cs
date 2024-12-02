@@ -30,7 +30,7 @@ public class AdminChargeTransactionController : ControllerBase
     }
 
     // GET: api/ChargeTransaction
-    [HttpGet("GetAllChargeTransactions")]
+    [HttpGet("GetAll")]
     public async Task<IActionResult> GetAllChargeTransactions()
     {
         // Get the logged-in user's ID
@@ -51,7 +51,7 @@ public class AdminChargeTransactionController : ControllerBase
     }
 
     // GET: api/ChargeTransaction/{id}
-    [HttpGet("{GetChargeTransactionById}")]
+    [HttpGet("GetChargeTransactionById")]
     public async Task<IActionResult> GetChargeTransactionById(string id)
     {
         // Get the logged-in user's ID
@@ -76,4 +76,26 @@ public class AdminChargeTransactionController : ControllerBase
         _logger.LogError("Error retrieving charge transaction with ID: {Id}. Message: {Message}", id, response.ErrorResponse?.ResponseMessage);
         return StatusCode(500, response.ErrorResponse);
     }
+
+   
+    [HttpGet("GetChargeSummary")]
+    public async Task<IActionResult> GetChargeSummaryAsync()
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        _logger.LogInformation("Fetching all charge summary...");
+        var response = await _chargeTransactionService.GetChargeSummaryAsync();
+        if (response.IsSuccessful)
+        {
+            _logger.LogInformation("Successfully retrieved all charge summary.");
+            return Ok(response);
+        }
+
+        _logger.LogError("Error retrieving charge summary: {Message}", response.ErrorResponse?.ResponseMessage);
+        return StatusCode(500, response.ErrorResponse);
+    }
+
 }

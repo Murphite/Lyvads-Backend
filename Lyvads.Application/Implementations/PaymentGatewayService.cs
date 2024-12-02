@@ -14,6 +14,8 @@ using Lyvads.Domain.Enums;
 using Newtonsoft.Json;
 using System.Text;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 
 namespace Lyvads.Application.Implementations;
 
@@ -25,16 +27,25 @@ public class PaymentGatewayService : IPaymentGatewayService
     private readonly string paystackToken;
     private readonly AppDbContext _context;
     private readonly ILogger<PaymentGatewayService> _logger;
-   
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
     private PayStackApi Paystack { get; set; }
 
-    public PaymentGatewayService(IConfiguration configuration, AppDbContext context, ILogger<PaymentGatewayService> logger)
+    public PaymentGatewayService(
+        IConfiguration configuration, 
+        AppDbContext context, 
+        ILogger<PaymentGatewayService> logger,
+        UserManager<ApplicationUser> userManager,
+        IHttpContextAccessor httpContextAccessor)
     {
         _configuration = configuration;
         paystackToken = _configuration["Paystack:PaystackSK"];
         Paystack = new PayStackApi(paystackToken);
         _context = context;
         _logger = logger;
+        _userManager = userManager;
+        _httpContextAccessor = httpContextAccessor; 
 
         _stripeSecretKey = _configuration["Stripe:SecretKey"] ?? throw new ArgumentNullException(nameof(_stripeSecretKey));
         StripeConfiguration.ApiKey = _stripeSecretKey ?? throw new ArgumentNullException(nameof(StripeConfiguration.ApiKey));
@@ -43,6 +54,8 @@ public class PaymentGatewayService : IPaymentGatewayService
 
     public async Task<ServerResponse<PaymentResponseDto>> InitializePaymentAsync(int amount, string email, string name)
     {
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(name) || amount <= 0)
         {
             return new ServerResponse<PaymentResponseDto>
@@ -76,6 +89,7 @@ public class PaymentGatewayService : IPaymentGatewayService
             {
                 var transaction = new Transaction
                 {
+                    ApplicationUserId = user.Id,
                     Amount = amount,
                     Email = email,
                     TrxRef = reference,
@@ -289,6 +303,7 @@ public class PaymentGatewayService : IPaymentGatewayService
 
     public async Task StoreTransactionAsync(PaystackWebhookPayload payload)
     {
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
         // Log the received data for debugging
         _logger.LogInformation("Received transaction reference: {Reference}, Status: {Status}",
                                 payload.Data.Reference, payload.Data.Status);
@@ -324,6 +339,7 @@ public class PaymentGatewayService : IPaymentGatewayService
             // Create a new transaction if it doesn't exist
             var transaction = new Transaction
             {
+                ApplicationUserId = user.Id,
                 Amount = payload.Data.Amount / 100,
                 Email = payload.Data.Email,
                 TrxRef = payload.Data.Reference,

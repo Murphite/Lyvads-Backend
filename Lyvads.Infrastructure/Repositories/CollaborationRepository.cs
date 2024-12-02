@@ -31,8 +31,8 @@ public class CollaborationRepository : ICollaborationRepository
     public async Task<Request?> GetByIdAsync(string id)
     {
         return await _context.Requests
-            .Include(c => c.RegularUser)
-            .Include(c => c.Creator)
+            .Include(c => c.RegularUser!.ApplicationUser)
+            .Include(c => c.Creator.ApplicationUser)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 

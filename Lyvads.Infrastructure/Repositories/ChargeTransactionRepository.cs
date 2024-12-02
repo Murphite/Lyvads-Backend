@@ -38,7 +38,11 @@ public class ChargeTransactionRepository : IChargeTransactionRepository
 
     public async Task<List<ChargeTransaction>> GetAllAsync()
     {
-        return await _context.ChargeTransactions.ToListAsync();
+        var charges = await _context.ChargeTransactions
+        .Include(log => log.ApplicationUser)
+        .ToListAsync();
+
+        return charges;
     }
 
     public async Task<List<Charge>> GetChargeDetailsAsync()
@@ -57,7 +61,9 @@ public class ChargeTransactionRepository : IChargeTransactionRepository
 
     public async Task<ChargeTransaction> GetByCTIdAsync(string chargeId)
     {
-        var chargeById =  await _context.ChargeTransactions.FindAsync(chargeId);
+        var chargeById = await _context.ChargeTransactions
+            .Include(ct => ct.ApplicationUser) 
+            .FirstOrDefaultAsync(ct => ct.Id == chargeId); 
 
         if (chargeById == null)
             throw new Exception("Charge Transaction was not found");

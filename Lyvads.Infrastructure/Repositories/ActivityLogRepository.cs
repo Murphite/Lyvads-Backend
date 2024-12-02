@@ -22,14 +22,20 @@ public class ActivityLogRepository : IActivityLogRepository
 
     public async Task<List<ActivityLog>> GetByUserIdAsync(string userId)
     {
-        return await _context.ActivityLogs
-            .Where(log => log.ApplicationUserId == userId)
-            .ToListAsync();
+        var logs = await _context.ActivityLogs
+        .Include(log => log.ApplicationUser)
+        .ToListAsync();
+
+        return logs;
     }
 
     public async Task<List<ActivityLog>> GetAllAsync()
     {
-        return await _context.ActivityLogs.ToListAsync();
+        var logs = await _context.ActivityLogs
+        .Include(log => log.ApplicationUser)
+        .ToListAsync();
+
+        return logs;
     }
 
 }

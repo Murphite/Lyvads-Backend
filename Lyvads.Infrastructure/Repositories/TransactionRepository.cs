@@ -27,8 +27,8 @@ public class TransactionRepository : ITransactionRepository
     {
         return await _context.Transactions
             .Include(t => t.Request) 
-            .Include(t => t.Wallet)
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .Include(t => t.ApplicationUser)
+            .FirstOrDefaultAsync(t => t.RequestId == id);
     }
 
     public async Task<bool> CreateTransactionAsync(Transaction transaction)
