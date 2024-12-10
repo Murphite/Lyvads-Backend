@@ -50,7 +50,8 @@ public static class ServiceRegistration
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        }).AddJwtBearer(options =>
+        })
+            .AddJwtBearer(options =>
         {
             //var key = Encoding.UTF8.GetBytes(configuration.GetSection("JWT:Key").Value);
             var jwtKey = configuration.GetSection("JWT:Key").Value;
@@ -89,7 +90,7 @@ public static class ServiceRegistration
             options.IdleTimeout = TimeSpan.FromMinutes(30); // Session timeout
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true; 
-        });
+        }); 
 
         // Register Application Services
         services.AddScoped<IJwtService, JwtService>();

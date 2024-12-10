@@ -88,6 +88,56 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
     }
 
 
+    public async Task<ServerResponse<object>> GetChargeSummaryFormatAsync()
+    {
+        try
+        {
+            // Fetch all charge transactions from the database
+            var chargeTransactions = await _chargeTransactionRepository.GetAllAsync();
+
+            // Calculate the total amount for each charge type
+            var chargeTypeTotals = chargeTransactions
+                .GroupBy(ct => ct.ChargeName)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Sum(ct => ct.Amount)
+                );
+
+            // Format the response as a single object with properties
+            var formattedData = new
+            {
+                Totalcharge = chargeTransactions.Sum(ct => ct.Amount),
+                TotalWatermark = chargeTypeTotals.ContainsKey("WaterMark") ? chargeTypeTotals["WaterMark"] : 0,
+                TotalWithholdingTax = chargeTypeTotals.ContainsKey("Withholding Tax") ? chargeTypeTotals["Withholding Tax"] : 0,
+                TotalCreatorPostFee = chargeTypeTotals.ContainsKey("Creator Post Fee") ? chargeTypeTotals["Creator Post Fee"] : 0,
+                TotalFastTrackFee = chargeTypeTotals.ContainsKey("Fast Track Fee") ? chargeTypeTotals["Fast Track Fee"] : 0
+            };
+
+            return new ServerResponse<object>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Success",
+                Data = formattedData
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating charge summary");
+            return new ServerResponse<object>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Internal Server Error",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
+    }
+
+
     // Get all ChargeTransactions
     public async Task<ServerResponse<List<ChargeTransactionDto>>> GetAllChargeTransactionsAsync()
     {
