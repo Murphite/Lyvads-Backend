@@ -3,6 +3,7 @@ using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Lyvads.Infrastructure.Repositories;
+using Microsoft.Extensions.Options;
 
 namespace Lyvads.Infrastructure.Persistence;
 
@@ -10,6 +11,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
+
     }
 
     public DbSet<WaitlistEntry> WaitlistEntries { get; set; }
@@ -49,6 +51,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+       // optionsBuilder.UseSqlServer("Data Source=SQL8011.site4now.net;Initial Catalog=db_ab085c_lyvadsdb;User Id=db_ab085c_lyvadsdb_admin;Password=Lyvads@123");
 
         modelBuilder.Entity<AdminRole>()
         .Property(r => r.RoleName)

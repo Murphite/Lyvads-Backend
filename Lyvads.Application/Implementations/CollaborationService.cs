@@ -7,13 +7,9 @@ using Microsoft.Extensions.Logging;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Domain.Enums;
 using Lyvads.Domain.Responses;
-using Lyvads.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Microsoft.AspNetCore.Http;
-using CloudinaryDotNet;
-using Lyvads.Domain.Constants;
-using Microsoft.Extensions.Hosting;
 
 
 namespace Lyvads.Application.Implementations;
@@ -29,7 +25,6 @@ public class CollaborationService : ICollaborationService
     private readonly IDisputeRepository _disputeRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<AdminDashboardService> _logger;
-    //private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly IRegularUserRepository _regularUserRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMediaService _mediaService;
@@ -63,7 +58,6 @@ public class CollaborationService : ICollaborationService
         _requestRepository = requestRepository;
         _regularUserRepository = regularUserRepository;
         _httpContextAccessor = httpContextAccessor;
-       //_webHostEnvironment = webHostEnvironment;
        _mediaService = mediaService;
         _walletService = walletService;
         _unitOfWork = unitOfWork;
@@ -82,7 +76,7 @@ public class CollaborationService : ICollaborationService
                 _logger.LogWarning("No collaborations found.");
                 return new ServerResponse<List<CollaborationDto>>(false)
                 {
-                    ResponseCode = "404",
+                    ResponseCode = "200",
                     ResponseMessage = "No collaborations found.",
                 };
             }
@@ -217,57 +211,6 @@ public class CollaborationService : ICollaborationService
             };
         }
     }
-
-
-    //public async Task<ServerResponse<FileStreamResult>> DownloadReceiptAsync(string collaborationId)
-    //{
-    //    _logger.LogInformation("Downloading receipt for collaboration ID: {CollaborationId}", collaborationId);
-
-    //    try
-    //    {
-    //        var collaboration = await _collaborationRepository.GetByIdAsync(collaborationId);
-    //        if (collaboration == null || string.IsNullOrEmpty(collaboration.ReceiptUrl))
-    //        {
-    //            _logger.LogWarning("Receipt not found for collaboration ID: {CollaborationId}", collaborationId);
-    //            return new ServerResponse<FileStreamResult>(false)
-    //            {
-    //                ResponseCode = "404",
-    //                ResponseMessage = "Receipt not found."
-    //            };
-    //        }
-
-    //        var receiptPath = Path.Combine(_webHostEnvironment.WebRootPath, collaboration.ReceiptUrl);
-
-    //        var memory = new MemoryStream();
-    //        using (var stream = new FileStream(receiptPath, FileMode.Open))
-    //        {
-    //            await stream.CopyToAsync(memory);
-    //        }
-    //        memory.Position = 0;
-
-    //        var fileResult = new FileStreamResult(memory, "application/pdf")
-    //        {
-    //            FileDownloadName = $"Receipt_{collaborationId}.pdf"
-    //        };
-
-    //        _logger.LogInformation("Successfully downloaded receipt for collaboration ID: {CollaborationId}", collaborationId);
-    //        return new ServerResponse<FileStreamResult>(true)
-    //        {
-    //            ResponseCode = "00",
-    //            ResponseMessage = "Receipt downloaded successfully.",
-    //            Data = fileResult
-    //        };
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error downloading receipt for collaboration ID: {CollaborationId}", collaborationId);
-    //        return new ServerResponse<FileStreamResult>(false)
-    //        {
-    //            ResponseCode = "500",
-    //            ResponseMessage = "An error occurred while downloading the receipt."
-    //        };
-    //    }
-    //}
 
     public async Task<ServerResponse<List<GetUserRequestDto>>> GetAllRequestsForCreatorAsync(string creatorId, RequestStatus status)
     {
@@ -886,60 +829,5 @@ public class CollaborationService : ICollaborationService
         };
     }
 
-
-
-    //// Method to download video with or without watermark
-    //public async Task<ServerResponse<bool>> DownloadVideoAsync(string requestId, bool withWatermark)
-    //{
-    //    _logger.LogInformation("Processing video download for request: {RequestId}, WithWatermark: {WithWatermark}", requestId, withWatermark);
-
-    //    var request = await _requestRepository.GetRequestByIdAsync(requestId);
-    //    if (request == null)
-    //    {
-    //        return new ServerResponse<bool>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "404",
-    //            ResponseMessage = "Request not found."
-    //        };
-    //    }
-
-    //    // If without watermark, charge the RegularUser
-    //    if (!withWatermark)
-    //    {
-    //        var chargeResult = await _walletService.ChargeUser(request.UserId, request.VideoNoWatermarkPrice);
-    //        if (!chargeResult.IsSuccessful)
-    //        {
-    //            return new ServerResponse<bool>
-    //            {
-    //                IsSuccessful = false,
-    //                ResponseCode = "402",
-    //                ResponseMessage = "Insufficient funds to download without watermark."
-    //            };
-    //        }
-    //    }
-
-    //    // Get video URL based on watermark preference
-    //    var videoUrl = withWatermark ? request.VideoUrlWithWatermark : request.VideoUrlWithoutWatermark;
-    //    var downloadResult = await _mediaService.DownloadVideo(videoUrl);
-
-    //    if (!downloadResult.IsSuccessful)
-    //    {
-    //        return new ServerResponse<bool>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "500",
-    //            ResponseMessage = "Error downloading video."
-    //        };
-    //    }
-
-    //    return new ServerResponse<bool>
-    //    {
-    //        IsSuccessful = true,
-    //        ResponseCode = "00",
-    //        ResponseMessage = "Video downloaded successfully.",
-    //        Data = true
-    //    };
-    //}
 
 }
