@@ -23,7 +23,9 @@ public class UserAdRepository : IUserAdRepository
         _logger.LogInformation("Fetching all user ads from the database...");
         try
         {
-            var ads = await _context.UserAds.ToListAsync();
+            var ads = await _context.UserAds
+                .Include(ru => ru.ApplicationUser)
+                .ToListAsync();
             _logger.LogInformation("Successfully retrieved all user ads.");
             return ads;
         }

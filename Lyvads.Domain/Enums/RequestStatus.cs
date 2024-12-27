@@ -15,5 +15,5 @@ public enum CollaborationStatus
 {
     Completed,
     Pending,
-    Declined
+    Flagged
 }
