@@ -7,6 +7,7 @@ C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Lyvads.API.Presentation.pdb
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Azure.Core.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Azure.Identity.dll
+C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Bogus.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\CloudinaryDotNet.dll
 C:\Users\Admin\source\repos\Lyvads.API.Presentation\Lyvads.API.Presentation\bin\Debug\net8.0\Humanizer.dll

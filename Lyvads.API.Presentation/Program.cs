@@ -3,6 +3,7 @@ using Lyvads.API.Presentation.Extensions;
 using Lyvads.API.Presentation.Middlewares;
 using Lyvads.Domain.Constants;
 using Lyvads.Infrastructure.Persistence;
+using Lyvads.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -33,18 +34,10 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowPaystack", policy =>
-    {
-        policy.WithOrigins("https://api.paystack.co")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
 
 // Logging
 builder.Logging.AddSerilog();
+
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration.ReadFrom.Configuration(context.Configuration)
@@ -54,23 +47,39 @@ builder.Host.UseSerilog((context, services, configuration) =>
                  .WriteTo.File("./logs/log-.txt", rollingInterval: RollingInterval.Day);
 });
 
+builder.Services.AddScoped<DataGenerator>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins(
+            "https://api.paystack.co",
+            "http://localhost:3000",
+            "https://lyvads-admin-dashboard.vercel.app",
+            "https://radiksez.admin.lyvads.com"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
+
 // Build app
 var app = builder.Build();
 
-//Database migration
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    try
-    {
-        dbContext.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "An error occurred while migrating the database.");
-        throw;
-    }
-}
+// Database migration (if needed)
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    try
+//    {
+//        dbContext.Database.Migrate();
+//    }
+//    catch (Exception ex)
+//    {
+//        Log.Error(ex, "An error occurred while migrating the database.");
+//        throw;
+//    }
+//}
 
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
@@ -83,7 +92,8 @@ else
     app.UseHsts();
 }
 
-app.UseCors("AllowPaystack");
+app.UseHttpsRedirection();
+app.UseCors("AllowSpecificOrigins");
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -95,4 +105,7 @@ app.UseSession();
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
+
+await Seeder.Run(app);
+
 app.Run();

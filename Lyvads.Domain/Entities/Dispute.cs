@@ -8,7 +8,9 @@ namespace Lyvads.Domain.Entities;
 public class Dispute : Entity, IAuditable
 {
     public string? RequestId{ get; set; }
+    [ForeignKey("RegularUser")]
     public string? RegularUserId { get; set; }
+    [ForeignKey("Creator")]
     public string? CreatorId { get; set; }
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Amount { get; set; }
