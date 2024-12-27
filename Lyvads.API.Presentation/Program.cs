@@ -70,7 +70,7 @@ var app = builder.Build();
 //Database migration
 //using (var scope = app.Services.CreateScope())
 //{
-//    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    var dbContext = scope.ServiceProv`ider.GetRequiredService<AppDbContext>();
 //    try
 //    {
 //        dbContext.Database.Migrate();
