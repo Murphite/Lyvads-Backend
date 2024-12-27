@@ -37,3 +37,4 @@ public class ChargeTransaction : Entity, IAuditable
     public string? TransactionId { get; set; }  
     public virtual Transaction? Transaction { get; set; }
 }
+

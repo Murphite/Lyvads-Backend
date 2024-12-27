@@ -1289,70 +1289,70 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         };
     }
 
-    public async Task<ServerResponse<object>> LikeContentAsync(string userId, string contentId)
-    {
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            _logger.LogWarning("User not found for ID: {UserId}", userId);
-            return new ServerResponse<object>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "06",
-                    ResponseMessage = "User not found"
-                }
-            };
-        }
+    //public async Task<ServerResponse<object>> LikeContentAsync(string userId, string contentId)
+    //{
+    //    var user = await _userRepository.GetUserByIdAsync(userId);
+    //    if (user == null)
+    //    {
+    //        _logger.LogWarning("User not found for ID: {UserId}", userId);
+    //        return new ServerResponse<object>
+    //        {
+    //            IsSuccessful = false,
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "06",
+    //                ResponseMessage = "User not found"
+    //            }
+    //        };
+    //    }
 
-        var like = new Like
-        {
-            UserId = userId,
-            ContentId = contentId,
-            CreatedAt = DateTimeOffset.UtcNow
-        };
+    //    var like = new Like
+    //    {
+    //        UserId = userId,
+    //        ContentId = contentId,
+    //        CreatedAt = DateTimeOffset.UtcNow
+    //    };
 
-        await _userRepository.AddLikeAsync(like);
-        _logger.LogInformation("User with ID: {UserId} liked content with ID: {ContentId}", userId, contentId);
+    //    await _userRepository.AddLikeAsync(like);
+    //    _logger.LogInformation("User with ID: {UserId} liked content with ID: {ContentId}", userId, contentId);
 
-        return new ServerResponse<object>
-        {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            Data = contentId
-        };
-    }
+    //    return new ServerResponse<object>
+    //    {
+    //        IsSuccessful = true,
+    //        ResponseCode = "00",
+    //        Data = contentId
+    //    };
+    //}
 
-    public async Task<ServerResponse<object>> UnlikeContentAsync(string userId, string contentId)
-    {
-        var like = await _userRepository.GetLikeAsync(userId, contentId);
-        if (like == null)
-        {
-            _logger.LogWarning("Like not found for UserId: {UserId} and ContentId: {ContentId}", userId, contentId);
-            return new ServerResponse<object>
-            {
-                IsSuccessful = false,
-                ErrorResponse = new ErrorResponse
-                {
-                    ResponseCode = "06",
-                    ResponseMessage = "Like not found."
-                }
-            };
-        }
+    //public async Task<ServerResponse<object>> UnlikeContentAsync(string userId, string contentId)
+    //{
+    //    var like = await _userRepository.GetLikeAsync(userId, contentId);
+    //    if (like == null)
+    //    {
+    //        _logger.LogWarning("Like not found for UserId: {UserId} and ContentId: {ContentId}", userId, contentId);
+    //        return new ServerResponse<object>
+    //        {
+    //            IsSuccessful = false,
+    //            ErrorResponse = new ErrorResponse
+    //            {
+    //                ResponseCode = "06",
+    //                ResponseMessage = "Like not found."
+    //            }
+    //        };
+    //    }
 
-        await _userRepository.RemoveLikeAsync(like);
-        await _unitOfWork.SaveChangesAsync();
+    //    await _userRepository.RemoveLikeAsync(like);
+    //    await _unitOfWork.SaveChangesAsync();
 
-        _logger.LogInformation("User with ID: {UserId} unliked content with ID: {ContentId}", userId, contentId);
+    //    _logger.LogInformation("User with ID: {UserId} unliked content with ID: {ContentId}", userId, contentId);
 
-        return new ServerResponse<object>
-        {
-            IsSuccessful = true,
-            ResponseCode = "00",
-            Data = contentId
-        };
-    }
+    //    return new ServerResponse<object>
+    //    {
+    //        IsSuccessful = true,
+    //        ResponseCode = "00",
+    //        Data = contentId
+    //    };
+    //}
 
     //public async Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string? currency)
     //{

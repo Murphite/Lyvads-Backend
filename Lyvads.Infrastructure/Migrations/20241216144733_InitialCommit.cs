@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Lyvads.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCommit : Migration
+    public partial class InitialCommit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -860,11 +860,17 @@ namespace Lyvads.Infrastructure.Migrations
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     RequestId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     WalletId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Type = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Transactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Transactions_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Transactions_Requests_RequestId",
                         column: x => x.RequestId,
@@ -1181,6 +1187,11 @@ namespace Lyvads.Infrastructure.Migrations
                 column: "TrxRef",
                 unique: true,
                 filter: "[TrxRef] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_ApplicationUserId",
+                table: "Transactions",
+                column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_RequestId",
