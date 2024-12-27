@@ -76,7 +76,7 @@ public class CollaborationService : ICollaborationService
                 _logger.LogWarning("No collaborations found.");
                 return new ServerResponse<List<CollaborationDto>>(false)
                 {
-                    ResponseCode = "404",
+                    ResponseCode = "200",
                     ResponseMessage = "No collaborations found.",
                 };
             }
