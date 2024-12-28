@@ -33,6 +33,7 @@ public class DataGenerator
         {
             try
             {
+                //await GenerateDisputes(10);
                 await GenerateCreators(20);
                 await GenerateRegularUsers(20);
                 await GenerateAdmins(10);
@@ -47,13 +48,13 @@ public class DataGenerator
                 await GenerateFollows(10);
                 await GenerateImpressions(20);
                 await GenerateMedias(10);
-                await GeneratePromotions(10);
-                await GenerateRequests(10);
+                await GeneratePromotions(10);           
+                await GenerateRequests(10);                
                // await GenerateDisputes(10);
                 await GenerateTransactions(20);                
                 await GenerateCharges(10);
                 await GenerateChargeTransactions(10);
-               // await GenerateTransfers(10);
+                //await GenerateTransfers(10);
                 await GenerateUserAds(10);    
                 await GenerateSuperAdmins(10);
 
@@ -423,6 +424,8 @@ public class DataGenerator
 
     private async Task GenerateMedias(int count = 10)
     {
+        var cloudinaryBaseUrl = "https://res.cloudinary.com/dvrghpls1/image/upload/";
+
         var medias = new List<Media>();
 
         // Retrieve valid Post IDs from the Posts table
@@ -436,8 +439,8 @@ public class DataGenerator
         var mediaFaker = new Faker<Media>()
             .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
             .RuleFor(m => m.PostId, f => f.Random.ListItem(postIds)) // Use valid Post IDs
-            .RuleFor(m => m.Url, f => f.Internet.Url())
-            .RuleFor(m => m.FileType, f => f.System.FileExt())
+            .RuleFor(m => m.Url, f => $"{cloudinaryBaseUrl}{f.Random.AlphaNumeric(10)}.jpg") // Cloudinary URL
+            .RuleFor(m => m.FileType, f => f.System.FileExt()) // Simulate file type
             .RuleFor(m => m.CreatedAt, f => f.Date.PastOffset())
             .RuleFor(m => m.UpdatedAt, f => f.Date.RecentOffset());
 
@@ -455,13 +458,15 @@ public class DataGenerator
 
     private async Task GeneratePromotions(int count = 10)
     {
+        var cloudinaryBaseUrl = "https://res.cloudinary.com/dvrghpls1/image/upload/";
+
         var promotions = new List<Promotion>();
         var promotionFaker = new Faker<Promotion>()
             .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
             .RuleFor(p => p.Title, f => f.Commerce.ProductName())
             .RuleFor(p => p.ShortDescription, f => f.Lorem.Sentence())
             .RuleFor(p => p.Price, f => f.Finance.Amount(10, 100))
-            .RuleFor(p => p.MediaUrl, f => f.Internet.Url())
+            .RuleFor(p => p.MediaUrl, f => $"{cloudinaryBaseUrl}{f.Random.AlphaNumeric(10)}.jpg")
             .RuleFor(p => p.IsHidden, f => f.Random.Bool())
             .RuleFor(p => p.CreatedAt, f => f.Date.Past())
             .RuleFor(p => p.UpdatedAt, f => f.Date.Recent());
@@ -481,6 +486,18 @@ public class DataGenerator
     private async Task GenerateRequests(int count = 10)
     {
         var requests = new List<Request>();
+
+        // Retrieve lists of user IDs for RegularUser and Creator from the database
+        var regularUserIds = await _context.RegularUsers.Select(u => u.Id).ToListAsync();
+        var creatorIds = await _context.Creators.Select(u => u.Id).ToListAsync();
+
+        if (regularUserIds.Count == 0 || creatorIds.Count == 0)
+        {
+            throw new InvalidOperationException("No users available to associate with requests.");
+        }
+
+        var f = new Faker();
+
         var requestFaker = new Faker<Request>()
             .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
             .RuleFor(r => r.Script, f => f.Lorem.Paragraph())
@@ -493,12 +510,17 @@ public class DataGenerator
             .RuleFor(r => r.TransactionStatus, f => f.Random.Bool())
             .RuleFor(r => r.CreatedAt, f => f.Date.PastOffset())
             .RuleFor(r => r.UpdatedAt, f => f.Date.RecentOffset())
-            .RuleFor(r => r.VideoUrl, f => f.Internet.Url());
+            .RuleFor(r => r.VideoUrl, f => $"https://res.cloudinary.com/dvrghpls1/video/upload/v{f.Date.Recent().Year}/{f.Random.AlphaNumeric(10)}.mp4");
 
         // Generate requests using Faker
         for (var i = 0; i < count; i++)
         {
             var request = requestFaker.Generate();
+
+            // Ensure every request has both RegularUserId and CreatorId
+            request.RegularUserId = f.PickRandom(regularUserIds);
+            request.CreatorId = f.PickRandom(creatorIds);
+
             requests.Add(request);
         }
 
@@ -765,10 +787,11 @@ public class DataGenerator
                 //.RuleFor(c => c.Id, f => Guid.NewGuid().ToString()) // Always new Guid
                 .RuleFor(u => u.FirstName, f => f.Name.FirstName())
                 .RuleFor(u => u.LastName, f => f.Name.LastName())
+                .RuleFor(u => u.AppUserName, f => f.Internet.UserName()) // Nickname as the AppUserName
                 .RuleFor(u => u.Email, f => f.Internet.Email())
                 .RuleFor(u => u.PhoneNumber, f => f.Phone.PhoneNumber())
                 .RuleFor(u => u.UserName, (f, u) => u.Email) // ASP.NET Identity uses UserName as the login identifier
-                .RuleFor(u => u.ImageUrl, f => f.Internet.Avatar())
+                .RuleFor(u => u.ImageUrl, f => $"https://res.cloudinary.com/dvrghpls1/image/upload/v{f.Date.Recent().Year}/{f.Random.AlphaNumeric(10)}.jpg")
                 .RuleFor(u => u.Occupation, f => f.Name.JobTitle())
                 .RuleFor(u => u.Bio, f => f.Lorem.Paragraph())
                 .RuleFor(u => u.Location, f => f.Address.City())
@@ -778,7 +801,7 @@ public class DataGenerator
                 .RuleFor(u => u.UpdatedAt, f => f.Date.RecentOffset())
                 .Generate();
         }
-        while (await userManager.Users.AnyAsync(u => u.Id == user.Id || u.Email == user.Email)); 
+        while (await userManager.Users.AnyAsync(u => u.Id == user.Id || u.Email == user.Email));
 
         // Set default password
         var password = "Password@123";

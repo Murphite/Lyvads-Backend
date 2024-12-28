@@ -66,8 +66,7 @@ builder.Services.AddCors(options =>
 // Build app
 var app = builder.Build();
 
-
-//Database migration
+// Database migration (if needed)
 //using (var scope = app.Services.CreateScope())
 //{
 //    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();

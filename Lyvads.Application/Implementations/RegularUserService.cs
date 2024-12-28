@@ -70,7 +70,10 @@ public class RegularUserService : IRegularUserService
                 {
                     UserId = u.Id,
                     FullName = u.ApplicationUser!.FullName, 
-                    AppUserName = u.ApplicationUser.AppUserName
+                    AppUserName = u.ApplicationUser.AppUserName,
+                    Email = u.ApplicationUser.Email,
+                    ProfilePictureUrl = u.ApplicationUser.ImageUrl,
+                    CreatedAt = u.ApplicationUser.CreatedAt,
                 })
                 .AsQueryable();
 
