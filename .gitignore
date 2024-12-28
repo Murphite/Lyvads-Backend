@@ -482,3 +482,4 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+/Lyvads.API.Presentation/Lyvads.API.Presentation.csproj.user
