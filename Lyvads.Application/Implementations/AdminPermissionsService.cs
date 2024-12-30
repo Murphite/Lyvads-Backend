@@ -1,8 +1,4 @@
-﻿
-
-using CloudinaryDotNet.Actions;
-using Lyvads.Application.Dtos.AuthDtos;
-using Lyvads.Application.Dtos.SuperAdminDtos;
+﻿using Lyvads.Application.Dtos.SuperAdminDtos;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Constants;
 using Lyvads.Domain.Entities;
@@ -13,6 +9,7 @@ using Lyvads.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Lyvads.Application.Implementations;
 
@@ -24,12 +21,15 @@ public class AdminPermissionsService : IAdminPermissionsService
     private readonly ISuperAdminRepository _superAdminRepository;
     private readonly IRepository _repository;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ICurrentUserService _currentUserService;
+
 
     public AdminPermissionsService(IActivityLogRepository activityLogRepository,
         ILogger<AdminPermissionsService> logger,
         IAdminRepository adminRepository,
         ISuperAdminRepository superAdminRepository,
         IRepository repository,
+        ICurrentUserService currentUserService,
         UserManager<ApplicationUser> userManager)
     {
         _activityLogRepository = activityLogRepository;
@@ -38,6 +38,7 @@ public class AdminPermissionsService : IAdminPermissionsService
         _superAdminRepository = superAdminRepository;
         _repository = repository;
         _userManager = userManager;
+        _currentUserService = currentUserService;
     }
 
 
@@ -302,27 +303,81 @@ public class AdminPermissionsService : IAdminPermissionsService
     }
 
 
-    public async Task<ServerResponse<AddAdminUserDto>> AddAdminUserAsync(AddAdminUserDto addAdminUserDto)
+    public async Task<ServerResponse<AddAdminUserResponseDto>> AddAdminUserAsync(AddAdminUserDto addAdminUserDto)
     {
+        var currentUserId = _currentUserService.GetCurrentUserId();
+        var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+        if (currentUser == null)
+        {
+            _logger.LogWarning("Current user not found: {UserId}", currentUserId);
+            return new ServerResponse<AddAdminUserResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found",
+                    ResponseDescription = "The current user does not exist."
+                }
+            };
+        }
+
+        var isSuperAdmin = await _userManager.IsInRoleAsync(currentUser, RolesConstant.SuperAdmin);
+        if (!isSuperAdmin)
+        {
+            _logger.LogWarning("Unauthorized user registration attempt by user: {UserId}", currentUserId);
+            return new ServerResponse<AddAdminUserResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "403",
+                    ResponseMessage = "Unauthorized",
+                    ResponseDescription = "Only SuperAdmin can register users."
+                }
+            };
+        }
+
+        // Validate the role
+        var validRoles = new[] { RolesConstant.Admin, RolesConstant.SuperAdmin };
+        if (string.IsNullOrWhiteSpace(addAdminUserDto.Role) || !validRoles.Contains(addAdminUserDto.Role.ToUpper()))
+        {
+            return new ServerResponse<AddAdminUserResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "400",
+                    ResponseMessage = "Invalid Role",
+                    ResponseDescription = "The selected role is invalid."
+                }
+            };
+        }
+
+        var role = addAdminUserDto.Role?.ToUpperInvariant();
+
+        var newAdminUser = new ApplicationUser
+        {
+            FirstName = addAdminUserDto.FirstName!,
+            LastName = addAdminUserDto.LastName!,
+            Email = addAdminUserDto.Email,
+            UserName = addAdminUserDto.Email,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            PublicId = Guid.NewGuid().ToString(),
+            IsActive = true,
+        };
+
+        // Generate a random password
+        var generatedPassword = GenerateRandomPassword();
+
         using (var transaction = await _repository.BeginTransactionAsync())
         {
-
-            var newAdminUser = new ApplicationUser
-            {
-                FirstName = addAdminUserDto.FirstName!,
-                LastName = addAdminUserDto.LastName!,
-                Email = addAdminUserDto.Email,
-                UserName = addAdminUserDto.Email,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow,
-                PublicId = Guid.NewGuid().ToString(),
-                IsActive = true,
-            };
-
-            var result = await _userManager.CreateAsync(newAdminUser, addAdminUserDto.Password!);
+            var result = await _userManager.CreateAsync(newAdminUser, generatedPassword!);
             if (!result.Succeeded)
             {
-                return new ServerResponse<AddAdminUserDto>
+                return new ServerResponse<AddAdminUserResponseDto>
                 {
                     IsSuccessful = false,
                     ResponseCode = "400",
@@ -331,11 +386,11 @@ public class AdminPermissionsService : IAdminPermissionsService
                 };
             }
 
-            result = await _userManager.AddToRoleAsync(newAdminUser, addAdminUserDto.Role!.ToString());
+            result = await _userManager.AddToRoleAsync(newAdminUser, role);
             if (!result.Succeeded)
             {
                 _logger.LogError("Error occurred while assigning role to user {UserEmail}", addAdminUserDto.Email);
-                return new ServerResponse<AddAdminUserDto>
+                return new ServerResponse<AddAdminUserResponseDto>
                 {
                     IsSuccessful = false,
                     ErrorResponse = new ErrorResponse
@@ -346,9 +401,6 @@ public class AdminPermissionsService : IAdminPermissionsService
                     }
                 };
             }
-
-            var role = addAdminUserDto.Role?.ToUpperInvariant();
-
 
             // Add the user to the corresponding role repository
             switch (role)
@@ -373,20 +425,21 @@ public class AdminPermissionsService : IAdminPermissionsService
                     });
                     break;
             }
-                    await transaction.CommitAsync();
 
-            return new ServerResponse<AddAdminUserDto>
+            await transaction.CommitAsync();
+
+            return new ServerResponse<AddAdminUserResponseDto>
             {
                 IsSuccessful = true,
                 ResponseCode = "00",
                 ResponseMessage = "Admin user created successfully.",
-                Data = new AddAdminUserDto
+                Data = new AddAdminUserResponseDto
                 {
                     UserId = newAdminUser.Id,
                     FirstName = newAdminUser.FirstName,
                     LastName = newAdminUser.LastName,
                     Email = newAdminUser.Email,
-                    Password = addAdminUserDto.Password,
+                    Password = generatedPassword,
                     Role = role
                 }
             };
@@ -394,32 +447,104 @@ public class AdminPermissionsService : IAdminPermissionsService
     }
 
 
+    public async Task<ServerResponse<string>> DeleteAdminUser(string userId)
+    {
+        _logger.LogInformation($"Attempting to delete Admin user with ID: {userId}");
+
+        // Fetch the user with related entities
+        var user = await _adminRepository.GetUserWithRelatedEntitiesAsync(userId);
+
+        // Ensure the user exists and is an Admin
+        if (user == null || user.Admin == null || user.SuperAdmin == null)
+        {
+            _logger.LogWarning($"User with ID {userId} is not an Admin or does not exist.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Admin or SuperAdmin user not found"
+            };
+        }
+
+        try
+        {
+            // Delete related entities
+            await _adminRepository.DeleteRelatedEntitiesAsync(user);
+
+            // Attempt to delete the user
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(error => error.Description);
+                _logger.LogError($"Failed to delete Admin user {userId}. Errors: {string.Join(", ", errors)}");
+
+                return new ServerResponse<string>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = "400",
+                    ResponseMessage = "Failed to delete Admin user",
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "400",
+                        ResponseMessage = "Deletion failed",
+                        ResponseDescription = string.Join(", ", errors)
+                    }
+                };
+            }
+
+            _logger.LogInformation($"Admin user with ID {userId} deleted successfully.");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = true,
+                ResponseCode = "200",
+                ResponseMessage = "Admin user deleted successfully"
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"An error occurred while deleting Admin user with ID: {userId}");
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "An error occurred while deleting the Admin user",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Server Error",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
+    }
+
+
+    private string GenerateRandomPassword(int length = 12)
+    {
+        const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*";
+        const string digits = "0123456789";
+        var password = new char[length];
+
+        // Step 1: Ensure there's at least one digit
+        using (var rng = RandomNumberGenerator.Create()) // Create an instance of RandomNumberGenerator
+        {
+            password[0] = digits[RandomNumberGenerator.GetInt32(digits.Length)]; // Use the static method on the class itself
+
+            // Step 2: Fill the rest of the password with random characters from validChars
+            byte[] randomBytes = new byte[length];
+            rng.GetBytes(randomBytes); // Use the instance method GetBytes
+
+            for (int i = 1; i < length; i++)  // Start from index 1 to avoid overwriting the first digit
+            {
+                password[i] = validChars[randomBytes[i] % validChars.Length];
+            }
+        }
+
+        // Step 3: Shuffle the password to ensure the digit is randomly placed
+        var random = new Random();
+        password = password.OrderBy(c => random.Next()).ToArray();  // Shuffle using Random
+
+        return new string(password);
+    }
+
 }
-
-
-//// Validate if the role name is within the allowed roles
-//var validRoles = new[] { RolesConstant.Admin, RolesConstant.SuperAdmin }; 
-
-//if (!validRoles.Contains(role))
-//{
-//    return new ServerResponse<string>
-//    {
-//        IsSuccessful = false,
-//        ResponseCode = "400",
-//        ResponseMessage = "Invalid role name.",
-//        Data = null!
-//    };
-//}
-
-// Check if the role already exists in the repository
-//var existingRole = await _adminRepository.GetRoleByNameAsync(roleName);
-//if (existingRole != null)
-//{
-//    return new ServerResponse<string>
-//    {
-//        IsSuccessful = false,
-//        ResponseCode = "400",
-//        ResponseMessage = "Role already exists.",
-//        Data = null!
-//    };
-//}
