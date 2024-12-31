@@ -8,4 +8,5 @@ public enum AdminRoleType
     Admin,
     Product,
     Operations,
+    None
 }

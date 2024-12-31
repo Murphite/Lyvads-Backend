@@ -13,5 +13,5 @@ public interface IAdminPermissionsService
     Task<ServerResponse<string>> CreateCustomRoleAsync(string roleName, AdminPermissionsDto permissionsDto);
     Task<ServerResponse<EditResponseAdminUserDto>> EditAdminUserAsync(string adminUserId, EditAdminUserDto editAdminUserDto);
     Task<ServerResponse<AddAdminUserResponseDto>> AddAdminUserAsync(AddAdminUserDto addAdminUserDto);
-    Task<ServerResponse<string>> DeleteAdminUser(string userId);
+    Task<ServerResponse<string>> DeleteAdminUserAsync(string userId);
 }

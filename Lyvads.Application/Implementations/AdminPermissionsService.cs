@@ -61,9 +61,14 @@ public class AdminPermissionsService : IAdminPermissionsService
 
         foreach (var a in admins)
         {
-            // Assuming you're fetching the role from Identity or some other method
-            var roles = await _userManager.GetRolesAsync(a);  // or from the repository
-            var role = roles.Contains("SuperAdmin") ? AdminRoleType.SuperAdmin : AdminRoleType.Admin;
+            // Fetch roles for the admin
+            var roles = await _userManager.GetRolesAsync(a);
+            _logger.LogInformation($"User {a.Id} has roles: {string.Join(", ", roles)}");
+
+            // Determine role based on retrieved roles
+            AdminRoleType role = roles.Contains("SuperAdmin")
+                ? AdminRoleType.SuperAdmin
+                : AdminRoleType.Admin; // Assume only "SuperAdmin" and "Admin" are valid
 
             adminUserDtos.Add(new AdminUserDto
             {
@@ -71,7 +76,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 FirstName = a.FirstName,
                 LastName = a.LastName,
                 Email = a.Email,
-                Role = role.ToString(),
+                Role = role.ToString(), // Use the determined role
                 LastActive = a.UpdatedAt,
                 IsActive = a.IsActive
             });
@@ -260,9 +265,13 @@ public class AdminPermissionsService : IAdminPermissionsService
                 Data = null!
             };
         }
+        var user = await _userManager.FindByIdAsync(adminUserId);
 
-        var adminUser = await _adminRepository.GetAdminByIdAsync(adminUserId); 
-        if (adminUser == null)
+        //var adminUser = await _adminRepository.GetAdminByIdAsync(adminUserId); 
+        // Check if the user is in either Admin or SuperAdmin roles
+        var isAdminOrSuperAdmin = await _userManager.IsInRoleAsync(user, RolesConstant.Admin) ||
+                                  await _userManager.IsInRoleAsync(user, RolesConstant.SuperAdmin);
+        if (!isAdminOrSuperAdmin)
         {
             return new ServerResponse<EditResponseAdminUserDto>
             {
@@ -273,31 +282,42 @@ public class AdminPermissionsService : IAdminPermissionsService
             };
         }
 
-        adminUser.FirstName = editAdminUserDto.FirstName!;
-        adminUser.LastName = editAdminUserDto.LastName!;
+        user.FirstName = editAdminUserDto.FirstName ?? user.FirstName;
+        user.LastName = editAdminUserDto.LastName ?? user.LastName;
 
-        var currentRoles = await _userManager.GetRolesAsync(adminUser);
+        var currentRoles = await _userManager.GetRolesAsync(user);
         if (currentRoles.Count > 0)
         {
-            await _userManager.RemoveFromRolesAsync(adminUser, currentRoles);
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
         }
 
-        await _userManager.AddToRoleAsync(adminUser, editAdminUserDto.Role.ToString());
-        adminUser.IsActive = editAdminUserDto.IsActive;
-        await _userManager.UpdateAsync(adminUser);
+        await _userManager.AddToRoleAsync(user, editAdminUserDto.Role.ToString());
+        user.IsActive = editAdminUserDto.IsActive;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return new ServerResponse<EditResponseAdminUserDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "Failed to update Admin user.",
+                Data = null!
+            };
+        }
 
         return new ServerResponse<EditResponseAdminUserDto>
         {
             IsSuccessful = true,
-            ResponseCode = "00",
+            ResponseCode = "200",
             ResponseMessage = "Admin user updated successfully.",
             Data = new EditResponseAdminUserDto
             {
                 Id = adminUserId,
-                FirstName = adminUser.FirstName,
-                LastName = adminUser.LastName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 Role = editAdminUserDto.Role.ToString(),
-                IsActive = adminUser.IsActive
+                IsActive = user.IsActive
             }
         };
     }
@@ -447,36 +467,69 @@ public class AdminPermissionsService : IAdminPermissionsService
     }
 
 
-    public async Task<ServerResponse<string>> DeleteAdminUser(string userId)
+    public async Task<ServerResponse<string>> DeleteAdminUserAsync(string userId)
     {
-        _logger.LogInformation($"Attempting to delete Admin user with ID: {userId}");
+        _logger.LogInformation("Attempting to delete Admin user with ID: {UserId}", userId);
 
-        // Fetch the user with related entities
-        var user = await _adminRepository.GetUserWithRelatedEntitiesAsync(userId);
+        // Fetch the user by ID
+        var user = await _userManager.FindByIdAsync(userId);
 
-        // Ensure the user exists and is an Admin
-        if (user == null || user.Admin == null || user.SuperAdmin == null)
+        if (user == null)
         {
-            _logger.LogWarning($"User with ID {userId} is not an Admin or does not exist.");
+            _logger.LogWarning("User with ID {UserId} does not exist.", userId);
             return new ServerResponse<string>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
-                ResponseMessage = "Admin or SuperAdmin user not found"
+                ResponseMessage = "User not found",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "User not found",
+                    ResponseDescription = "The specified user does not exist."
+                }
+            };
+        }
+
+        // Check if the user is in either Admin or SuperAdmin roles
+        var isAdminOrSuperAdmin = await _userManager.IsInRoleAsync(user, RolesConstant.Admin) ||
+                                  await _userManager.IsInRoleAsync(user, RolesConstant.SuperAdmin);
+
+        if (!isAdminOrSuperAdmin)
+        {
+            _logger.LogWarning("User with ID {UserId} is not an Admin or SuperAdmin.", userId);
+            return new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "403",
+                ResponseMessage = "Unauthorized",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "403",
+                    ResponseMessage = "Unauthorized",
+                    ResponseDescription = "The user is not an Admin or SuperAdmin."
+                }
             };
         }
 
         try
         {
-            // Delete related entities
-            await _adminRepository.DeleteRelatedEntitiesAsync(user);
+            // Delete related entities for Admins or SuperAdmins
+            if (await _userManager.IsInRoleAsync(user, RolesConstant.Admin))
+            {
+                await _adminRepository.DeleteRelatedEntitiesAsync(user);
+            }
+            else if (await _userManager.IsInRoleAsync(user, RolesConstant.SuperAdmin))
+            {
+                await _adminRepository.DeleteRelatedEntitiesAsync(user);
+            }
 
-            // Attempt to delete the user
+            // Delete the user
             var result = await _userManager.DeleteAsync(user);
             if (!result.Succeeded)
             {
                 var errors = result.Errors.Select(error => error.Description);
-                _logger.LogError($"Failed to delete Admin user {userId}. Errors: {string.Join(", ", errors)}");
+                _logger.LogError("Failed to delete Admin user {UserId}. Errors: {Errors}", userId, string.Join(", ", errors));
 
                 return new ServerResponse<string>
                 {
@@ -492,7 +545,7 @@ public class AdminPermissionsService : IAdminPermissionsService
                 };
             }
 
-            _logger.LogInformation($"Admin user with ID {userId} deleted successfully.");
+            _logger.LogInformation("Admin user with ID {UserId} deleted successfully.", userId);
             return new ServerResponse<string>
             {
                 IsSuccessful = true,
@@ -502,7 +555,7 @@ public class AdminPermissionsService : IAdminPermissionsService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"An error occurred while deleting Admin user with ID: {userId}");
+            _logger.LogError(ex, "An error occurred while deleting Admin user with ID: {UserId}", userId);
             return new ServerResponse<string>
             {
                 IsSuccessful = false,
