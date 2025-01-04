@@ -4,7 +4,6 @@ using Lyvads.Domain.Interfaces;
 using Lyvads.Domain.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
-using System.Web;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Constants;
 using Lyvads.Application.Dtos.AuthDtos;
@@ -12,14 +11,14 @@ using Microsoft.Extensions.Logging;
 using Lyvads.Domain.Responses;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
-namespace Lyvads.Application.Implementations;
-
-using Lyvads.Infrastructure.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+
+namespace Lyvads.Application.Implementations;
+
+
 
 public class AuthService : IAuthService
 {
@@ -399,7 +398,7 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<ServerResponse<RegisterUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto)
+    public async Task<ServerResponse<RegisterUserResponseDto>> RegisterUser(RegisterUserDto registerUserDto, IFormFile newProfilePicture)
     {
         _logger.LogInformation("******* Inside the RegisterUser Method ********");
 
@@ -496,6 +495,24 @@ public class AuthService : IAuthService
 
                 await _regularUserRepository.AddAsync(regularUser);
 
+                // Call the profile picture upload service
+                var uploadResponse = await _profileService.UploadProfilePictureAsync(applicationUser.Id, newProfilePicture);
+                if (!uploadResponse.IsSuccessful)
+                {
+                    _logger.LogError("Profile picture upload failed for user with ID: {UserId}", applicationUser.Id);
+                    await transaction.RollbackAsync();
+                    return new ServerResponse<RegisterUserResponseDto>
+                    {
+                        IsSuccessful = false,
+                        ErrorResponse = new ErrorResponse
+                        {
+                            ResponseCode = "400",
+                            ResponseMessage = "Failed to upload profile picture",
+                            ResponseDescription = uploadResponse.ErrorResponse?.ResponseMessage
+                        }
+                    };
+                }
+
                 // Create Wallet for the User
                 var wallet = new Wallet
                 {
@@ -547,6 +564,7 @@ public class AuthService : IAuthService
                         Location = applicationUser.Location,
                         Role = RolesConstant.RegularUser,
                         Token = token,
+                        ProfilePictureUrl = uploadResponse.Data?.NewProfilePictureUrl,
                         Message = "Registration successful. Your account will be activated after Admin verification."
                     }
                 };

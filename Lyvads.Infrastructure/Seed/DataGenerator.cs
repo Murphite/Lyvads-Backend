@@ -43,7 +43,7 @@ public class DataGenerator
                 await GenerateLikes(10);
                 await GenerateRates(10);
                 await GenerateExclusiveDeals(10);
-                await GenerateWallets(10);
+               // await GenerateWallets(10);
                 await GenerateFavorites(10);
                 await GenerateFollows(10);
                 await GenerateImpressions(20);
@@ -726,20 +726,22 @@ public class DataGenerator
     {
         var appUser = await GenerateApplicationUserAsync(userManager, RolesConstant.RegularUser);
 
-        return new Faker<RegularUser>()
+        var regularUser = new Faker<RegularUser>()
             .RuleFor(r => r.ApplicationUserId, appUser.Id)
-            //.RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
             .RuleFor(r => r.CreatedAt, f => f.Date.PastOffset())
             .RuleFor(r => r.UpdatedAt, f => f.Date.RecentOffset())
             .Generate();
+                
+        return regularUser;
     }
 
     public static async Task<Creator> GenerateCreatorAsync(UserManager<ApplicationUser> userManager)
     {
         var appUser = await GenerateApplicationUserAsync(userManager, RolesConstant.Creator);
+
+        // Create the Creator object using Faker
         var creator = new Faker<Creator>()
             .RuleFor(c => c.ApplicationUserId, appUser.Id)
-            //.RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
             .RuleFor(c => c.Price, f => f.Finance.Amount(50, 500))
             .RuleFor(c => c.Instagram, f => f.Internet.UserName())
             .RuleFor(c => c.Facebook, f => f.Internet.UserName())
@@ -823,17 +825,75 @@ public class DataGenerator
         return user;
     }
 
+    private Wallet GenerateWallet(string applicationUserId)
+    {
+        return new Faker<Wallet>()
+            .RuleFor(w => w.Id, f => Guid.NewGuid().ToString())
+            .RuleFor(w => w.Balance, f => f.Finance.Amount(100, 10000))
+            .RuleFor(w => w.CreatedAt, f => f.Date.PastOffset())
+            .RuleFor(w => w.UpdatedAt, f => f.Date.RecentOffset())
+            .RuleFor(w => w.ApplicationUserId, applicationUserId)
+            .Generate();
+    }
 
     private async Task GenerateRegularUsers(int count)
     {
-        for (int i = 0; i < count; i++)
+        //using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            var regularUser = await GenerateRegularUserAsync(_userManager);
-            _context.RegularUsers.Add(regularUser);
-        }
+            var tasks = Enumerable.Range(0, count).Select(async _ =>
+            {
+                var regularUser = await GenerateRegularUserAsync(_userManager);
+                if (regularUser == null) throw new InvalidOperationException("Failed to generate RegularUser.");
 
-        await _context.SaveChangesAsync();
+                _context.RegularUsers.Add(regularUser);
+
+                var wallet = GenerateWallet(regularUser.ApplicationUserId);
+                _context.Wallets.Add(wallet);
+            });
+
+            await Task.WhenAll(tasks);
+            await _context.SaveChangesAsync();
+            //await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            //await transaction.RollbackAsync();
+            //_logger.LogError("Error generating RegularUsers: {Message}", ex.Message);
+            throw;
+        }
     }
+
+
+    private async Task GenerateCreators(int count)
+    {
+       // using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var tasks = Enumerable.Range(0, count).Select(async _ =>
+            {
+                var creator = await GenerateCreatorAsync(_userManager);
+                if (creator == null) throw new InvalidOperationException("Failed to generate Creator.");
+
+                _context.Creators.Add(creator);
+
+                var wallet = GenerateWallet(creator.ApplicationUserId);
+                _context.Wallets.Add(wallet);
+            });
+
+            await Task.WhenAll(tasks);
+            await _context.SaveChangesAsync();
+            //await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            
+            //_logger.LogError("Error generating Creators: {Message}", ex.Message);
+            throw;
+        }     
+        
+    }
+
 
     private async Task GenerateAdmins(int count)
     {
@@ -844,18 +904,8 @@ public class DataGenerator
         }
 
         await _context.SaveChangesAsync();
-    }
+    }       
 
-    private async Task GenerateCreators(int count)
-    {
-        for (int i = 0; i < count; i++)
-        {
-            var creator = await GenerateCreatorAsync(_userManager);
-            _context.Creators.Add(creator);
-        }
-
-        await _context.SaveChangesAsync();
-    }
 
     private async Task GenerateSuperAdmins(int count)
     {
