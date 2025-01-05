@@ -248,10 +248,10 @@ public class CollaborationService : ICollaborationService
             {
                 query = query.Where(r => r.Status == RequestStatus.Completed);
             }
-            else if (status == RequestStatus.All)
-            {
-                query = query.Where(r => r.Status == RequestStatus.All);
-            }
+            //else if (status == RequestStatus.All)
+            //{
+                
+            //}
 
             var requests = await query.ToListAsync();
 
@@ -271,8 +271,10 @@ public class CollaborationService : ICollaborationService
             var requestDtos = requests.Select(r => new GetUserRequestDto
             {
                 RequestId = r.Id,
-                CreatorFullName = $"{r.Creator?.ApplicationUser?.FirstName} {r.Creator?.ApplicationUser?.LastName}", // Full name of the Creator
-                UserFullName = $"{r.RegularUser!.ApplicationUser!.FirstName} {r.RegularUser!.ApplicationUser.LastName}", // Full name of the Regular User who made the request
+                CreatorFullName = $"{r.Creator?.ApplicationUser?.FirstName} {r.Creator?.ApplicationUser?.LastName}",
+                CreatorProfilePic = r.Creator?.ApplicationUser?.ImageUrl!,
+                UserFullName = $"{r.RegularUser!.ApplicationUser!.FirstName} {r.RegularUser!.ApplicationUser.LastName}",
+                UserProfilePic = r.RegularUser!.ApplicationUser!.ImageUrl!,
                 Status = r.Status.ToString(),
                 CreatedAt = r.CreatedAt.UtcDateTime,
             }).ToList();
@@ -330,10 +332,10 @@ public class CollaborationService : ICollaborationService
         {
             query = query.Where(r => r.Status == RequestStatus.Completed);
         }
-        else if (status == RequestStatus.All)
-        {
-            // No need to apply filter, as you're fetching all statuses
-        }
+        //else if (status == RequestStatus.All)
+        //{
+        //    // No need to apply filter, as you're fetching all statuses
+        //}
 
         var requests = await query.ToListAsync();
 
@@ -352,8 +354,10 @@ public class CollaborationService : ICollaborationService
         var requestDtos = requests.Select(r => new GetRequestDto
         {
             RequestId = r.Id,
-            CreatorFullName = $"{r.Creator?.ApplicationUser?.FirstName} {r.Creator?.ApplicationUser?.LastName}", // Full name of the Creator
-            RegularUserFullName = $"{r.RegularUser?.ApplicationUser?.FirstName} {r.RegularUser?.ApplicationUser?.LastName}", // Full name of the RegularUser
+            CreatorFullName = $"{r.Creator?.ApplicationUser?.FirstName} {r.Creator?.ApplicationUser?.LastName}",
+            CreatorProfilePic = r.Creator?.ApplicationUser?.ImageUrl!,
+            RegularUserFullName = $"{r.RegularUser?.ApplicationUser?.FirstName} {r.RegularUser?.ApplicationUser?.LastName}",
+            RegularUserProfilePic = r.RegularUser?.ApplicationUser?.ImageUrl!,
             Status = r.Status.ToString(),
             CreatedAt = r.CreatedAt.UtcDateTime,
         }).ToList();

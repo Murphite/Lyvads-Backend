@@ -74,7 +74,7 @@ public class PaymentGatewayService : IPaymentGatewayService
             Email = email,
             Reference = reference,
             Currency = "NGN",
-            CallbackUrl = "https://lyvad-landing-page.vercel.app/",
+            CallbackUrl = "https://radiksez.admin.lyvads.com/",
             Metadata = System.Text.Json.JsonSerializer.Serialize(new { CancelUrl = "https://cancel.com" })
         };
 

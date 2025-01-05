@@ -10,8 +10,10 @@ public class GetRequestDto
 {
     public string RequestId { get; set; } = default!;
     public string CreatorFullName { get; set; } = default!;
+    public string CreatorProfilePic { get; set; } = default!;
     public string RegularUserFullName { get; set; } = default!;
-    public string Status { get; set; }
+    public string RegularUserProfilePic { get; set; } = default!;
+    public string? Status { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -19,7 +21,9 @@ public class GetUserRequestDto
 {
     public string RequestId { get; set; } = default!;
     public string UserFullName { get; set; } = default!;
+    public string UserProfilePic { get; set; } = default!;
     public string CreatorFullName { get; set; } = default!;
+    public string CreatorProfilePic { get; set; } = default!;
     public string? Status { get; set; }
     public DateTime CreatedAt { get; set; }
 }

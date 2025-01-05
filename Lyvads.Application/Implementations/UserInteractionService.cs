@@ -100,7 +100,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
             var roles = await _userManager.GetRolesAsync(user);
             _logger.LogInformation("User roles for {UserId}: {Roles}", user.Id, string.Join(", ", roles));
 
-            if (!roles.Contains("RegularUser"))
+            if (!roles.Contains("REGULARUSER"))
             {
                 _logger.LogWarning("User is not a regular user.");
                 return new ServerResponse<MakeRequestDetailsDto>
@@ -2109,80 +2109,6 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         };
     }
 
-
-
-    //public async Task<ServerResponse<object>> CreateRequestAsync(CreateRequestDto createRequestDto)
-    //{
-    //    _logger.LogInformation("Inside the CreateRequestAsync Method");
-
-    //    var user = await _userRepository.GetUserByIdAsync(createRequestDto.UserId);
-    //    var creator = await _creatorRepository.GetCreatorByIdAsync(createRequestDto.CreatorId);
-
-    //    if (user == null)
-    //    {
-    //        _logger.LogWarning("User not found for ID: {UserId}", createRequestDto.UserId);
-    //        return new ServerResponse<object>
-    //        {
-    //            IsSuccessful = false,
-    //            ErrorResponse = new ErrorResponse
-    //            {
-    //                ResponseCode = "Request.Error",
-    //                ResponseMessage = "User not found"
-    //            }
-    //        };
-    //    }
-
-    //    if (creator == null)
-    //    {
-    //        _logger.LogWarning("Creator not found for ID: {CreatorId}", createRequestDto.CreatorId);
-    //        return new ServerResponse<object>
-    //        {
-    //            IsSuccessful = false,
-    //            ErrorResponse = new ErrorResponse
-    //            {
-    //                ResponseCode = "Request.Error",
-    //                ResponseMessage = "Creator not found"
-    //            }
-    //        };
-    //    }
-
-    //    var request = new Request
-    //    {
-    //        Type = createRequestDto.Type,
-    //        Script = createRequestDto.Script,
-    //        Amount = createRequestDto.Amount,
-    //        CreatorId = createRequestDto.CreatorId,
-    //        UserId = createRequestDto.UserId,
-    //        RequestType = createRequestDto.RequestType,
-    //        CreatedAt = DateTimeOffset.UtcNow,
-    //        UpdatedAt = DateTimeOffset.UtcNow,
-    //    };
-
-    //    await _repository.Add(request);
-    //    _logger.LogInformation("Request created successfully for User ID: {UserId} and Creator ID: {CreatorId}", user.Id, creator.Id);
-
-    //    if (createRequestDto.PaymentMethod == PaymentMethod.Wallet)
-    //    {
-    //        var paymentResult = await FundWalletAsync(user.Id, createRequestDto.Amount);
-    //        if (!paymentResult.IsSuccessful)
-    //            return paymentResult;
-    //    }
-    //    else if (createRequestDto.PaymentMethod == PaymentMethod.Online)
-    //    {
-    //        var paymentResult = await _paymentGatewayService.ProcessPaymentAsync(createRequestDto.Amount, "usd", createRequestDto.Source ?? string.Empty, "Video request payment");
-    //        if (!paymentResult.IsSuccessful)
-    //            return paymentResult;
-    //    }
-    //    else if (createRequestDto.PaymentMethod == PaymentMethod.ATMCard)
-    //    {
-    //        // Handle ATM card payment if necessary
-    //    }
-
-    //    return new ServerResponse<object>
-    //    {
-    //        IsSuccessful = true
-    //    };
-    //}
 
 
 }

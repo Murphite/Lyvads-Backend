@@ -35,7 +35,7 @@ public class CollaborationController : ControllerBase
     }
 
 
-    [HttpGet("creator")]
+    [HttpGet("GetAllRequestsForCreator")]
     public async Task<ActionResult<ServerResponse<List<GetUserRequestDto>>>> GetAllRequestsForCreator([FromQuery] RequestStatus status)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -69,7 +69,7 @@ public class CollaborationController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("regularUser")]
+    [HttpGet("GetAllRequestsByUser")]
     public async Task<ActionResult<ServerResponse<List<GetRequestDto>>>> GetAllRequestsByUser([FromQuery] RequestStatus status)
     {
         var user = await _userManager.GetUserAsync(User);
@@ -104,7 +104,7 @@ public class CollaborationController : ControllerBase
     }
 
 
-    [HttpGet("{requestId}")]
+    [HttpGet("GetRequestDetails/requestId")]
     public async Task<ActionResult<ServerResponse<RequestDetailsDto>>> GetRequestDetails(string requestId)
     {
         var response = await _collaborationService.GetRequestDetailsAsync(requestId);

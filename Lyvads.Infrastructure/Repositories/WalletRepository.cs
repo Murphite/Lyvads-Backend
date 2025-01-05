@@ -221,12 +221,15 @@ public class WalletRepository : IWalletRepository
             .FirstOrDefaultAsync(t => t.TrxRef == trxRef);
     }
 
-  
+
     public async Task UpdateTransactionAsync(Transaction transaction)
     {
+        _logger.LogInformation("Updating transaction with ID: {Id}, Status: {Status}", transaction.Id, transaction.Status);
         _context.Transactions.Update(transaction);
         await _context.SaveChangesAsync();
+        _logger.LogInformation("Transaction with ID: {Id} updated successfully.", transaction.Id);
     }
 
-  
+
+
 }

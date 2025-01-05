@@ -187,129 +187,210 @@ public class PaymentController : Controller
     //    return Ok(new { status = "success" });
     //}
 
-
     [HttpPost("paystack/webhook")]
     [AllowAnonymous]
     public async Task<IActionResult> PaystackWebhook()
     {
-        // Enable buffering to allow reading the request body multiple times
         HttpContext.Request.EnableBuffering();
-
-        // Read raw body from the request
         string rawBody;
+
         using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
         {
             rawBody = await reader.ReadToEndAsync();
         }
 
-        // Log the raw body for debugging purposes
-        _logger.LogInformation("Raw Webhook Body: {Body}", rawBody);
-
-        // Reset the stream position to allow further use of the request body
+        _logger.LogInformation("Webhook received with raw body: {RawBody}", rawBody);
         HttpContext.Request.Body.Position = 0;
 
-        // Deserialize the payload
         PaystackWebhookPayload payload;
         try
         {
             payload = JsonConvert.DeserializeObject<PaystackWebhookPayload>(rawBody);
-            if (payload == null || payload.Data == null)
+            if (payload?.Data == null)
             {
-                _logger.LogError("Webhook payload or Data is null.");
-                return BadRequest(new ServerResponse<string>
-                {
-                    IsSuccessful = false,
-                    ResponseCode = "400",
-                    ResponseMessage = "Invalid payload format."
-                });
+                _logger.LogError("Invalid webhook payload format.");
+                return BadRequest(new { status = "invalid_payload" });
             }
 
-            _logger.LogInformation("Deserialized Paystack webhook payload: {Payload}", JsonConvert.SerializeObject(payload));
+            _logger.LogInformation("Deserialized payload: {Payload}", JsonConvert.SerializeObject(payload));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to deserialize webhook payload.");
-            return BadRequest(new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "400",
-                ResponseMessage = "Invalid payload format."
-            });
+            return BadRequest(new { status = "invalid_payload_format" });
         }
 
-        // Validate status field
-        if (string.IsNullOrEmpty(payload.Data.Status))
+        string trxRef = payload.Data.Reference;
+        string status = payload.Data.Status;
+
+        if (string.IsNullOrEmpty(trxRef) || string.IsNullOrEmpty(status))
         {
-            _logger.LogWarning("Status field is null or empty.");
-            return BadRequest(new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "400",
-                ResponseMessage = "Invalid payload: Status is required."
-            });
+            _logger.LogWarning("Transaction reference or status is missing.");
+            return BadRequest(new { status = "missing_data" });
         }
 
-        // Store or update transaction
-        await _paymentService.StoreTransactionAsync(payload);
-
-        var trxRef = payload?.Data?.Reference;
-        var status = payload?.Data?.Status; // status can be 'success' or 'failed'
-
-        // Get the transaction from the database
         var transaction = await _walletRepository.GetTransactionByTrxRefAsync(trxRef);
         if (transaction == null)
         {
-            return BadRequest(new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "404",
-                ResponseMessage = "Transaction not found."
-            });
+            _logger.LogWarning("Transaction with reference {TrxRef} not found.", trxRef);
+            return BadRequest(new { status = "transaction_not_found" });
         }
 
-        // If the status is success, update the transaction and wallet
-        // If the status is success, update the transaction and make request status
+        if (transaction.Status)
+        {
+            _logger.LogInformation("Transaction with reference {TrxRef} already processed.", trxRef);
+            return Ok(new { status = "already_processed" });
+        }
+
         if (status == "success")
         {
-            // Update the transaction status
             transaction.Status = true;
-
-            // If there is no walletId, it means this transaction is related to a request and not wallet funding
-            if (transaction.WalletId == null)
+            if (transaction.WalletId != null)
             {
-                // Update the associated request (if applicable) to mark it as completed
-                var request = await _requestRepository.GetRequestByTransactionRefAsync(trxRef);
-                if (request != null)
-                {
-                    request.TransactionStatus = true; // Mark the request as completed
-                    await _requestRepository.UpdateRequestAsync(request);
-                }
-            }
-            else
-            {
-                // Now update the wallet balance
                 var wallet = await _walletRepository.GetWalletByIdAsync(transaction.WalletId);
                 if (wallet != null)
                 {
                     wallet.Balance += transaction.Amount;
                     await _walletRepository.UpdateWalletAsync(wallet);
+                    _logger.LogInformation("Wallet balance updated for WalletId: {WalletId}.", transaction.WalletId);
                 }
             }
 
-            // Finally, update the transaction in the database
             await _walletRepository.UpdateTransactionAsync(transaction);
-
+            _logger.LogInformation("Transaction with reference {TrxRef} marked as successful.", trxRef);
             return Ok(new { status = "success" });
         }
 
-        // If the payment failed, you can mark the transaction as failed or handle accordingly
         transaction.Status = false;
         await _walletRepository.UpdateTransactionAsync(transaction);
-
+        _logger.LogInformation("Transaction with reference {TrxRef} marked as failed.", trxRef);
         return Ok(new { status = "failure" });
-
-
     }
+
+
+
+    //[HttpPost("paystack/webhook")]
+    //[AllowAnonymous]
+    //public async Task<IActionResult> PaystackWebhook()
+    //{
+    //    // Enable buffering to allow reading the request body multiple times
+    //    HttpContext.Request.EnableBuffering();
+
+    //    // Read raw body from the request
+    //    string rawBody;
+    //    using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
+    //    {
+    //        rawBody = await reader.ReadToEndAsync();
+    //    }
+
+    //    // Log the raw body for debugging purposes
+    //    _logger.LogInformation("Raw Webhook Body: {Body}", rawBody);
+
+    //    // Reset the stream position to allow further use of the request body
+    //    HttpContext.Request.Body.Position = 0;
+
+    //    // Deserialize the payload
+    //    PaystackWebhookPayload payload;
+    //    try
+    //    {
+    //        payload = JsonConvert.DeserializeObject<PaystackWebhookPayload>(rawBody);
+    //        if (payload == null || payload.Data == null)
+    //        {
+    //            _logger.LogError("Webhook payload or Data is null.");
+    //            return BadRequest(new ServerResponse<string>
+    //            {
+    //                IsSuccessful = false,
+    //                ResponseCode = "400",
+    //                ResponseMessage = "Invalid payload format."
+    //            });
+    //        }
+
+    //        _logger.LogInformation("Deserialized Paystack webhook payload: {Payload}", JsonConvert.SerializeObject(payload));
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Failed to deserialize webhook payload.");
+    //        return BadRequest(new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "400",
+    //            ResponseMessage = "Invalid payload format."
+    //        });
+    //    }
+
+    //    // Validate status field
+    //    if (string.IsNullOrEmpty(payload.Data.Status))
+    //    {
+    //        _logger.LogWarning("Status field is null or empty.");
+    //        return BadRequest(new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "400",
+    //            ResponseMessage = "Invalid payload: Status is required."
+    //        });
+    //    }
+
+    //    // Store or update transaction
+    //    await _paymentService.StoreTransactionAsync(payload);
+
+    //    var trxRef = payload?.Data?.Reference;
+    //    var status = payload?.Data?.Status; // status can be 'success' or 'failed'
+
+    //    // Get the transaction from the database
+    //    var transaction = await _walletRepository.GetTransactionByTrxRefAsync(trxRef);
+    //    if (transaction == null)
+    //    {
+    //        return BadRequest(new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "404",
+    //            ResponseMessage = "Transaction not found."
+    //        });
+    //    }
+
+    //    // If the status is success, update the transaction and wallet
+    //    // If the status is success, update the transaction and make request status
+    //    if (status == "success")
+    //    {
+    //        // Update the transaction status
+    //        transaction.Status = true;
+
+    //        // If there is no walletId, it means this transaction is related to a request and not wallet funding
+    //        if (transaction.WalletId == null)
+    //        {
+    //            // Update the associated request (if applicable) to mark it as completed
+    //            var request = await _requestRepository.GetRequestByTransactionRefAsync(trxRef);
+    //            if (request != null)
+    //            {
+    //                request.TransactionStatus = true; // Mark the request as completed
+    //                await _requestRepository.UpdateRequestAsync(request);
+    //            }
+    //        }
+    //        else
+    //        {
+    //            // Now update the wallet balance
+    //            var wallet = await _walletRepository.GetWalletByIdAsync(transaction.WalletId);
+    //            if (wallet != null)
+    //            {
+    //                wallet.Balance += transaction.Amount;
+    //                await _walletRepository.UpdateWalletAsync(wallet);
+    //            }
+    //        }
+
+    //        // Finally, update the transaction in the database
+    //        await _walletRepository.UpdateTransactionAsync(transaction);
+
+    //        return Ok(new { status = "success" });
+    //    }
+
+    //    // If the payment failed, you can mark the transaction as failed or handle accordingly
+    //    transaction.Status = false;
+    //    await _walletRepository.UpdateTransactionAsync(transaction);
+
+    //    return Ok(new { status = "failure" });
+
+
+    //}
 
 }
 

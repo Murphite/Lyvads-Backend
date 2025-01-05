@@ -49,9 +49,9 @@ public class RequestRepository : IRequestRepository
     public IQueryable<Request> GetRequestsForCreator(string creatorId)
     {
         return _context.Requests
+                       .Include(r => r.Creator)
                        .Include(r => r.RegularUser)
-                            .ThenInclude(c => c.ApplicationUser)// Include the Regular User who made the request
-                       .Include(r => r.Creator) // Include the Creator
+                            .ThenInclude(c => c.ApplicationUser)                       
                        .Where(r => r.CreatorId == creatorId);
     }
 
