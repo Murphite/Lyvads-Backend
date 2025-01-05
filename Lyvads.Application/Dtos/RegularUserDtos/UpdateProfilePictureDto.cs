@@ -1,13 +1,19 @@
 ﻿
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace Lyvads.Application.Dtos.RegularUserDtos;
 
 public class UpdateProfilePictureDto
 {
+    [Required]
     public IFormFile? NewProfilePictureUrl { get; set; }
 }
 
+public class UpdateUserProfilePictureDto
+{
+    public IFormFile? NewProfilePictureUrl { get; set; }
+}
 
 public class UpdateProfilePicResponseDto
 {

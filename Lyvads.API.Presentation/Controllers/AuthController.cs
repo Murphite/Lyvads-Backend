@@ -75,7 +75,7 @@ public class AuthController : ControllerBase
 
 
     [HttpPost("RegisterUser")]
-    public async Task<IActionResult> RegisterUser([FromBody] RUserCompleteRegistrationDto dto)
+    public async Task<IActionResult> RegisterUser([FromForm] RUserCompleteRegistrationDto dto, [FromForm] UpdateUserProfilePictureDto picdto)
     {
         _logger.LogInformation($"******* Inside the RegisterUser Controller Method ********");
 
@@ -101,7 +101,25 @@ public class AuthController : ControllerBase
             Email = verifiedEmail
         };
 
-        var result = await _authService.RegisterUser(registerUserDto);
+        // Validate the file (photo) if provided
+        if (picdto.NewProfilePictureUrl != null && !IsValidFile(picdto.NewProfilePictureUrl))
+        {
+            return BadRequest(new { message = "Invalid File Extension" });
+        }
+
+        // Convert IFormFile to byte array
+        byte[] fileBytes = null!;
+        if (picdto.NewProfilePictureUrl != null)
+        {
+            using (var stream = new MemoryStream())
+            {
+                await picdto.NewProfilePictureUrl.CopyToAsync(stream);
+                fileBytes = stream.ToArray();
+            }
+        }
+
+
+        var result = await _authService.RegisterUser(registerUserDto, picdto.NewProfilePictureUrl!);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
@@ -129,7 +147,6 @@ public class AuthController : ControllerBase
             ConfirmPassword = dto.ConfirmPassword,
             Email = email,
             Bio = dto.Bio ?? string.Empty,
-            //ProfilePicture = picdto.NewProfilePictureUrl,
             Location = dto.Location ?? string.Empty,
             Occupation = dto.Occupation ?? string.Empty,
             SocialHandles = dto.SocialHandles, // Pass through even if null
@@ -331,71 +348,6 @@ public class AuthController : ControllerBase
         var response = await _authService.ResetAdminPassword(resetPasswordDto, email);
         return Ok(response);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //[HttpGet("ConfirmEmail")]
-    //public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token)
-    //{
-    //    _logger.LogInformation($"******* Inside the ConfirmEmail Controller Method ********");
-
-    //    var result = await _authService.ConfirmEmail(email, token);
-
-    //    if (result.IsFailure)
-    //        return BadRequest(ResponseDto<object>.Failure(result.Errors));
-
-    //    return Ok(ResponseDto<object>.Success(result.Message));
-    //}
-
-    //[HttpPost("ChangePassword")]
-    //public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
-    //{
-    //    _logger.LogInformation($"******* Inside the Change Password Controller Method ********");
-
-    //    if (!ModelState.IsValid)
-    //    {
-    //        return BadRequest(ResponseDto<object>.Failure(ModelState.GetErrors()));
-    //    }
-    //    var changePasswordResult = await _authService.ChangePasswordAsync(changePasswordDto);
-    //    if (changePasswordResult.IsFailure)
-    //        return BadRequest(ResponseDto<object>.Failure(changePasswordResult.Errors));
-
-    //    return Ok(ResponseDto<object>.Success(changePasswordResult.Message));
-    //}
-
-    //[HttpPost("ResetPassword")]
-    //public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
-    //{
-    //    _logger.LogInformation($"******* Inside the Reset Password Controller Method ********");
-
-    //    if (!ModelState.IsValid)
-    //    {
-    //        return BadRequest(ResponseDto<object>.Failure(ModelState.GetErrors()));
-    //    }
-
-    //    var resetPasswordResult = await _authService.ResetPasswordAsync(resetPasswordDto);
-
-    //    if (resetPasswordResult.IsFailure)
-    //        return BadRequest(ResponseDto<object>.Failure(resetPasswordResult.Errors));
-
-    //    return Ok(ResponseDto<object>.Success(resetPasswordResult));
-    //}
-
 
 
     private bool IsValidFile(IFormFile file)

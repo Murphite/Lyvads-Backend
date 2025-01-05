@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Lyvads.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241216144733_InitialCommit")]
+    [Migration("20250104142650_InitialCommit")]
     partial class InitialCommit
     {
         /// <inheritdoc />

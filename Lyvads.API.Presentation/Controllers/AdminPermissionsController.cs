@@ -51,6 +51,7 @@ public class AdminPermissionsController : Controller
         return Ok(result);
     }
 
+   
     [HttpPost("grant-permissions")]
     public async Task<IActionResult> GrantPermissionsToAdminAsync([FromBody] AdminPermissionsDto permissionsDto, 
         [FromHeader] string targetAdminId)
@@ -97,11 +98,7 @@ public class AdminPermissionsController : Controller
             return BadRequest(result);
 
         return Ok(result);
-    }
-
-
-
-    
+    }    
 
 
     [HttpPost("add-admin-user")]
@@ -134,5 +131,22 @@ public class AdminPermissionsController : Controller
             return BadRequest(result);
 
         return Ok(result);
+    }
+
+    [HttpDelete("delete-admin-user")]
+    public async Task<IActionResult> DeleteUser(string userId)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        var response = await _adminPermissionsService.DeleteAdminUserAsync(userId);
+        if (!response.IsSuccessful)
+        {
+            _logger.LogError("User deletion failed: {Error}", response.ErrorResponse.ResponseDescription);
+            return StatusCode(500, response.ErrorResponse);
+        }
+        return Ok(response);
     }
 }

@@ -12,23 +12,7 @@ namespace Lyvads.Application.Implementations;
 public class MediaService : IMediaService
 {
     private readonly Cloudinary _cloudinary;
-
-    //public MediaService(IConfiguration config)
-    //{
-    //    var cloudName = config.GetSection("Cloudinary:CloudName").Value;
-    //    var apiKey = config.GetSection("Cloudinary:ApiKey").Value;
-    //    var apiSecret = config.GetSection("Cloudinary:ApiSecret").Value;
-
-    //    Account account = new Account
-    //    {
-    //        ApiKey = apiKey,
-    //        ApiSecret = apiSecret,
-    //        Cloud = cloudName
-    //    };
-
-    //    _cloudinary = new Cloudinary(account);
-    //}
-
+    
     public MediaService(IOptions<CloudinarySettings> cloudinarySettings)
     {
         var account = new Account(
@@ -36,7 +20,10 @@ public class MediaService : IMediaService
             cloudinarySettings.Value.ApiKey,
             cloudinarySettings.Value.ApiSecret);
 
-        _cloudinary = new Cloudinary(account);
+        _cloudinary = new Cloudinary(account)
+        {
+            Api = { Secure = true } // Ensures HTTPS URLs
+        };
     }
 
     public async Task<Dictionary<string, string>> UploadImageAsync(IFormFile photo, string folderName)
@@ -88,7 +75,7 @@ public class MediaService : IMediaService
             response.Add("Code", "200");
             response.Add("Message", "Upload successful");
             response.Add("PublicId", uploadResult.PublicId);
-            response.Add("Url", uploadResult.Url.ToString());
+            response.Add("Url", uploadResult.SecureUrl.ToString()); // Use SecureUrl for HTTPS
 
             return response;
         }
@@ -155,7 +142,7 @@ public class MediaService : IMediaService
             response.Add("Code", "200");
             response.Add("Message", "Upload successful");
             response.Add("PublicId", uploadResult.PublicId);
-            response.Add("Url", uploadResult.Url.ToString());
+            response.Add("Url", uploadResult.SecureUrl.ToString()); // Use SecureUrl for HTTPS
 
             return response;
         }

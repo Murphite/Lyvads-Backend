@@ -11223,11 +11223,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj",
+      "projectUniqueName": "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj",
       "projectName": "Lyvads.API.Presentation",
-      "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj",
+      "projectPath": "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.API.Presentation\\Lyvads.API.Presentation.csproj",
       "packagesPath": "C:\\Users\\Admin\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.API.Presentation\\obj\\",
+      "outputPath": "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.API.Presentation\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Admin\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -11245,14 +11245,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Lyvads.Application.csproj": {
-              "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Application\\Lyvads.Application.csproj"
+            "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.Application\\Lyvads.Application.csproj": {
+              "projectPath": "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.Application\\Lyvads.Application.csproj"
             },
-            "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj": {
-              "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj"
+            "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.Infrastructure\\Lyvads.Infrastructure.csproj"
             },
-            "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\Lyvads.Shared.csproj": {
-              "projectPath": "C:\\Users\\Admin\\source\\repos\\Lyvads.API.Presentation\\Lyvads.Shared\\Lyvads.Shared.csproj"
+            "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.Shared\\Lyvads.Shared.csproj": {
+              "projectPath": "C:\\Users\\Admin\\Documents\\OpenSourceProjects\\LyvadsProject\\Lyvads-Backend\\Lyvads.Shared\\Lyvads.Shared.csproj"
             }
           }
         }
