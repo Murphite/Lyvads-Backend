@@ -36,7 +36,8 @@ public class RequestDetailsDto
     public string CreatorFullName { get; set; } = default!;
     public string RequestId { get; set; } = default!;
     public string? RequestType { get; set; }
-    public RequestStatus? Status { get; set; }
+    public string? Status { get; set; }
+    public decimal FastTractFee { get; set; }
     public string? VideoUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 

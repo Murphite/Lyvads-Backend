@@ -43,8 +43,11 @@ public class RequestRepository : IRequestRepository
     public async Task<Request?> GetRequestByIdAsync(string requestId)
     {
         return await _context.Requests
+            .Include(r => r.Creator)
+            .ThenInclude(c => c.ApplicationUser) // Ensure ApplicationUser is loaded
             .FirstOrDefaultAsync(r => r.Id == requestId);
     }
+
 
     public IQueryable<Request> GetRequestsForCreator(string creatorId)
     {

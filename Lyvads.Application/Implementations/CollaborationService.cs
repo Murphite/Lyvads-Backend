@@ -389,13 +389,16 @@ public class CollaborationService : ICollaborationService
         var requestDetails = new RequestDetailsDto
         {
             RequestId = request.Id,
-            CreatorFullName = $"{request.Creator?.ApplicationUser?.FirstName} {request.Creator?.ApplicationUser?.LastName}",
+            CreatorFullName = $"{request.Creator?.ApplicationUser?.FirstName} {request.Creator?.ApplicationUser?.LastName}".Trim(),
             RequestType = request.RequestType,
             VideoUrl = request.VideoUrl,
             CreatedAt = request.CreatedAt.UtcDateTime,
             Script = request.Script,
-
+            Amount = request.TotalAmount,
+            Status = request.Status.ToString(),
+            FastTractFee = request.FastTrackFee,
         };
+
 
         return new ServerResponse<RequestDetailsDto>
         {
