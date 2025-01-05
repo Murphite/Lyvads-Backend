@@ -143,7 +143,7 @@ public class PaymentGatewayService : IPaymentGatewayService
             Email = email,
             Reference = Generate().ToString(), 
             Currency = "NGN",
-            CallbackUrl = "https://lyvad-landing-page.vercel.app/",
+            CallbackUrl = "https://radiksez.admin.lyvads.com",
 
         };
 

@@ -30,34 +30,6 @@ public class AdminDashboardController : Controller
     }
 
 
-    //[HttpPost("register")]
-    //public async Task<ActionResult<ServerResponse<AddUserResponseDto>>> RegisterAdmin([FromBody] RegisterAdminDto registerAdminDto)
-    //{
-    //    if (registerAdminDto == null)
-    //    {
-    //        _logger.LogWarning("RegisterAdmin called with null RegisterAdminDto");
-    //        return BadRequest(new ServerResponse<AddUserResponseDto>
-    //        {
-    //            IsSuccessful = false,
-    //            ErrorResponse = new ErrorResponse
-    //            {
-    //                ResponseCode = "Input.Error",
-    //                ResponseMessage = "Invalid input data"
-    //            }
-    //        });
-    //    }
-
-    //    var response = await _adminService.RegisterAdmin(registerAdminDto);
-
-    //    if (!response.IsSuccessful)
-    //    {
-    //        _logger.LogWarning("Admin registration failed: {ResponseCode}, {ResponseMessage}", response.ErrorResponse.ResponseCode, response.ErrorResponse.ResponseMessage);
-    //        return StatusCode(int.Parse(response.ErrorResponse.ResponseCode), response);
-    //    }
-
-    //    return Ok(response);
-    //}
-
     [HttpGet("dashboard-summary")]
     public async Task<ActionResult<ServerResponse<DashboardSummaryDto>>> GetDashboardSummary()
     {

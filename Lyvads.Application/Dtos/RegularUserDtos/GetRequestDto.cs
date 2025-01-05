@@ -46,7 +46,11 @@ public class MakeRequestDetailsDto
     public string? Script { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public string? PaymentMethod { get; set; }
-    public decimal RequestAmount { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal WithholdingTax { get; set; }
+    public decimal WatermarkFee { get; set; }
+    public decimal CreatorPostFee { get; set; }
+    public decimal FastTrackFee { get; set; }
     public decimal TotalAmount { get; set; }
     public string? PaymentSummary { get; set; }
     public string? PaymentReference { get; set; }
