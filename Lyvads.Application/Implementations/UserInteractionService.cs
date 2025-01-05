@@ -100,7 +100,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
             var roles = await _userManager.GetRolesAsync(user);
             _logger.LogInformation("User roles for {UserId}: {Roles}", user.Id, string.Join(", ", roles));
 
-            if (!roles.Contains("REGULARUSER"))
+            if (!roles.Any(role => role.Equals("REGULARUSER", StringComparison.OrdinalIgnoreCase)))
             {
                 _logger.LogWarning("User is not a regular user.");
                 return new ServerResponse<MakeRequestDetailsDto>
@@ -113,6 +113,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                     }
                 };
             }
+
 
             var creator = await _creatorRepository.GetCreatorByIdAsync(creatorId);
             if (creator == null)
