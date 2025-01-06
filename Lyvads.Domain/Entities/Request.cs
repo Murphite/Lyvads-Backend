@@ -31,4 +31,7 @@ public class Request : Entity, IAuditable
     public RegularUser? RegularUser { get; set; }
     public string? CreatorId { get; set; }
     public Creator Creator { get; set; } = default!;
+
+    public string? DeclineReason { get; set; }
+    public string? DeclineFeedback { get; set; }
 }

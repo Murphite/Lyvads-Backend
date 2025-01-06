@@ -35,8 +35,11 @@ public class RequestDetailsDto
     public decimal Amount { get; set; }
     public decimal FastTrackFee { get; set; }
     public string CreatorFullName { get; set; } = default!;
-    public string CreatorProfilePic { get; set; } = default!;
+    public string CreatorProfilePic { get; set; } = default!; 
+    public string RegularUserFullName { get; set; } = default!;
+    public string RegularUserProfilePic { get; set; } = default!;
     public string CreatorAppUserName { get; set; } = default!;
+    public string RegularUserAppUserName { get; set; } = default!;
     public string RequestId { get; set; } = default!;
     public string? RequestType { get; set; }
     public string? Status { get; set; }
@@ -56,6 +59,7 @@ public class ChargeTransactionDetailsDto
 
 public class MakeRequestDetailsDto
 {
+    public string? RequestId { get; set; }
     public string? CreatorId { get; set; }
     public string? CreatorName { get; set; }
     public string? RequestType { get; set; }
@@ -69,6 +73,7 @@ public class MakeRequestDetailsDto
     public decimal FastTrackFee { get; set; }
     public decimal TotalAmount { get; set; }
     public string? PaymentSummary { get; set; }
+    public bool Status { get; set; }
     public string? PaymentReference { get; set; }
     public string? AuthorizationUrl { get; set; }
     public string? CancelUrl { get; set; }

@@ -218,8 +218,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                     UpdatedAt = DateTimeOffset.UtcNow,
                     PaymentMethod = AppPaymentMethod.Paystack,
                     TotalAmount = totalAmount,
-                    RequestAmount = baseAmount,
-                    TransactionStatus = false // Transaction is pending until payment is confirmed
+                    RequestAmount = baseAmount
                 };
 
                 var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
@@ -278,12 +277,14 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 // Return response including authorization URL for Paystack
                 var requestDetailsWithSession = new MakeRequestDetailsDto
                 {
+                    RequestId = request.Id,
                     CreatorId = creatorId,
                     CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
                     RequestType = createRequestDto.RequestType,
                     Script = createRequestDto.Script,
                     CreatedAt = DateTimeOffset.UtcNow,
                     PaymentMethod = payment.ToString(),
+                    Status = transact.Status,
                     TotalAmount = totalAmount,
                     Subtotal = baseAmount,
                     WithholdingTax = feeDetails.WithholdingTax,
@@ -334,8 +335,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                         PaymentMethod = AppPaymentMethod.Wallet,
                         TotalAmount = totalAmount,
                         RequestAmount = baseAmount,
-                        WalletId = user.Wallet.Id,
-                        TransactionStatus = true
+                        WalletId = user.Wallet.Id
                     };
 
                     var (requestResultIsSuccess, requestResultErrorMessage) = await _requestRepository.CreateRequestAsync(request);
@@ -365,12 +365,14 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
 
                         var requestDetails = new MakeRequestDetailsDto
                         {
+                            RequestId = request.Id,
                             CreatorId = creatorId,
                             CreatorName = $"{creator.ApplicationUser!.FirstName} {creator.ApplicationUser.LastName}",
                             RequestType = createRequestDto.RequestType,
                             Script = createRequestDto.Script,
                             CreatedAt = DateTimeOffset.UtcNow,
                             PaymentMethod = payment.ToString(),
+                            Status = transact.Status,
                             TotalAmount = totalAmount,
                             Subtotal = baseAmount,
                             WithholdingTax = feeDetails.WithholdingTax,
@@ -537,7 +539,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 UpdatedAt = DateTimeOffset.UtcNow,
                 TransactionId = requestId,
                 Transaction = transaction,
-                Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                Status = transaction.Status ? CTransStatus.NotPaid : CTransStatus.Paid,
                 ApplicationUserId = transaction.ApplicationUserId!
             });
         }
@@ -554,7 +556,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 UpdatedAt = DateTimeOffset.UtcNow,
                 TransactionId = requestId,
                 Transaction = transaction,
-                Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                Status = transaction.Status ? CTransStatus.NotPaid : CTransStatus.Paid,
                 ApplicationUserId = transaction.ApplicationUserId!
             });
         }
@@ -570,7 +572,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 UpdatedAt = DateTimeOffset.UtcNow,
                 TransactionId = requestId,
                 Transaction = transaction,
-                Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                Status = transaction.Status ? CTransStatus.NotPaid : CTransStatus.Paid,
                 ApplicationUserId = transaction.ApplicationUserId!
             });
         }
@@ -586,7 +588,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 UpdatedAt = DateTimeOffset.UtcNow,
                 TransactionId = requestId,
                 Transaction = transaction,
-                Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                Status = transaction.Status ? CTransStatus.NotPaid : CTransStatus.Paid,
                 ApplicationUserId = transaction.ApplicationUserId!
             });
         }

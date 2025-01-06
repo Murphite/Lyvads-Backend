@@ -401,7 +401,10 @@ public class CollaborationService : ICollaborationService
         var requestDetails = new RequestDetailsDto
         {
             RequestId = request.Id,
-            CreatorFullName = $"{request.Creator?.ApplicationUser?.FirstName} {request.Creator?.ApplicationUser?.LastName}".Trim(),
+            RegularUserFullName = $"{request.RegularUser?.ApplicationUser?.FirstName} {request.RegularUser?.ApplicationUser?.LastName}".Trim(),
+            RegularUserProfilePic = request.RegularUser?.ApplicationUser?.ImageUrl!,
+            RegularUserAppUserName = request.Creator?.ApplicationUser?.AppUserName!,
+            CreatorFullName = $"{request.Creator?.ApplicationUser?.FirstName} {request.Creator?.ApplicationUser?.LastName}".Trim(),      
             CreatorProfilePic = request.Creator?.ApplicationUser?.ImageUrl!,
             CreatorAppUserName = request.Creator?.ApplicationUser?.AppUserName!,
             RequestType = request.RequestType,
@@ -424,6 +427,68 @@ public class CollaborationService : ICollaborationService
             Data = requestDetails
         };
     }
+
+
+    public async Task<ServerResponse<DeclineResponseDto>> DeclineRequestAsync(DeclineRequestDto declineRequestDto)
+    {
+        // Retrieve the request from the database
+        var request = await _requestRepository.GetRequestByIdAsync(declineRequestDto.RequestId!);
+
+        if (request == null)
+        {
+            return new ServerResponse<DeclineResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Request not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "404",
+                    ResponseMessage = "Request not found."
+                }
+            };
+        }
+
+        // Check if the creator is sending the video
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            _logger.LogWarning("User not found.");
+            return new ServerResponse<DeclineResponseDto>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "User.Error",
+                    ResponseMessage = "User not found"
+                }
+            };
+        }
+
+        // Update the request status
+        request.Status = RequestStatus.Declined;
+        request.DeclineReason = declineRequestDto.DeclineReason;
+        request.DeclineFeedback = declineRequestDto.Feedback;
+
+        _repository.Update(request);
+        await _unitOfWork.SaveChangesAsync();
+
+        return new ServerResponse<DeclineResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = "Request declined successfully.",
+            Data = new DeclineResponseDto
+            {
+                UserId = user.Id,
+                RequestId = request.Id,
+                Status = request.Status.ToString(),
+                DeclineReason = request.DeclineReason,
+                Feedback = request.DeclineFeedback
+            }
+        };
+    }
+
 
     public async Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string userId, string requestId, DisputeReasons disputeReason, OpenDisputeDto disputeDto)
     {

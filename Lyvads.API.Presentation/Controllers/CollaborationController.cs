@@ -1,4 +1,5 @@
-﻿using Lyvads.Application.Dtos.CreatorDtos;
+﻿using Lyvads.API.Presentation.Dtos;
+using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
@@ -69,6 +70,7 @@ public class CollaborationController : ControllerBase
         return Ok(response);
     }
 
+    
     [HttpGet("GetAllRequestsByUser")]
     public async Task<ActionResult<ServerResponse<List<GetRequestDto>>>> GetAllRequestsByUser([FromQuery] RequestStatus status)
     {
@@ -180,7 +182,43 @@ public class CollaborationController : ControllerBase
         return validExtensions.Contains(extension);
     }
 
-   
+    [HttpPost("decline-request")]
+    public async Task<ActionResult<ServerResponse<List<DeclineResponseDto>>>> DeclineRequest([FromBody] DeclineRequestDto declineRequestDto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return new ServerResponse<List<DeclineResponseDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User not logged in.",
+                Data = null!
+            };
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || roles.Contains("RegularUser"))
+        {
+            return new ServerResponse<List<DeclineResponseDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "403",
+                ResponseMessage = "Only Creators are authorized.",
+                Data = null!
+            };
+        }
+
+
+        var result = await _collaborationService.DeclineRequestAsync(declineRequestDto);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+
     [HttpGet("fetch-disputes")]
     public async Task<IActionResult> FetchDisputesByCreator()
     {

@@ -40,6 +40,11 @@ public class RequestRepository : IRequestRepository
         return _context.Requests; 
     }
 
+    public async Task<Request> GetRequestById(string requestId)
+    {
+        return await _context.Requests.FirstOrDefaultAsync(r => r.Id == requestId);
+    }
+
     public async Task<Request?> GetRequestByIdAsync(string requestId)
     {
         return await _context.Requests
@@ -49,8 +54,6 @@ public class RequestRepository : IRequestRepository
                 .ThenInclude(t => t.ChargeTransactions) 
             .FirstOrDefaultAsync(r => r.Id == requestId);
     }
-
-
 
     public IQueryable<Request> GetRequestsForCreator(string creatorId)
     {
@@ -78,6 +81,7 @@ public class RequestRepository : IRequestRepository
 
         return request;
     }
+
 
 
     public async Task UpdateRequestAsync(Request request)
