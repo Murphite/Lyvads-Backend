@@ -16,7 +16,7 @@ public class Transaction : Entity, IAuditable
     public DateTimeOffset UpdatedAt { get; set; }
 
     public string? RequestId { get; set; }
-    public Request? Request { get; set; } 
+    public Request? Request { get; set; }
 
     public string? WalletId { get; set; }
     public Wallet Wallet { get; set; } = default!;
@@ -24,7 +24,7 @@ public class Transaction : Entity, IAuditable
     public string? ApplicationUserId { get; set; }
     public ApplicationUser ApplicationUser { get; set; } = default!;
 
+    public ICollection<ChargeTransaction> ChargeTransactions { get; set; } = new List<ChargeTransaction>();
 
     public TransactionType Type { get; set; }
-        
 }

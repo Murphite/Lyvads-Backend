@@ -33,14 +33,25 @@ public class RequestDetailsDto
 {
     public string Script { get; set; } = default!;
     public decimal Amount { get; set; }
+    public decimal FastTrackFee { get; set; }
     public string CreatorFullName { get; set; } = default!;
+    public string CreatorProfilePic { get; set; } = default!;
+    public string CreatorAppUserName { get; set; } = default!;
     public string RequestId { get; set; } = default!;
     public string? RequestType { get; set; }
     public string? Status { get; set; }
     public decimal FastTractFee { get; set; }
     public string? VideoUrl { get; set; }
     public DateTime CreatedAt { get; set; }
+    public List<ChargeTransactionDetailsDto> ChargeTransactions { get; set; } = new();
+}
 
+public class ChargeTransactionDetailsDto
+{
+    public string? ChargeName { get; set; }
+    public decimal Amount { get; set; }
+    public string? Description { get; set; }
+    public string Status { get; set; } = default!;
 }
 
 public class MakeRequestDetailsDto

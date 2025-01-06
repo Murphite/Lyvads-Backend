@@ -44,9 +44,12 @@ public class RequestRepository : IRequestRepository
     {
         return await _context.Requests
             .Include(r => r.Creator)
-            .ThenInclude(c => c.ApplicationUser) // Ensure ApplicationUser is loaded
+                .ThenInclude(c => c.ApplicationUser)
+            .Include(r => r.Transactions)
+                .ThenInclude(t => t.ChargeTransactions) 
             .FirstOrDefaultAsync(r => r.Id == requestId);
     }
+
 
 
     public IQueryable<Request> GetRequestsForCreator(string creatorId)

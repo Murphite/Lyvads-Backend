@@ -386,17 +386,33 @@ public class CollaborationService : ICollaborationService
             };
         }
 
+        var chargeTransactions = request.Transactions
+        .SelectMany(t => t.ChargeTransactions)
+        .Select(ct => new ChargeTransactionDetailsDto
+        {
+            ChargeName = ct.ChargeName,
+            Amount = ct.Amount,
+            Description = ct.Description,
+            Status = ct.Status.ToString()
+        })
+        .ToList();
+
+
         var requestDetails = new RequestDetailsDto
         {
             RequestId = request.Id,
             CreatorFullName = $"{request.Creator?.ApplicationUser?.FirstName} {request.Creator?.ApplicationUser?.LastName}".Trim(),
+            CreatorProfilePic = request.Creator?.ApplicationUser?.ImageUrl!,
+            CreatorAppUserName = request.Creator?.ApplicationUser?.AppUserName!,
             RequestType = request.RequestType,
+            FastTrackFee = request.FastTrackFee,
             VideoUrl = request.VideoUrl,
             CreatedAt = request.CreatedAt.UtcDateTime,
             Script = request.Script,
             Amount = request.TotalAmount,
             Status = request.Status.ToString(),
             FastTractFee = request.FastTrackFee,
+            ChargeTransactions = chargeTransactions
         };
 
 
