@@ -20,7 +20,7 @@ public class Request : Entity, IAuditable
     public AppPaymentMethod PaymentMethod { get; set; }
     public string? RequestType { get; set; }
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
-    public bool TransactionStatus { get; set; }
+    //public bool TransactionStatus { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public string? VideoUrl { get; set; }

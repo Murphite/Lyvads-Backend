@@ -72,7 +72,7 @@ public class MakeRequestDetailsDto
     public decimal CreatorPostFee { get; set; }
     public decimal FastTrackFee { get; set; }
     public decimal TotalAmount { get; set; }
-    public string? PaymentSummary { get; set; }
+    //public string? PaymentSummary { get; set; }
     public bool Status { get; set; }
     public string? PaymentReference { get; set; }
     public string? AuthorizationUrl { get; set; }

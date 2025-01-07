@@ -1,4 +1,5 @@
 ﻿
+using Lyvads.Domain.Responses;
 using Microsoft.AspNetCore.Http;
 
 namespace Lyvads.Application.Dtos.AuthDtos;
@@ -6,15 +7,14 @@ namespace Lyvads.Application.Dtos.AuthDtos;
 public class RegisterUserResponseDto
 {
     public string? UserId { get; set; }
+    public string? FullName { get; set; }
     public string? AppUserName { get; set; }
     public string? Email { get; set; }
     public string? Location { get; set; }
-    public string? Message { get; set; }
     public string? Role { get; set; }
     public string? Token { get; set; }   
-    public string? ProfilePictureUrl { get; set; }
+    public string? ProfilePicture { get; set; }
 }
-
 
 public class AddUserResponseDto
 {

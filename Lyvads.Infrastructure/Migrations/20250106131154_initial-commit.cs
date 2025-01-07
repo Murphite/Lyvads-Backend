@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Lyvads.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCommit : Migration
+    public partial class initialcommit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -684,13 +684,14 @@ namespace Lyvads.Infrastructure.Migrations
                     PaymentMethod = table.Column<int>(type: "int", nullable: false),
                     RequestType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    TransactionStatus = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     VideoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     WalletId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     RegularUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatorId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    CreatorId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    DeclineReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeclineFeedback = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

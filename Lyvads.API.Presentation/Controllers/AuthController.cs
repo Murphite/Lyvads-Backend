@@ -101,10 +101,13 @@ public class AuthController : ControllerBase
             Email = verifiedEmail
         };
 
-        // Validate the file (photo) if provided
-        if (picdto.NewProfilePictureUrl != null && !IsValidFile(picdto.NewProfilePictureUrl))
+        // Validate and process the profile picture only if it is provided
+        if (picdto.NewProfilePictureUrl != null)
         {
-            return BadRequest(new { message = "Invalid File Extension" });
+            if (!IsValidFile(picdto.NewProfilePictureUrl))
+            {
+                return BadRequest(new { message = "Invalid File Extension" });
+            }
         }
 
         // Convert IFormFile to byte array
@@ -119,7 +122,7 @@ public class AuthController : ControllerBase
         }
 
 
-        var result = await _authService.RegisterUser(registerUserDto, picdto.NewProfilePictureUrl!);
+        var result = await _authService.RegisterUser(registerUserDto, picdto.NewProfilePictureUrl);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);

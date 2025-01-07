@@ -467,7 +467,7 @@ public class CollaborationService : ICollaborationService
 
         // Update the request status
         request.Status = RequestStatus.Declined;
-        request.DeclineReason = declineRequestDto.DeclineReason;
+        request.DeclineReason = string.Join(", ", declineRequestDto.DeclineReasons);
         request.DeclineFeedback = declineRequestDto.Feedback;
 
         _repository.Update(request);

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Lyvads.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250104142650_InitialCommit")]
-    partial class InitialCommit
+    [Migration("20250106131154_initial-commit")]
+    partial class initialcommit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -814,6 +814,12 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<string>("CreatorId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("DeclineFeedback")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeclineReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("FastTrackFee")
                         .HasColumnType("decimal(18, 2)");
 
@@ -838,9 +844,6 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18, 2)");
-
-                    b.Property<bool>("TransactionStatus")
-                        .HasColumnType("bit");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -1339,7 +1342,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Lyvads.Domain.Entities.Transaction", "Transaction")
-                        .WithMany()
+                        .WithMany("ChargeTransactions")
                         .HasForeignKey("TransactionId");
 
                     b.Navigation("ApplicationUser");
@@ -1771,6 +1774,11 @@ namespace Lyvads.Infrastructure.Migrations
             modelBuilder.Entity("Lyvads.Domain.Entities.Request", b =>
                 {
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Lyvads.Domain.Entities.Transaction", b =>
+                {
+                    b.Navigation("ChargeTransactions");
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Wallet", b =>

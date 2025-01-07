@@ -33,24 +33,25 @@ public class DataGenerator
         {
             try
             {
-                //await GenerateDisputes(10);
+                
                 await GenerateCreators(20);
                 await GenerateRegularUsers(20);
                 await GenerateAdmins(10);
                 await GeneratePosts(20);
                 await GenerateComments(20);
+                //await GenerateDisputes(10);
                 //await GenerateContent(20);
                 await GenerateLikes(10);
                 await GenerateRates(10);
                 await GenerateExclusiveDeals(10);
-               // await GenerateWallets(10);
+               //await GenerateWallets(10);
                 await GenerateFavorites(10);
                 await GenerateFollows(10);
                 await GenerateImpressions(20);
                 await GenerateMedias(10);
                 await GeneratePromotions(10);           
                 await GenerateRequests(10);                
-               // await GenerateDisputes(10);
+               //await GenerateDisputes(10);
                 await GenerateTransactions(20);                
                 await GenerateCharges(10);
                 await GenerateChargeTransactions(10);
@@ -83,7 +84,6 @@ public class DataGenerator
             .RuleFor(p => p.UpdatedAt, f => f.Date.RecentOffset(30))
             .RuleFor(p => p.PostStatus, f => f.PickRandom<PostStatus>());
 
-        // Fetch existing Creator IDs to assign to posts
         var creatorIds = await _context.Creators.Select(c => c.Id).ToListAsync();
 
         if (!creatorIds.Any())
@@ -91,16 +91,14 @@ public class DataGenerator
             throw new InvalidOperationException("No creators found in the database.");
         }
 
-        // Generate posts and assign a valid CreatorId
         for (var i = 0; i < count; i++)
         {
             var post = postFaker.Generate();
-            var randomIndex = new Faker().Random.Int(0, creatorIds.Count - 1); // Generate a random index using a new Faker instance
-            post.CreatorId = creatorIds[randomIndex]; // Assign random existing CreatorId using the generated index
+            var randomIndex = new Faker().Random.Int(0, creatorIds.Count - 1);
+            post.CreatorId = creatorIds[randomIndex];
             posts.Add(post);
         }
 
-        // Add the generated posts to the database
         await _context.Posts.AddRangeAsync(posts);
         await _context.SaveChangesAsync();
     }
@@ -232,45 +230,45 @@ public class DataGenerator
         await _context.SaveChangesAsync();
     }
 
-    private async Task GenerateChargeTransactions(int count = 10)
-    {
-        // Retrieve existing ApplicationUser IDs and Transaction IDs
-        var userIds = await _context.Users.Select(u => u.Id).ToListAsync();
-        var transactionIds = await _context.Transactions.Select(t => t.Id).ToListAsync();
+    //private async Task GenerateChargeTransactions(int count = 10)
+    //{
+    //    // Retrieve existing ApplicationUser IDs and Transaction IDs
+    //    var userIds = await _context.Users.Select(u => u.Id).ToListAsync();
+    //    var transactionIds = await _context.Transactions.Select(t => t.Id).ToListAsync();
 
-        if (!userIds.Any())
-        {
-            throw new InvalidOperationException("No users found in the database to associate with charge transactions.");
-        }
+    //    if (!userIds.Any())
+    //    {
+    //        throw new InvalidOperationException("No users found in the database to associate with charge transactions.");
+    //    }
 
-        if (!transactionIds.Any())
-        {
-            throw new InvalidOperationException("No transactions found in the database to associate with charge transactions.");
-        }
+    //    if (!transactionIds.Any())
+    //    {
+    //        throw new InvalidOperationException("No transactions found in the database to associate with charge transactions.");
+    //    }
 
-        var chargeTransactions = new List<ChargeTransaction>();
-        var chargeTransactionFaker = new Faker<ChargeTransaction>()
-            .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
-            .RuleFor(c => c.ChargeName, f => f.Commerce.ProductName())
-            .RuleFor(c => c.Amount, f => f.Finance.Amount(10, 100))
-            .RuleFor(c => c.Description, f => f.Lorem.Sentence())
-            .RuleFor(c => c.Status, f => f.PickRandom<CTransStatus>())
-            .RuleFor(c => c.CreatedAt, f => f.Date.PastOffset())
-            .RuleFor(c => c.UpdatedAt, f => f.Date.RecentOffset())
-            .RuleFor(c => c.ApplicationUserId, f => f.PickRandom(userIds)) // Pick valid ApplicationUserId
-            .RuleFor(c => c.TransactionId, f => f.PickRandom(transactionIds)); // Pick valid TransactionId
+    //    var chargeTransactions = new List<ChargeTransaction>();
+    //    var chargeTransactionFaker = new Faker<ChargeTransaction>()
+    //        .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
+    //        .RuleFor(c => c.ChargeName, f => f.Commerce.ProductName())
+    //        .RuleFor(c => c.Amount, f => f.Finance.Amount(10, 100))
+    //        .RuleFor(c => c.Description, f => f.Lorem.Sentence())
+    //        .RuleFor(c => c.Status, f => f.PickRandom<CTransStatus>())
+    //        .RuleFor(c => c.CreatedAt, f => f.Date.PastOffset())
+    //        .RuleFor(c => c.UpdatedAt, f => f.Date.RecentOffset())
+    //        .RuleFor(c => c.ApplicationUserId, f => f.PickRandom(userIds)) // Pick valid ApplicationUserId
+    //        .RuleFor(c => c.TransactionId, f => f.PickRandom(transactionIds)); // Pick valid TransactionId
 
-        // Generate charge transactions using Faker
-        for (var i = 0; i < count; i++)
-        {
-            var chargeTransaction = chargeTransactionFaker.Generate();
-            chargeTransactions.Add(chargeTransaction);
-        }
+    //    // Generate charge transactions using Faker
+    //    for (var i = 0; i < count; i++)
+    //    {
+    //        var chargeTransaction = chargeTransactionFaker.Generate();
+    //        chargeTransactions.Add(chargeTransaction);
+    //    }
 
-        // Add the generated charge transactions to the database
-        await _context.ChargeTransactions.AddRangeAsync(chargeTransactions);
-        await _context.SaveChangesAsync();
-    }
+    //    // Add the generated charge transactions to the database
+    //    await _context.ChargeTransactions.AddRangeAsync(chargeTransactions);
+    //    await _context.SaveChangesAsync();
+    //}
 
     private async Task GenerateDisputes(int count = 10)
     {
@@ -501,13 +499,15 @@ public class DataGenerator
         var requestFaker = new Faker<Request>()
             .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
             .RuleFor(r => r.Script, f => f.Lorem.Paragraph())
+            .RuleFor(r => r.DeclineReason, f => f.Lorem.Paragraph())
+            .RuleFor(r => r.DeclineFeedback, f => f.Lorem.Paragraph())
             .RuleFor(r => r.RequestAmount, f => f.Finance.Amount(50, 500))
             .RuleFor(r => r.TotalAmount, f => f.Finance.Amount(500, 1000))
             .RuleFor(r => r.FastTrackFee, f => f.Finance.Amount(10, 50))
             .RuleFor(r => r.PaymentMethod, f => f.PickRandom<AppPaymentMethod>())
             .RuleFor(r => r.RequestType, f => f.Random.Word())
             .RuleFor(r => r.Status, f => f.PickRandom<RequestStatus>())
-            .RuleFor(r => r.TransactionStatus, f => f.Random.Bool())
+            //.RuleFor(r => r.TransactionStatus, f => f.Random.Bool())
             .RuleFor(r => r.CreatedAt, f => f.Date.PastOffset())
             .RuleFor(r => r.UpdatedAt, f => f.Date.RecentOffset())
             .RuleFor(r => r.VideoUrl, f => $"https://res.cloudinary.com/dvrghpls1/video/upload/v{f.Date.Recent().Year}/{f.Random.AlphaNumeric(10)}.mp4");
@@ -638,6 +638,28 @@ public class DataGenerator
     private async Task GenerateTransactions(int count = 10)
     {
         var transactions = new List<Transaction>();
+
+        // Retrieve valid ApplicationUserIds
+        var validApplicationUserIds = await _context.Users
+            .Select(u => u.Id)
+            .ToListAsync();
+
+        // Ensure there are valid ApplicationUserIds
+        if (!validApplicationUserIds.Any())
+        {
+            throw new InvalidOperationException("No ApplicationUsers exist in the database to associate ChargeTransactions with.");
+        }
+
+        // Faker for ChargeTransaction
+        var chargeTransactionFaker = new Faker<ChargeTransaction>()
+            .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
+            .RuleFor(c => c.Description, f => f.Lorem.Sentence())
+            .RuleFor(c => c.Amount, f => (decimal)f.Finance.Amount(1, 100))
+            .RuleFor(c => c.ApplicationUserId, f => f.PickRandom(validApplicationUserIds)) // Assign valid ApplicationUserId
+            .RuleFor(c => c.CreatedAt, f => f.Date.PastOffset())
+            .RuleFor(c => c.UpdatedAt, f => f.Date.RecentOffset());
+
+        // Faker for Transaction
         var transactionFaker = new Faker<Transaction>()
             .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
             .RuleFor(t => t.Name, f => f.Commerce.ProductName())
@@ -647,7 +669,13 @@ public class DataGenerator
             .RuleFor(t => t.Status, f => f.Random.Bool())
             .RuleFor(t => t.Type, f => f.PickRandom<TransactionType>())
             .RuleFor(t => t.CreatedAt, f => f.Date.PastOffset())
-            .RuleFor(t => t.UpdatedAt, f => f.Date.RecentOffset());
+            .RuleFor(t => t.UpdatedAt, f => f.Date.RecentOffset())
+            .RuleFor(t => t.ChargeTransactions, f =>
+            {
+                // Generate a random number of ChargeTransactions for each Transaction
+                var chargeTransactionsCount = f.Random.Int(1, 5);
+                return chargeTransactionFaker.Generate(chargeTransactionsCount);
+            });
 
         // Generate transactions using Faker
         for (var i = 0; i < count; i++)
@@ -660,6 +688,48 @@ public class DataGenerator
         await _context.Transactions.AddRangeAsync(transactions);
         await _context.SaveChangesAsync();
     }
+
+
+    private async Task GenerateChargeTransactions(int count = 10)
+    {
+        // Retrieve existing ApplicationUser IDs and Transaction IDs
+        var userIds = await _context.Users.Select(u => u.Id).ToListAsync();
+        var transactionIds = await _context.Transactions.Select(t => t.Id).ToListAsync();
+
+        if (!userIds.Any())
+        {
+            throw new InvalidOperationException("No users found in the database to associate with charge transactions.");
+        }
+
+        if (!transactionIds.Any())
+        {
+            throw new InvalidOperationException("No transactions found in the database to associate with charge transactions.");
+        }
+
+        var chargeTransactions = new List<ChargeTransaction>();
+        var chargeTransactionFaker = new Faker<ChargeTransaction>()
+            .RuleFor(c => c.Id, f => Guid.NewGuid().ToString())
+            .RuleFor(c => c.ChargeName, f => f.Commerce.ProductName())
+            .RuleFor(c => c.Amount, f => f.Finance.Amount(10, 100))
+            .RuleFor(c => c.Description, f => f.Lorem.Sentence())
+            .RuleFor(c => c.Status, f => f.PickRandom<CTransStatus>())
+            .RuleFor(c => c.CreatedAt, f => f.Date.PastOffset())
+            .RuleFor(c => c.UpdatedAt, f => f.Date.RecentOffset())
+            .RuleFor(c => c.ApplicationUserId, f => f.PickRandom(userIds)) // Pick valid ApplicationUserId
+            .RuleFor(c => c.TransactionId, f => f.PickRandom(transactionIds)); // Pick valid TransactionId
+
+        // Generate charge transactions using Faker
+        for (var i = 0; i < count; i++)
+        {
+            var chargeTransaction = chargeTransactionFaker.Generate();
+            chargeTransactions.Add(chargeTransaction);
+        }
+
+        // Add the generated charge transactions to the database
+        await _context.ChargeTransactions.AddRangeAsync(chargeTransactions);
+        await _context.SaveChangesAsync();
+    }
+
 
     private async Task GenerateExclusiveDeals(int count = 10)
     {
@@ -852,7 +922,7 @@ public class DataGenerator
                 _context.Wallets.Add(wallet);
             });
 
-            await Task.WhenAll(tasks);
+            //await Task.WhenAll(tasks);
             await _context.SaveChangesAsync();
             //await transaction.CommitAsync();
         }
@@ -867,7 +937,6 @@ public class DataGenerator
 
     private async Task GenerateCreators(int count)
     {
-       // using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             var tasks = Enumerable.Range(0, count).Select(async _ =>
@@ -881,17 +950,14 @@ public class DataGenerator
                 _context.Wallets.Add(wallet);
             });
 
-            await Task.WhenAll(tasks);
+            //await Task.WhenAll(tasks);
             await _context.SaveChangesAsync();
-            //await transaction.CommitAsync();
         }
         catch (Exception ex)
         {
-            
-            //_logger.LogError("Error generating Creators: {Message}", ex.Message);
+            // Handle exceptions
             throw;
-        }     
-        
+        }
     }
 
 

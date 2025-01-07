@@ -291,7 +291,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                     WatermarkFee = feeDetails.WatermarkFee,
                     CreatorPostFee = feeDetails.CreatorPostFee,
                     FastTrackFee = feeDetails.FastTrackFee,
-                    PaymentSummary = paymentSummary,
+                    //PaymentSummary = paymentSummary,
                     PaymentReference = paymentReference,
                     AuthorizationUrl = authorizationUrl,
                     CancelUrl = cancelUrl
@@ -379,7 +379,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                             WatermarkFee = feeDetails.WatermarkFee,
                             CreatorPostFee = feeDetails.CreatorPostFee,
                             FastTrackFee = feeDetails.FastTrackFee,
-                            PaymentSummary = paymentSummary
+                            //PaymentSummary = paymentSummary
 
                         };
 

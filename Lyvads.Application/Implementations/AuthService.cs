@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Lyvads.Application.Dtos.RegularUserDtos;
 
 namespace Lyvads.Application.Implementations;
 
@@ -370,11 +371,11 @@ public class AuthService : IAuthService
                     Data = new RegisterUserResponseDto
                     {
                         UserId = applicationUser.Id,
+                        FullName = applicationUser.FullName,
                         AppUserName = applicationUser.AppUserName,
                         Email = applicationUser.Email,
                         Location = applicationUser.Location,
                         Role = RolesConstant.SuperAdmin,
-                        Message = "Registration successful."
                     }
                 };
             }
@@ -496,22 +497,28 @@ public class AuthService : IAuthService
                 await _regularUserRepository.AddAsync(regularUser);
 
                 // Call the profile picture upload service
-                var uploadResponse = await _profileService.UploadProfilePictureAsync(applicationUser.Id, newProfilePicture);
-                if (!uploadResponse.IsSuccessful)
+                ServerResponse<UpdateProfilePicResponseDto> uploadResponse = null;
+
+                if (newProfilePicture != null)
                 {
-                    _logger.LogError("Profile picture upload failed for user with ID: {UserId}", applicationUser.Id);
-                    await transaction.RollbackAsync();
-                    return new ServerResponse<RegisterUserResponseDto>
+                    uploadResponse = await _profileService.UploadProfilePictureAsync(applicationUser.Id, newProfilePicture);
+                    if (!uploadResponse.IsSuccessful)
                     {
-                        IsSuccessful = false,
-                        ErrorResponse = new ErrorResponse
+                        _logger.LogError("Profile picture upload failed for user with ID: {UserId}", applicationUser.Id);
+                        await transaction.RollbackAsync();
+                        return new ServerResponse<RegisterUserResponseDto>
                         {
-                            ResponseCode = "400",
-                            ResponseMessage = "Failed to upload profile picture",
-                            ResponseDescription = uploadResponse.ErrorResponse?.ResponseMessage
-                        }
-                    };
+                            IsSuccessful = false,
+                            ErrorResponse = new ErrorResponse
+                            {
+                                ResponseCode = "400",
+                                ResponseMessage = "Failed to upload profile picture",
+                                ResponseDescription = uploadResponse.ErrorResponse?.ResponseMessage
+                            }
+                        };
+                    }
                 }
+
 
                 // Create Wallet for the User
                 var wallet = new Wallet
@@ -559,13 +566,13 @@ public class AuthService : IAuthService
                     Data = new RegisterUserResponseDto
                     {
                         UserId = applicationUser.Id,
+                        FullName = applicationUser.FullName,
                         AppUserName = applicationUser.AppUserName,
                         Email = applicationUser.Email,
                         Location = applicationUser.Location,
-                        Role = RolesConstant.RegularUser,
                         Token = token,
-                        ProfilePictureUrl = uploadResponse.Data?.NewProfilePictureUrl,
-                        Message = "Registration successful. Your account will be activated after Admin verification."
+                        ProfilePicture = uploadResponse?.Data?.NewProfilePictureUrl, // Handle null uploadResponse
+                        Role = RolesConstant.RegularUser
                     }
                 };
             }
@@ -779,12 +786,13 @@ public class AuthService : IAuthService
                     Data = new RegisterUserResponseDto
                     {
                         UserId = applicationUser.Id,
+                        FullName = applicationUser.FullName,
                         AppUserName = applicationUser.AppUserName,
                         Email = applicationUser.Email,
                         Location = applicationUser.Location,
+                        ProfilePicture = uploadResponse.Data?.NewProfilePictureUrl,
                         Role = RolesConstant.Creator,
-                        ProfilePictureUrl = uploadResponse.Data?.NewProfilePictureUrl,
-                        Message = "Registration successful. Your account will be activated after Admin verification."
+                        //Message = "Registration successful. Your account will be activated after Admin verification."
                     }
                 };
             }
@@ -813,7 +821,7 @@ public class AuthService : IAuthService
 
         var user = await _userManager.FindByEmailAsync(loginUserDto.Email);
 
-        if (user is null)
+        if (user == null)
         {
             _logger.LogWarning("User not found for email: {email}", loginUserDto.Email);
             return new ServerResponse<LoginResponseDto>
@@ -876,15 +884,22 @@ public class AuthService : IAuthService
             _logger.LogInformation("Generating token for user {email}", user.Email);
             var token = _jwtService.GenerateToken(user, roles!);
 
-            var email = user.Email ?? string.Empty;
-            var fullName = user.FullName ?? string.Empty;
-
             return new ServerResponse<LoginResponseDto>
             {
                 IsSuccessful = true,
                 ResponseCode = "00",
-                ResponseMessage = "Login successful",
-                Data = new LoginResponseDto(token, fullName, roles!, email)
+                ResponseMessage = "Login successful. Welcome back!",
+                Data = new LoginResponseDto
+                {
+                    UserId = user.Id,
+                    FullName = $"{user.FirstName} {user.LastName}",
+                    AppUserName = user.AppUserName,
+                    Email = user.Email,
+                    Location = user.Location,
+                    Role = roles.FirstOrDefault(),
+                    Token = token,
+                    ProfilePicture = user.ImageUrl,                    
+                }
             };
         }
         catch (Exception ex)

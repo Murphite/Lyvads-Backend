@@ -842,9 +842,6 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<bool>("TransactionStatus")
-                        .HasColumnType("bit");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 

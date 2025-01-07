@@ -17,8 +17,8 @@ public class Seeder
             .GetRequiredService<AppDbContext>();
 
         //// Apply pending migrations if any
-        //if ((await context.Database.GetPendingMigrationsAsync()).Any())
-        //    await context.Database.MigrateAsync();
+        if ((await context.Database.GetPendingMigrationsAsync()).Any())
+            await context.Database.MigrateAsync();
 
         // Seed roles if not already present
         var roleManager = app.ApplicationServices.CreateScope().ServiceProvider
@@ -95,7 +95,7 @@ public class Seeder
         try
         {
             var dataGenerator = new DataGenerator(userManager, context, config);
-            await dataGenerator.Run();
+            //await dataGenerator.Run();
         }
         catch (Exception ex)
         {

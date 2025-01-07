@@ -29,9 +29,11 @@ public enum DisputeType
 
 public class DeclineRequestDto
 {
-    public string? RequestId  { get; set; }    
-   [Required]
-    public string? DeclineReason { get; set; }
+    public string? RequestId { get; set; }
+
+    [Required]
+    public string[] DeclineReasons { get; set; } = Array.Empty<string>(); 
+
     public string? Feedback { get; set; }
 }
 
