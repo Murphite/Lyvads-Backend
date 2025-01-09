@@ -85,9 +85,9 @@ public class AdminPermissionsController : Controller
         if (string.IsNullOrWhiteSpace(requestDto?.RoleName))
             return BadRequest("Role name is required.");
 
-        var roles = await _userManager.GetRolesAsync(user);
-        if (roles == null || (!roles.Contains("SuperAdmin")))
-            return Unauthorized("Only Super Admins are authorized");
+        //var roles = await _userManager.GetRolesAsync(user);
+        //if (roles == null || (!roles.Contains("SuperAdmin")))
+        //    return Unauthorized("Only Super Admins are authorized");
 
         if (requestDto?.Permissions == null)
             return BadRequest("Permissions are required.");
@@ -98,7 +98,19 @@ public class AdminPermissionsController : Controller
             return BadRequest(result);
 
         return Ok(result);
-    }    
+    }
+
+    
+    [HttpGet("get-all-roles-with-permissions")]
+    public async Task<IActionResult> GetAllRolesWithPermissionsAsync()
+    {
+        var result = await _adminPermissionsService.GetAllRolesWithPermissionsAsync();
+
+        if (!result.IsSuccessful)
+            return NotFound(result);
+
+        return Ok(result);
+    }
 
 
     [HttpPost("add-admin-user")]
@@ -133,6 +145,7 @@ public class AdminPermissionsController : Controller
         return Ok(result);
     }
 
+   
     [HttpDelete("delete-admin-user")]
     public async Task<IActionResult> DeleteUser(string userId)
     {

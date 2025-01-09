@@ -254,4 +254,46 @@ public class CollaborationController : ControllerBase
         return Ok(response);
     }
 
+
+    [HttpPost("resend-request")]
+    public async Task<IActionResult> ResendRequest([FromBody] ResendRequestDto resendRequestDto)
+    {
+        var result = await _collaborationService.ResendRequestAsync(resendRequestDto);
+
+        if (!result.IsSuccessful)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+
+    [HttpPost("cancel-request")]
+    public async Task<IActionResult> CloseRequest([FromBody] CloseRequestDto closeRequestDto)
+    {
+        var result = await _collaborationService.CloseRequestAsync(closeRequestDto);
+
+        if (!result.IsSuccessful)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+
+    [HttpGet("declined-details/{requestId}")]
+    public async Task<IActionResult> GetDeclinedDetails(string requestId)
+    {
+        var result = await _collaborationService.GetDeclinedDetailsAsync(requestId);
+
+        if (!result.IsSuccessful)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
 }

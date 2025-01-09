@@ -58,6 +58,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         .Property(r => r.RoleName)
         .HasConversion<string>();
 
+        modelBuilder.Entity<AdminRole>()
+            .HasMany(r => r.AdminPermissions)
+            .WithOne()
+            .HasForeignKey(p => p.AdminRoleId);
+
         modelBuilder.Entity<RegularUser>()
         .HasOne(r => r.ApplicationUser)
         .WithOne(u => u.RegularUser)

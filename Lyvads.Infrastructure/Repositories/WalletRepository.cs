@@ -74,18 +74,12 @@ public class WalletRepository : IWalletRepository
         await _context.SaveChangesAsync();
     }
 
-    //public async Task<Wallet> GetByRequestIdAsync(string requestId)
-    //{
-    //    if (string.IsNullOrEmpty(requestId))
-    //    {
-    //        throw new ArgumentException("Request ID cannot be null or empty.", nameof(requestId));
-    //    }
-
-    //    // Assuming you have a DbContext with a DbSet<Wallet> named Wallets
-    //    return await _context.Wallets
-    //        .Include(w => w.ApplicationUser)
-    //        .FirstOrDefaultAsync(w => w.RequestId == requestId);
-    //}
+    public void Update(Wallet wallet)
+    {
+        // Example: Entity Framework update implementation
+        _context.Wallets.Update(wallet);
+        _context.SaveChanges();
+    }
 
     public async Task<Wallet?> GetByRequestIdAsync(string requestId)
     {
@@ -194,7 +188,16 @@ public class WalletRepository : IWalletRepository
     {
         return await _context.Wallets
             .Include(w => w.ApplicationUser)
-            .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
+            .ThenInclude(a => a.Creator) 
+            .FirstOrDefaultAsync(w => w.ApplicationUser.Creator.Id == userId); 
+    }
+
+    public async Task<Wallet?> GetWalletByRegularUserIdAsync(string userId)
+    {
+        return await _context.Wallets
+            .Include(w => w.ApplicationUser)
+            .ThenInclude(a => a.RegularUser)
+            .FirstOrDefaultAsync(w => w.ApplicationUser.RegularUser.Id == userId);
     }
 
     public async Task<Transaction> AddTransactionAsync(Transaction transaction)

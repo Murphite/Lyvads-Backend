@@ -23,4 +23,6 @@ public interface IWalletRepository
     Task UpdateTransactionAsync(Transaction transaction);
     Task<Wallet> GetWalletByIdAsync(string walletId);
     Task<Wallet> GetByRequestIdAsync(string requestId);
+    void Update(Wallet wallet);
+    Task<Wallet?> GetWalletByRegularUserIdAsync(string userId);
 }

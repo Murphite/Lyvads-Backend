@@ -23,4 +23,5 @@ public class AdminPermission : Entity
 public class AdminRole : Entity
 {
     public string? RoleName { get; set; }
+    public ICollection<AdminPermission> AdminPermissions { get; set; } = new List<AdminPermission>();
 }

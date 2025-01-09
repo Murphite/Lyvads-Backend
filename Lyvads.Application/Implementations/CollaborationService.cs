@@ -10,6 +10,7 @@ using Lyvads.Domain.Responses;
 using Microsoft.EntityFrameworkCore;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Microsoft.AspNetCore.Http;
+using Lyvads.Infrastructure.Repositories;
 
 
 namespace Lyvads.Application.Implementations;
@@ -26,6 +27,7 @@ public class CollaborationService : ICollaborationService
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<AdminDashboardService> _logger;
     private readonly IRegularUserRepository _regularUserRepository;
+    private readonly IWalletRepository _walletRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMediaService _mediaService;
     private readonly IWalletService _walletService;
@@ -44,6 +46,7 @@ public class CollaborationService : ICollaborationService
         IMediaService mediaService,
         IWalletService walletService,
         IRegularUserRepository regularUserRepository,
+        IWalletRepository walletRepository,
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWork unitOfWork)
     {
@@ -53,6 +56,7 @@ public class CollaborationService : ICollaborationService
         _collaborationRepository = collaborationRepository;
         _repository = repository;
         _userRepository = userRepository;
+        _walletRepository = walletRepository;
         _disputeRepository = disputeRepository;
         _creatorRepository = creatorRepository;
         _requestRepository = requestRepository;
@@ -414,8 +418,9 @@ public class CollaborationService : ICollaborationService
             Script = request.Script,
             Amount = request.TotalAmount,
             Status = request.Status.ToString(),
-            FastTractFee = request.FastTrackFee,
-            ChargeTransactions = chargeTransactions
+            ChargeTransactions = chargeTransactions,
+            DeclineReason = request.DeclineReason?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+            DeclineFeedback = request.DeclineFeedback,
         };
 
 
@@ -427,7 +432,6 @@ public class CollaborationService : ICollaborationService
             Data = requestDetails
         };
     }
-
 
     public async Task<ServerResponse<DeclineResponseDto>> DeclineRequestAsync(DeclineRequestDto declineRequestDto)
     {
@@ -488,7 +492,6 @@ public class CollaborationService : ICollaborationService
             }
         };
     }
-
 
     public async Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string userId, string requestId, DisputeReasons disputeReason, OpenDisputeDto disputeDto)
     {
@@ -914,6 +917,165 @@ public class CollaborationService : ICollaborationService
             ResponseCode = "00",
             ResponseMessage = "Dispute details fetched successfully.",
             Data = disputeDetailsDto
+        };
+    }
+
+    public async Task<ServerResponse<ResendResponseDto>> ResendRequestAsync(ResendRequestDto resendRequestDto)
+    {
+        var request = await _requestRepository.GetRequestByIdAsync(resendRequestDto.RequestId);
+        if (request == null || request.Status != RequestStatus.Declined)
+        {
+            return new ServerResponse<ResendResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Declined request not found."
+            };
+        }
+
+        // Update the request status to Pending and log the action
+        request.Script = resendRequestDto.Script;
+        request.RequestType = resendRequestDto.RequestType;
+        request.Status = RequestStatus.Pending;
+        request.UpdatedAt = DateTimeOffset.UtcNow;
+
+        _repository.Update(request);
+        await _unitOfWork.SaveChangesAsync();
+
+        var resendDetails = new ResendResponseDto
+        {
+            RequestId = request.Id,
+            UpdatedStatus = request.Status.ToString(),
+            Script = request.Script,
+            RequestType = request.RequestType,
+            UpdatedAt = request.UpdatedAt
+        };
+
+        return new ServerResponse<ResendResponseDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = "Request resent successfully.",
+            Data = resendDetails
+        };
+    }
+
+    public async Task<ServerResponse<CloseRequestResultDto>> CloseRequestAsync(CloseRequestDto closeRequestDto)
+    {
+        var request = await _requestRepository.GetRequestByIdAsync(closeRequestDto.RequestId);
+        if (request == null)
+        {
+            return new ServerResponse<CloseRequestResultDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Request not found."
+            };
+        }
+
+        if (request.Status != RequestStatus.Pending)
+        {
+            return new ServerResponse<CloseRequestResultDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Only pending requests can be canceled."
+            };
+        }
+
+        // Retrieve the creator's wallet
+        var creatorWallet = await _walletRepository.GetWalletByUserIdAsync(request.CreatorId);
+        if (creatorWallet == null)
+        {
+            return new ServerResponse<CloseRequestResultDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "Creator wallet not found. Unable to process reversal."
+            };
+        }
+
+        // Retrieve the user's wallet
+        var userWallet = await _walletRepository.GetWalletByRegularUserIdAsync(request.RegularUserId);
+        if (userWallet == null)
+        {
+            return new ServerResponse<CloseRequestResultDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500",
+                ResponseMessage = "User wallet not found. Unable to process refund."
+            };
+        }
+
+        // Calculate refund amounts
+        var refundAmount = request.RequestAmount; // Base amount paid by the user
+        var feesRefund = request.TotalAmount - refundAmount; // Additional fees to refund
+        var totalRefund = request.TotalAmount;
+
+        // Update wallets
+        userWallet.Balance += totalRefund; // Refund total amount to the user
+        creatorWallet.Balance -= refundAmount; // Deduct the base amount from the creator
+
+        // Update request status
+        request.Status = RequestStatus.Canceled;
+        request.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Update repositories
+        _repository.Update(request);
+        _walletRepository.Update(userWallet);
+        _walletRepository.Update(creatorWallet);
+
+        await _unitOfWork.SaveChangesAsync();
+
+        // Prepare response data
+        var result = new CloseRequestResultDto
+        {
+            RequestId = request.Id,
+            RequestStatus = request.Status.ToString(),
+            UpdatedAt = request.UpdatedAt,
+            UserWalletBalance = userWallet.Balance,
+            CreatorWalletBalance = creatorWallet.Balance,
+            RefundedAmount = totalRefund,
+            ReversedAmount = refundAmount
+        };
+
+        return new ServerResponse<CloseRequestResultDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = $"Request canceled. {totalRefund:C} refunded to the user's wallet, and {refundAmount:C} reversed from the creator.",
+            Data = result
+        };
+    }
+
+    public async Task<ServerResponse<DeclineDetailsDto>> GetDeclinedDetailsAsync(string requestId)
+    {
+        var request = await _requestRepository.GetRequestByIdAsync(requestId);
+
+        if (request == null || request.Status != RequestStatus.Declined)
+        {
+            return new ServerResponse<DeclineDetailsDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Declined request not found."
+            };
+        }
+
+        var declineDetails = new DeclineDetailsDto
+        {
+            RequestId = request.Id,
+            DeclineReason = request.DeclineReason?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+            Feedback = request.DeclineFeedback,
+            DeclinedAt = request.UpdatedAt
+        };
+
+        return new ServerResponse<DeclineDetailsDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = "Declined details retrieved successfully.",
+            Data = declineDetails
         };
     }
 

@@ -43,11 +43,13 @@ public class RequestDetailsDto
     public string RequestId { get; set; } = default!;
     public string? RequestType { get; set; }
     public string? Status { get; set; }
-    public decimal FastTractFee { get; set; }
+    public string[]? DeclineReason { get; set; }
+    public string? DeclineFeedback { get; set; }
     public string? VideoUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<ChargeTransactionDetailsDto> ChargeTransactions { get; set; } = new();
 }
+
 
 public class ChargeTransactionDetailsDto
 {
@@ -125,24 +127,68 @@ public class WalletTrasactionResponseDto
         public PaystackData Data { get; set; }
     }
 
-    public class PaystackData
-    {
-        public string Id { get; set; }
-        public string Domain { get; set; } // "live"
-        public string Status { get; set; } // "success"
-        public string Reference { get; set; }
-        public int Amount { get; set; }
-        public string Currency { get; set; } // "NGN"
-        public string Email { get; set; }
-        public PaystackCustomer Customer { get; set; }
-        public DateTime TransactionDate { get; set; } // "2024-11-21T14:00:00Z"
-        public string Channel { get; set; } // "card"
-    }
+public class PaystackData
+{
+    public string? Id { get; set; }
+    public string? Domain { get; set; } // "live"
+    public string? Status { get; set; } // "success"
+    public string? Reference { get; set; }
+    public int Amount { get; set; }
+    public string? Currency { get; set; } // "NGN"
+    public string? Email { get; set; }
+    public PaystackCustomer? Customer { get; set; }
+    public DateTime TransactionDate { get; set; } // "2024-11-21T14:00:00Z"
+    public string? Channel { get; set; } // "card"
+}
 
-    public class PaystackCustomer
-    {
-        public long Id { get; set; }
-        public string FirstName { get; set; } // "John"
-        public string LastName { get; set; } // "Doe"
-        public string Email { get; set; }
-    }
+public class PaystackCustomer
+{
+    public string? Id { get; set; }
+    public string? FirstName { get; set; } // "John"
+    public string? LastName { get; set; } // "Doe"
+    public string? Email { get; set; }
+}
+
+public class DeclineDetailsDto
+{
+    public string? RequestId { get; set; }
+    public string[]? DeclineReason { get; set; }
+    public string? Feedback { get; set; }
+    public DateTimeOffset DeclinedAt { get; set; }
+}
+
+
+public class CloseRequestDto
+{
+    public string? RequestId { get; set; }
+}
+
+
+public class ResendRequestDto
+{
+    public string? RequestId { get; set; }
+    public string? Script { get; set; }
+    public string? RequestType { get; set; }
+}
+
+public class ResendResponseDto
+{
+    public string? RequestId { get; set; }
+    public string? Script { get; set; }
+    public string? RequestType { get; set; }
+    public string? UpdatedStatus { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+
+public class CloseRequestResultDto
+{
+    public string? RequestId { get; set; }
+    public string? RequestStatus { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public decimal UserWalletBalance { get; set; }
+    public decimal CreatorWalletBalance { get; set; }
+    public decimal RefundedAmount { get; set; }
+    public decimal ReversedAmount { get; set; }
+}
+

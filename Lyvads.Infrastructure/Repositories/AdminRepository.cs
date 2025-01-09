@@ -57,6 +57,14 @@ public class AdminRepository : IAdminRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<List<AdminRole>> GetAllRolesWithPermissionsAsync()
+    {
+        return await _context.AdminRoles
+            .Include(r => r.AdminPermissions)
+            .ToListAsync();
+    }
+
+
 
     public async Task<List<ApplicationUser>> GetAllAdminsAsync()
     {

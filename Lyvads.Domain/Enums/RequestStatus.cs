@@ -8,7 +8,8 @@ public enum RequestStatus
     Pending,
     Flagged,
     Declined,
-    Completed
+    Completed,
+    Canceled
 }
 
 public enum CollaborationStatus

@@ -2,6 +2,7 @@
 
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Enums;
+using System.Security;
 
 namespace Lyvads.Application.Dtos.SuperAdminDtos;
 
@@ -23,16 +24,6 @@ public class AdminUserDto
     public bool IsActive { get; set; }
     public DateTimeOffset LastActive { get; set; }
 }
-
-
-//public class AdminRole
-//{
-//    public string?? Id { get; set; }
-//    public string?? RoleName { get; set; } // "Admin" or "SuperAdmin"
-//    public string?? AdminUserId { get; set; } // Reference to the admin user
-//    public ApplicationUser AdminUser { get; set; }
-//}
-
 
 public class AdminPermissionsDto
 {
@@ -85,5 +76,24 @@ public class EditResponseAdminUserDto
     public bool IsActive { get; set; }
 }
 
+public class RoleWithPermissionsDto
+{
+    public string? Id { get; set; }
+    public string? RoleName { get; set; }
+    public List<PermissionsDto>? Permissions { get; set; }
+}
+
+
+public class PermissionsDto
+{
+    public bool CanManageAdminRoles { get; set; }
+    public bool CanManageUsers { get; set; }
+    public bool CanManageRevenue { get; set; }
+    public bool CanManageUserAds { get; set; }
+    public bool CanManageCollaborations { get; set; }
+    public bool CanManagePosts { get; set; }
+    public bool CanManageDisputes { get; set; }
+    public bool CanManagePromotions { get; set; }
+}
 
 

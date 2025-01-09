@@ -50,6 +50,8 @@ public class RequestRepository : IRequestRepository
         return await _context.Requests
             .Include(r => r.Creator)
                 .ThenInclude(c => c.ApplicationUser)
+            .Include(r => r.RegularUser)
+                .ThenInclude(c => c.ApplicationUser)
             .Include(r => r.Transactions)
                 .ThenInclude(t => t.ChargeTransactions) 
             .FirstOrDefaultAsync(r => r.Id == requestId);

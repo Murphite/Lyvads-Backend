@@ -212,9 +212,9 @@ public class AdminPermissionsService : IAdminPermissionsService
     }
 
 
-    public async Task<ServerResponse<string>> CreateCustomRoleAsync(string roleName, AdminPermissionsDto permissionsDto)
+    public async Task<ServerResponse<RoleWithPermissionsDto>> CreateCustomRoleAsync(string roleName, AdminPermissionsDto permissionsDto)
     {
-        var role = roleName?.ToUpperInvariant();      
+        var role = roleName?.ToUpperInvariant();
 
         // Create a new AdminRole entity
         var newRole = new AdminRole
@@ -242,16 +242,78 @@ public class AdminPermissionsService : IAdminPermissionsService
         // Save the permissions to the repository
         await _adminRepository.AddAsync(newPermissions);
 
+        // Prepare the response object with Permissions as a List
+        var response = new RoleWithPermissionsDto
+        {
+            Id = newRole.Id,
+            RoleName = newRole.RoleName,
+            Permissions = new List<PermissionsDto>  // Wrap the single PermissionsDto in a list
+        {
+            new PermissionsDto
+            {
+                CanManageAdminRoles = newPermissions.CanManageAdminRoles,
+                CanManageUsers = newPermissions.CanManageUsers,
+                CanManageRevenue = newPermissions.CanManageRevenue,
+                CanManageUserAds = newPermissions.CanManageUserAds,
+                CanManageCollaborations = newPermissions.CanManageCollaborations,
+                CanManagePosts = newPermissions.CanManagePosts,
+                CanManageDisputes = newPermissions.CanManageDisputes,
+                CanManagePromotions = newPermissions.CanManagePromotions
+            }
+        }
+        };
+
         // Return success response
-        return new ServerResponse<string>
+        return new ServerResponse<RoleWithPermissionsDto>
         {
             IsSuccessful = true,
             ResponseCode = "00",
             ResponseMessage = "Custom role created successfully with associated permissions.",
-            Data = roleName
+            Data = response
         };
     }
 
+
+    public async Task<ServerResponse<List<RoleWithPermissionsDto>>> GetAllRolesWithPermissionsAsync()
+    {
+        var roles = await _adminRepository.GetAllRolesWithPermissionsAsync();
+
+        if (roles == null || !roles.Any())
+        {
+            return new ServerResponse<List<RoleWithPermissionsDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "No roles found.",
+                Data = null
+            };
+        }
+
+        var roleWithPermissions = roles.Select(role => new RoleWithPermissionsDto
+        {
+            Id = role.Id,
+            RoleName = role.RoleName,
+            Permissions = role.AdminPermissions.Select(permission => new PermissionsDto
+            {
+                CanManageAdminRoles = permission.CanManageAdminRoles,
+                CanManageUsers = permission.CanManageUsers,
+                CanManageRevenue = permission.CanManageRevenue,
+                CanManageUserAds = permission.CanManageUserAds,
+                CanManageCollaborations = permission.CanManageCollaborations,
+                CanManagePosts = permission.CanManagePosts,
+                CanManageDisputes = permission.CanManageDisputes,
+                CanManagePromotions = permission.CanManagePromotions
+            }).ToList()  
+        }).ToList();
+
+        return new ServerResponse<List<RoleWithPermissionsDto>>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Roles and permissions retrieved successfully.",
+            Data = roleWithPermissions
+        };
+    }
 
     public async Task<ServerResponse<EditResponseAdminUserDto>> EditAdminUserAsync(string adminUserId, EditAdminUserDto editAdminUserDto)
     {

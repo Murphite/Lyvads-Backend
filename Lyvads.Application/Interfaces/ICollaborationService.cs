@@ -22,7 +22,8 @@ public interface ICollaborationService
     Task<ServerResponse<List<FetchDisputeDto>>> FetchDisputesByCreatorAsync(string userId);
     Task<ServerResponse<VideoResponseDto>> SendVideoToUserAsync(string requestId, IFormFile video);
     Task<ServerResponse<DisputeDetailsDto>> GetDisputeDetailsByIdAsync(string disputeId, string userId);
-
-
+    Task<ServerResponse<ResendResponseDto>> ResendRequestAsync(ResendRequestDto resendRequestDto);
+    Task<ServerResponse<CloseRequestResultDto>> CloseRequestAsync(CloseRequestDto closeRequestDto);
+    Task<ServerResponse<DeclineDetailsDto>> GetDeclinedDetailsAsync(string requestId);
 
 }

@@ -19,4 +19,5 @@ public interface IAdminRepository
     Task UpdateAsync(AdminPermission adminPermission);
     Task DeleteRelatedEntitiesAsync(ApplicationUser user);
     Task<ApplicationUser?> GetUserWithRelatedEntitiesAsync(string userId);
+    Task<List<AdminRole>> GetAllRolesWithPermissionsAsync();
 }
