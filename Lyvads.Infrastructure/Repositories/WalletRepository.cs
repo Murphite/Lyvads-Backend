@@ -188,8 +188,15 @@ public class WalletRepository : IWalletRepository
     {
         return await _context.Wallets
             .Include(w => w.ApplicationUser)
-            .ThenInclude(a => a.Creator) 
-            .FirstOrDefaultAsync(w => w.ApplicationUser.Creator.Id == userId); 
+            .FirstOrDefaultAsync(w => w.ApplicationUserId == userId);
+    }
+
+    public async Task<Wallet?> GetWalletByCreatorIdAsync(string userId)
+    {
+        return await _context.Wallets
+            .Include(w => w.ApplicationUser)
+            .ThenInclude(a => a.Creator)
+            .FirstOrDefaultAsync(w => w.ApplicationUser.Creator.Id == userId);
     }
 
     public async Task<Wallet?> GetWalletByRegularUserIdAsync(string userId)

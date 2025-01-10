@@ -984,7 +984,7 @@ public class CollaborationService : ICollaborationService
         }
 
         // Retrieve the creator's wallet
-        var creatorWallet = await _walletRepository.GetWalletByUserIdAsync(request.CreatorId);
+        var creatorWallet = await _walletRepository.GetWalletByCreatorIdAsync(request.CreatorId);
         if (creatorWallet == null)
         {
             return new ServerResponse<CloseRequestResultDto>
