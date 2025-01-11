@@ -21,6 +21,7 @@ namespace Lyvads.Application.Implementations;
 public class WalletService : IWalletService
 {
     private readonly IRepository _repository;
+    private readonly ITransactionRepository _transactionRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IWalletRepository _walletRepository;
     private readonly UserManager<ApplicationUser> _userManager;
@@ -548,6 +549,39 @@ public class WalletService : IWalletService
             return new Error[] { new Error("Exception", ex.Message) };
         }
     }
+
+    public async Task CreditWalletAmountAsync(string walletId, decimal amount)
+    {
+        // Ensure wallet exists
+        var wallet = await _walletRepository.GetWalletAsync(walletId);
+        if (wallet == null)
+            throw new ArgumentException("Wallet not found.");
+
+        // Validate amount
+        if (amount <= 0)
+            throw new ArgumentException("Invalid amount. Must be greater than zero.");
+
+        // Update wallet balance
+        wallet.Balance += amount;
+        await _walletRepository.UpdateWalletAsync(wallet);
+
+        // Log the transaction
+        var transaction = new Transaction
+        {
+            WalletId = walletId,
+            Amount = (int)amount,
+            Type = TransactionType.Funding,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Name = "Wallet Credit", 
+            Status = true,
+        };
+        await _transactionRepository.CreateTransactionAsync(transaction);
+
+        // Save changes
+        await _unitOfWork.SaveChangesAsync();
+    }
+
 
     public async Task<WithdrawalResult> WithdrawAsync(WithdrawalOptions options)
     {

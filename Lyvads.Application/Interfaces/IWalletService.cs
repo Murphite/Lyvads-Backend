@@ -17,4 +17,5 @@ public interface IWalletService
     Task<ServerResponse<string>> WithdrawToBankAccountAsync(string userId, decimal amount, string bankCardId);
     Task<decimal> GetBalanceAsync(string userId);
     Task<bool> DeductBalanceAsync(string userId, decimal amount);
+    Task CreditWalletAmountAsync(string walletId, decimal amount);
 }

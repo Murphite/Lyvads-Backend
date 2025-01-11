@@ -114,7 +114,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 };
             }
 
-
+            // Fetch creator and creator wallet
             var creator = await _creatorRepository.GetCreatorByIdAsync(creatorId);
             if (creator == null)
             {
@@ -126,6 +126,21 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                     {
                         ResponseCode = "Creator.Error",
                         ResponseMessage = "Creator not found"
+                    }
+                };
+            }
+
+            var creatorWallet = await _walletRepository.GetWalletByCreatorIdAsync(creatorId);
+            if (creatorWallet == null)
+            {
+                _logger.LogWarning("Creator wallet not found.");
+                return new ServerResponse<MakeRequestDetailsDto>
+                {
+                    IsSuccessful = false,
+                    ErrorResponse = new ErrorResponse
+                    {
+                        ResponseCode = "CreatorWallet.Error",
+                        ResponseMessage = "Creator wallet not found."
                     }
                 };
             }
@@ -172,15 +187,10 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
             // Additional charges
             var feeDetails = CalculateTotalAmountWithCharges(createRequestDto.Amount, charges);
             int totalAmount = feeDetails.TotalAmount;
-
-            var paymentSummary = $"Subtotal: {baseAmount:C}\n" +
-                                 $"Withholding Tax: {feeDetails.WithholdingTax:C}\n" +
-                                 $"Watermark Fee: {feeDetails.WatermarkFee:C}\n" +
-                                 $"Creator Post Fee: {feeDetails.CreatorPostFee:C}\n" +
-                                 $"Fast Track Fee: {feeDetails.FastTrackFee:C}\n" +
-                                 $"Total Amount: {totalAmount:C}";
-
-            _logger.LogInformation("Payment Summary: {PaymentSummary}", paymentSummary);
+            int FastTrackFee = feeDetails.FastTrackFee;
+            int WatermarkFee = feeDetails.WatermarkFee;
+            int CreatorPostFee = feeDetails.CreatorPostFee;
+            int WithholdingTax = feeDetails.WithholdingTax;
 
             string paymentReference = string.Empty;
             string authorizationUrl = string.Empty;
@@ -188,7 +198,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
 
             if (payment == AppPaymentMethod.Paystack)
             {
-                var paystackResponse = await _paymentGatewayService.InitializePaymentAsync(totalAmount, user.Email, user.FullName);
+                var paystackResponse = await _paymentGatewayService.InitializePaymentAsync(totalAmount, user.Email!, user.FullName!);
                 if (!paystackResponse.IsSuccessful || paystackResponse.Data == null)
                 {
                     return new ServerResponse<MakeRequestDetailsDto>
@@ -270,7 +280,12 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                     };
                 }
 
-                await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+                //await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+                // Send amounts to respective destinations
+                await _walletService.CreditWalletAmountAsync(creatorWallet.Id, baseAmount + FastTrackFee);
+               // await _paymentGatewayService.CreditBusinessAccountAsync(WatermarkFee + CreatorPostFee + WithholdingTax);
+
+
                 // Commit the transaction if all operations are successful
                 await transaction.CommitAsync();
 
@@ -321,6 +336,8 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 }
 
                 var result = await _walletService.DeductBalanceAsync(user.Id, totalAmount);
+                await _walletService.CreditWalletAmountAsync(creatorWallet.Id, baseAmount + FastTrackFee);
+                //wait _paymentGatewayService.CreditBusinessAccountAsync(WatermarkFee + CreatorPostFee + WithholdingTax);
                 if (result)
                 {
                     var request = new Request

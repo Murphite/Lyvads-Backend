@@ -124,6 +124,38 @@ public class PaymentGatewayService : IPaymentGatewayService
         };
     }
 
+    //public async Task CreditBusinessAccountAsync(decimal amount)
+    //{
+    //    // Ensure valid amount
+    //    if (amount <= 0)
+    //        throw new ArgumentException("Invalid amount. Must be greater than zero.");
+
+    //    // Convert amount to kobo (Paystack works in kobo for NGN)
+    //    var amountInKobo = (int)(amount * 100);
+
+    //    // Create transfer recipient (if not already created)
+    //    var recipientCode = await _paystackService.GetOrCreateRecipientAsync("Business Account", "1234567890", "058");
+
+    //    // Initiate transfer
+    //    var transferResult = await _paystackService.InitiateTransferAsync(recipientCode, amountInKobo, "Credit to business account");
+    //    if (!transferResult.IsSuccess)
+    //        throw new InvalidOperationException($"Failed to credit business account: {transferResult.ErrorMessage}");
+
+    //    // Optionally, log the transaction locally
+    //    var transaction = new BusinessTransaction
+    //    {
+    //        AccountId = "ExternalAccount",
+    //        Amount = amount,
+    //        TransactionType = TransactionType.Credit,
+    //        Timestamp = DateTime.UtcNow,
+    //        Description = "Credit to business account via Paystack"
+    //    };
+    //    await _businessTransactionRepository.AddAsync(transaction);
+
+    //    // Save changes
+    //    await _unitOfWork.SaveChangesAsync();
+    //}
+
 
     public async Task<ServerResponse<PaymentResponseDto>> InitializeRequestPaymentAsync(int amount, string email, string name)
     {

@@ -150,15 +150,11 @@ public class WalletRepository : IWalletRepository
 
         // Check if the user was found
         if (userWithWallet == null)
-        {
             throw new InvalidOperationException("User not found.");
-        }
 
         // Check if the wallet exists
         if (userWithWallet.Wallet == null)
-        {
             throw new InvalidOperationException("Wallet not assigned to the user.");
-        }
 
         return userWithWallet.Wallet;
     }
