@@ -9,9 +9,15 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using Stripe;
 using System.Text.Json.Serialization;
-
+using dotenv.net;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load environment variables from the .env file
+DotEnv.Load();
+
+// Replace placeholders with environment variables
+builder.Configuration.AddEnvironmentVariables();
 
 // Configure services
 builder.Services.AddControllers()

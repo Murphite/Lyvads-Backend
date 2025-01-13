@@ -368,3 +368,4 @@ C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.
 C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\obj\Debug\net8.0\refint\Lyvads.API.Presentation.dll
 C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.genruntimeconfig.cache
 C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\obj\Debug\net8.0\ref\Lyvads.API.Presentation.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\dotenv.net.dll
