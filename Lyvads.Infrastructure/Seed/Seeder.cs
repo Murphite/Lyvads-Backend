@@ -95,7 +95,7 @@ public class Seeder
         try
         {
             var dataGenerator = new DataGenerator(userManager, context, config);
-            //await dataGenerator.Run();
+            await dataGenerator.Run();
         }
         catch (Exception ex)
         {

@@ -39,9 +39,9 @@ public class AdminPermissionsController : Controller
         if (user == null)
             return Unauthorized("User not logged in.");
 
-        //var roles = await _userManager.GetRolesAsync(user);
-        //if (roles == null || (!roles.Contains("SuperAdmin")) || (!roles.Contains("Admin")))
-        //    return Unauthorized("Only Super Admins and Admins are authorized");
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+            return Unauthorized("Only Super Admins are authorized");
 
         var result = await _adminPermissionsService.GetAllAdminUsersAsync();
 
@@ -62,7 +62,7 @@ public class AdminPermissionsController : Controller
             return Unauthorized("User not logged in.");
 
         var roles = await _userManager.GetRolesAsync(user);
-        if (roles == null || (!roles.Contains("SuperAdmin")))
+        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
             return Unauthorized("Only Super Admins are authorized");
 
         var result = await _adminPermissionsService.GrantPermissionsToAdminAsync(user.Id, permissionsDto, targetAdminId);
@@ -85,9 +85,9 @@ public class AdminPermissionsController : Controller
         if (string.IsNullOrWhiteSpace(requestDto?.RoleName))
             return BadRequest("Role name is required.");
 
-        //var roles = await _userManager.GetRolesAsync(user);
-        //if (roles == null || (!roles.Contains("SuperAdmin")))
-        //    return Unauthorized("Only Super Admins are authorized");
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+            return Unauthorized("Only Super Admins are authorized");
 
         if (requestDto?.Permissions == null)
             return BadRequest("Permissions are required.");
@@ -104,6 +104,14 @@ public class AdminPermissionsController : Controller
     [HttpGet("get-all-roles-with-permissions")]
     public async Task<IActionResult> GetAllRolesWithPermissionsAsync()
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+            return Unauthorized("Only Super Admins are authorized");
+
         var result = await _adminPermissionsService.GetAllRolesWithPermissionsAsync();
 
         if (!result.IsSuccessful)
@@ -121,6 +129,10 @@ public class AdminPermissionsController : Controller
         if (user == null)
             return Unauthorized("User not logged in.");
 
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+            return Unauthorized("Only Super Admins are authorized");
+
         var result = await _adminPermissionsService.AddAdminUserAsync(addAdminUserDto);
         if (!result.IsSuccessful)
             return BadRequest(result);
@@ -137,6 +149,10 @@ public class AdminPermissionsController : Controller
         if (user == null)
             return Unauthorized("User not logged in.");
 
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+            return Unauthorized("Only Super Admins are authorized");
+
         var result = await _adminPermissionsService.EditAdminUserAsync(adminUserId, editAdminUserDto);
 
         if (!result.IsSuccessful)
@@ -149,10 +165,13 @@ public class AdminPermissionsController : Controller
     [HttpDelete("delete-admin-user")]
     public async Task<IActionResult> DeleteUser(string userId)
     {
-        // Get the logged-in user's ID
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return Unauthorized("User not logged in.");
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+            return Unauthorized("Only Super Admins are authorized");
 
         var response = await _adminPermissionsService.DeleteAdminUserAsync(userId);
         if (!response.IsSuccessful)

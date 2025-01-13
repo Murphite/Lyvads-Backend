@@ -669,6 +669,7 @@ public class DataGenerator
             .RuleFor(t => t.Status, f => f.Random.Bool())
             .RuleFor(t => t.Type, f => f.PickRandom<TransactionType>())
             .RuleFor(t => t.CreatedAt, f => f.Date.PastOffset())
+            .RuleFor(c => c.ApplicationUserId, f => f.PickRandom(validApplicationUserIds))
             .RuleFor(t => t.UpdatedAt, f => f.Date.RecentOffset())
             .RuleFor(t => t.ChargeTransactions, f =>
             {
@@ -918,7 +919,7 @@ public class DataGenerator
 
                 _context.RegularUsers.Add(regularUser);
 
-                var wallet = GenerateWallet(regularUser.ApplicationUserId);
+                var wallet = GenerateWallet(regularUser.ApplicationUserId!);
                 _context.Wallets.Add(wallet);
             });
 

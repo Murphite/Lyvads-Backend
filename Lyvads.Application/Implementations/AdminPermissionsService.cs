@@ -115,7 +115,7 @@ public class AdminPermissionsService : IAdminPermissionsService
 
         //if (!(await _userManager.GetRolesAsync(superAdmin)
         var roles = await _userManager.GetRolesAsync(superAdmin!);
-        if (roles == null || !roles.Contains("SuperAdmin"))
+        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
         {
             return new ServerResponse<AdminPermissionsDto>
             {
@@ -126,8 +126,9 @@ public class AdminPermissionsService : IAdminPermissionsService
             };
         }
 
+
         // Find the admin user who will receive the permissions
-       // var adminUser = await _userManager.FindByIdAsync(targetAdmin);
+        // var adminUser = await _userManager.FindByIdAsync(targetAdmin);
         if (targetAdmin == null)
         {
             return new ServerResponse<AdminPermissionsDto>
