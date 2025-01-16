@@ -62,7 +62,7 @@ public class AdminPermissionsController : Controller
             return Unauthorized("User not logged in.");
 
         var roles = await _userManager.GetRolesAsync(user);
-        if (roles == null || !roles.Any(r => string.Equals(r, "SuperAdmin", StringComparison.OrdinalIgnoreCase)))
+        if (roles == null || !roles.Any(r => string.Equals(r, "SUPERADMIN", StringComparison.OrdinalIgnoreCase)))
             return Unauthorized("Only Super Admins are authorized");
 
         var result = await _adminPermissionsService.GrantPermissionsToAdminAsync(user.Id, permissionsDto, targetAdminId);

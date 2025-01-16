@@ -121,7 +121,8 @@ public class AdminRepository : IAdminRepository
     public async Task<AdminPermission?> GetByUserIdAsync(string userId)
     {
         return await _context.AdminPermissions
-                             .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
+        .AsNoTracking()
+        .FirstOrDefaultAsync(p => p.ApplicationUserId == userId);
     }
 
     // Add new permissions

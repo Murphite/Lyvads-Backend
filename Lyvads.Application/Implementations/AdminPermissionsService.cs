@@ -126,7 +126,6 @@ public class AdminPermissionsService : IAdminPermissionsService
             };
         }
 
-
         // Find the admin user who will receive the permissions
         // var adminUser = await _userManager.FindByIdAsync(targetAdmin);
         if (targetAdmin == null)
@@ -167,7 +166,7 @@ public class AdminPermissionsService : IAdminPermissionsService
         }
 
         // Logic to update or create permissions for the admin user
-        var existingPermissions = await _adminRepository.GetByUserIdAsync(superAdminUserId); 
+        var existingPermissions = await _adminRepository.GetByUserIdAsync(targetAdminId); 
 
         if (existingPermissions != null)
         {
