@@ -45,6 +45,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RegularUser> RegularUsers { get; set; }
     public DbSet<Media> Media { get; set; }
     public DbSet<Rate> Rates { get; set; }
+    public DbSet<CardAuthorization> CardAuthorizations { get; set; }
 
 
 
@@ -58,10 +59,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         .Property(r => r.RoleName)
         .HasConversion<string>();
 
-        modelBuilder.Entity<AdminRole>()
-            .HasMany(r => r.AdminPermissions)
-            .WithOne()
-            .HasForeignKey(p => p.AdminRoleId);
+        //modelBuilder.Entity<AdminRole>()
+        //    .HasMany(r => r.AdminPermissions)
+        //    .WithOne()
+        //    .HasForeignKey(p => p.AdminRoleId);
 
         modelBuilder.Entity<RegularUser>()
         .HasOne(r => r.ApplicationUser)

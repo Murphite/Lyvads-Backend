@@ -973,13 +973,14 @@ public class CollaborationService : ICollaborationService
             };
         }
 
-        if (request.Status != RequestStatus.Pending)
+        // Allow only pending or declined requests to be canceled
+        if (request.Status != RequestStatus.Pending && request.Status != RequestStatus.Declined)
         {
             return new ServerResponse<CloseRequestResultDto>
             {
                 IsSuccessful = false,
                 ResponseCode = "400",
-                ResponseMessage = "Only pending requests can be canceled."
+                ResponseMessage = "Only pending or declined requests can be canceled."
             };
         }
 
@@ -1012,9 +1013,12 @@ public class CollaborationService : ICollaborationService
         var feesRefund = request.TotalAmount - refundAmount; // Additional fees to refund
         var totalRefund = request.TotalAmount;
 
-        // Update wallets
-        userWallet.Balance += totalRefund; // Refund total amount to the user
-        creatorWallet.Balance -= refundAmount; // Deduct the base amount from the creator
+        // Update wallets if the request was pending or declined
+        if (request.Status == RequestStatus.Pending || request.Status == RequestStatus.Declined)
+        {
+            userWallet.Balance += totalRefund; // Refund total amount to the user
+            creatorWallet.Balance -= refundAmount; // Deduct the base amount from the creator
+        }
 
         // Update request status
         request.Status = RequestStatus.Canceled;
@@ -1047,6 +1051,7 @@ public class CollaborationService : ICollaborationService
             Data = result
         };
     }
+
 
     public async Task<ServerResponse<DeclineDetailsDto>> GetDeclinedDetailsAsync(string requestId)
     {

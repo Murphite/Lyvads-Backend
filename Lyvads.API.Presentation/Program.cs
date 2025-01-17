@@ -10,6 +10,8 @@ using Serilog;
 using Stripe;
 using System.Text.Json.Serialization;
 using dotenv.net;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +74,12 @@ builder.Services.AddCors(options =>
 // Build app
 var app = builder.Build();
 
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lyvads-de99f-firebase-adminsdk-qc44s-f0872e9783.json")),
+});
+
+
 // Database migration (if needed)
 //using (var scope = app.Services.CreateScope())
 //{
@@ -112,6 +120,6 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 
-await Seeder.Run(app);
+//await Seeder.Run(app);
 
 app.Run();

@@ -369,3 +369,11 @@ C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.
 C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\obj\Debug\net8.0\Lyvads.API.Presentation.genruntimeconfig.cache
 C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\obj\Debug\net8.0\ref\Lyvads.API.Presentation.dll
 C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\dotenv.net.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\FirebaseAdmin.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\Google.Api.Gax.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\Google.Api.Gax.Rest.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\Google.Apis.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\Google.Apis.Auth.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\Google.Apis.Core.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\System.Management.dll
+C:\Users\Admin\Documents\OpenSourceProjects\LyvadsProject\Lyvads-Backend\Lyvads.API.Presentation\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll

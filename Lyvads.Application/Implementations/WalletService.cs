@@ -550,10 +550,12 @@ public class WalletService : IWalletService
         }
     }
 
-    public async Task CreditWalletAmountAsync(string walletId, decimal amount)
+    public async Task CreditWalletAmountAsync(string creatorId, decimal amount)
     {
         // Ensure wallet exists
-        var wallet = await _walletRepository.GetWalletAsync(walletId);
+       // var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+
+        var wallet = await _walletRepository.GetCreatorWalletAsync(creatorId);
         if (wallet == null)
             throw new ArgumentException("Wallet not found.");
 
@@ -566,17 +568,20 @@ public class WalletService : IWalletService
         await _walletRepository.UpdateWalletAsync(wallet);
 
         // Log the transaction
-        var transaction = new Transaction
-        {
-            WalletId = walletId,
-            Amount = (int)amount,
-            Type = TransactionType.Funding,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
-            Name = "Wallet Credit", 
-            Status = true,
-        };
-        await _transactionRepository.CreateTransactionAsync(transaction);
+        //var transaction = new Transaction
+        //{
+        //    WalletId = walletId,
+        //    Amount = (int)amount,
+        //    Type = TransactionType.Funding,
+        //    CreatedAt = DateTimeOffset.UtcNow,
+        //    UpdatedAt = DateTimeOffset.UtcNow,
+        //    Name = "Wallet Credit", 
+        //    Status = true,
+        //    ApplicationUserId = user.Id,
+        //    TrxRef = "Wallet Transaction",
+        //    Wallet = wallet
+        //};
+        //await _transactionRepository.CreateTransactionAsync(transaction);
 
         // Save changes
         await _unitOfWork.SaveChangesAsync();

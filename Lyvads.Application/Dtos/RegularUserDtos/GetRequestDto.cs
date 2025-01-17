@@ -139,6 +139,17 @@ public class PaystackData
     public PaystackCustomer? Customer { get; set; }
     public DateTime TransactionDate { get; set; } // "2024-11-21T14:00:00Z"
     public string? Channel { get; set; } // "card"
+    public string? AuthorizationCode { get; set; }
+    public string? CardType { get; set; }
+    public string? Last4 { get; set; }
+    public int ExpiryMonth { get; set; }
+    public int ExpiryYear { get; set; }
+    public string? Bank { get; set; }
+    public string? Bin { get; set; }
+    public string? AccountName { get; set; }
+    public bool Reusable { get; set; }
+    public string? Signature { get; set; }
+    public string? CountryCode { get; set; }
 }
 
 public class PaystackCustomer
@@ -192,3 +203,19 @@ public class CloseRequestResultDto
     public decimal ReversedAmount { get; set; }
 }
 
+public class StoreCardRequest
+{
+    public string? AuthorizationCode { get; set; }
+    public string? Email { get; set; }
+    public string? CardType { get; set; }
+    public string? Last4 { get; set; }
+    public int ExpMonth { get; set; }
+    public int ExpYear { get; set; }
+    public string? Bank { get; set; }
+    public string? Bin { get; set; }
+    public string? Signature { get; set; }
+    public string? AccountName { get; set; }
+    public string? Channel { get; set; }
+    public bool Reusable { get; set; }
+    public string? CountryCode { get; set; }
+}

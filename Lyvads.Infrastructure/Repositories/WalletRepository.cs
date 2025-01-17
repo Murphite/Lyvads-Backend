@@ -159,6 +159,27 @@ public class WalletRepository : IWalletRepository
         return userWithWallet.Wallet;
     }
 
+    public async Task<Wallet> GetCreatorWalletAsync(string creatorId)
+    {
+        // Retrieve the creator along with their ApplicationUser and Wallet information
+        var creatorWithWallet = await _context.Creators
+            .Where(c => c.Id == creatorId)
+            .Include(c => c.ApplicationUser)
+            .ThenInclude(au => au.Wallet)
+            .FirstOrDefaultAsync();
+
+        // Check if the creator was found
+        if (creatorWithWallet == null)
+            throw new InvalidOperationException("Creator not found.");
+
+        // Check if the ApplicationUser and their Wallet exist
+        if (creatorWithWallet.ApplicationUser?.Wallet == null)
+            throw new InvalidOperationException("Wallet not assigned to the creator.");
+
+        return creatorWithWallet.ApplicationUser.Wallet;
+    }
+
+
 
     public async Task AddAsync(Wallet wallet)
     {
@@ -237,5 +258,19 @@ public class WalletRepository : IWalletRepository
     }
 
 
+    public async Task<CardAuthorization> GetCardAuthorizationByEmailAsync(string email)
+    {
+        return await _context.CardAuthorizations
+            .FirstOrDefaultAsync(ca => ca.Email == email);
+    }
+
+    public async Task StoreCardAuthorizationAsync(CardAuthorization cardAuthorization)
+    {
+        if (cardAuthorization == null)
+            throw new ArgumentNullException(nameof(cardAuthorization));
+
+        await _context.CardAuthorizations.AddAsync(cardAuthorization);
+        await _context.SaveChangesAsync();
+    }
 
 }

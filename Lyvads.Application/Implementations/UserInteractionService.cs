@@ -280,9 +280,10 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                     };
                 }
 
-                //await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+                //await _walletService.CreditWalletAmountAsync(creator.Id, baseAmount + FastTrackFee);
+                await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
                 // Send amounts to respective destinations
-                await _walletService.CreditWalletAmountAsync(creatorWallet.Id, baseAmount + FastTrackFee);
+                
                // await _paymentGatewayService.CreditBusinessAccountAsync(WatermarkFee + CreatorPostFee + WithholdingTax);
 
 
@@ -336,7 +337,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 }
 
                 var result = await _walletService.DeductBalanceAsync(user.Id, totalAmount);
-                await _walletService.CreditWalletAmountAsync(creatorWallet.Id, baseAmount + FastTrackFee);
+                await _walletService.CreditWalletAmountAsync(creator.Id, baseAmount + FastTrackFee);
                 //wait _paymentGatewayService.CreditBusinessAccountAsync(WatermarkFee + CreatorPostFee + WithholdingTax);
                 if (result)
                 {
@@ -462,6 +463,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
             };
         }
     }
+
 
     private FeeDetailsDto CalculateTotalAmountWithCharges(int amount, List<Charge> charges)
     {

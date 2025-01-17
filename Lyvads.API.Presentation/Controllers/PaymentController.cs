@@ -93,98 +93,26 @@ public class PaymentController : Controller
     }
 
 
-    [HttpGet("wallet-transactions")]
-    public async Task<IActionResult> GetWalletTransactions()
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return BadRequest(new ServerResponse<string>
-            {
-                IsSuccessful = false,
-                ResponseCode = "400",
-                ResponseMessage = "User not logged In."
-            });
-        }
-
-        var response = await _walletService.GetWalletTransactions();
-        if (!response.IsSuccessful)
-            return BadRequest(response);
-
-        return Ok(response);
-
-    }
-
-
-    //[HttpPost("paystack/webhook")]
-    //public async Task<IActionResult> PaystackWebhook([FromBody] PaystackWebhookPayload payload, [FromHeader(Name = "x-paystack-signature")] string signature)
+    //[HttpGet("wallet-transactions")]
+    //public async Task<IActionResult> GetWalletTransactions()
     //{
-    //    // Log that the webhook endpoint was hit
-    //    Console.WriteLine("Paystack webhook triggered.");
-    //    _logger.LogInformation("Paystack webhook triggered.");
-
-    //    // Verify Paystack webhook signature
-    //    var isValid = _paymentService.VerifyPaystackSignature(payload, signature, _paystackSecretKey);
-    //    if (!isValid)
+    //    var user = await _userManager.GetUserAsync(User);
+    //    if (user == null)
     //    {
-    //        Console.WriteLine("Invalid Paystack webhook signature.");
-    //        _logger.LogWarning("Invalid Paystack webhook signature.");
     //        return BadRequest(new ServerResponse<string>
     //        {
     //            IsSuccessful = false,
     //            ResponseCode = "400",
-    //            ResponseMessage = "Invalid signature."
+    //            ResponseMessage = "User not logged In."
     //        });
     //    }
 
-    //    // Log the received payload for debugging purposes
-    //    Console.WriteLine("Webhook Payload: " + JsonConvert.SerializeObject(payload));
-    //    _logger.LogInformation("Webhook Payload: {Payload}", JsonConvert.SerializeObject(payload));
+    //    var response = await _walletService.GetWalletTransactions();
+    //    if (!response.IsSuccessful)
+    //        return BadRequest(response);
 
-    //    // Find the transaction in your database
-    //    var transaction = await _paymentService.GetTransactionByReferenceAsync(payload.Data.Reference);
-    //    if (transaction == null)
-    //    {
-    //        Console.WriteLine("Transaction not found for reference: " + payload.Data.Reference);
-    //        _logger.LogWarning("Transaction not found for reference: {Reference}", payload.Data.Reference);
-    //        return NotFound(new ServerResponse<string>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "404",
-    //            ResponseMessage = "Transaction not found."
-    //        });
-    //    }
+    //    return Ok(response);
 
-    //    // Log before updating transaction status
-    //    Console.WriteLine($"Updating transaction status for reference: {transaction.TrxRef}");
-    //    _logger.LogInformation("Updating transaction status for reference: {Reference}", transaction.TrxRef);
-
-    //    // Update the transaction status
-    //    transaction.Status = payload.Data.Status == "success";
-
-    //    // Save the updated transaction
-    //    try
-    //    {
-    //        await _paymentService.UpdateTransactionAsync(transaction);
-    //        Console.WriteLine($"Transaction status updated to {transaction.Status} for reference: {transaction.TrxRef}");
-    //        _logger.LogInformation("Transaction status updated to {Status} for reference: {Reference}", transaction.Status, transaction.TrxRef);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        Console.WriteLine("Error updating transaction: " + ex.Message);
-    //        _logger.LogError(ex, "Error updating transaction for reference: {Reference}", transaction.TrxRef);
-    //        return StatusCode(500, new ServerResponse<string>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "500",
-    //            ResponseMessage = "Internal Server Error. Unable to update transaction status."
-    //        });
-    //    }
-
-    //    // Return success response to Paystack
-    //    Console.WriteLine("Webhook processed successfully.");
-    //    _logger.LogInformation("Webhook processed successfully.");
-    //    return Ok(new { status = "success" });
     //}
 
     [HttpPost("paystack/webhook")]
@@ -222,6 +150,8 @@ public class PaymentController : Controller
 
         string trxRef = payload.Data.Reference;
         string status = payload.Data.Status;
+        string email = payload.Data.Email;
+        string authorizationCode = payload.Data.AuthorizationCode;
 
         if (string.IsNullOrEmpty(trxRef) || string.IsNullOrEmpty(status))
         {
@@ -245,6 +175,22 @@ public class PaymentController : Controller
         if (status == "success")
         {
             transaction.Status = true;
+
+            // Check if the transaction is for a request to a creator
+            if (transaction.RequestId != null)
+            {
+                var request = await _requestRepository.GetRequestByIdAsync(transaction.RequestId);
+                if (request != null && request.CreatorId != null)
+                {
+                    decimal baseAmount = request.RequestAmount;
+                    decimal fastTrackFee = request.FastTrackFee;
+
+                    // Credit the creator's wallet with the base amount and fast track fee
+                    await _walletService.CreditWalletAmountAsync(request.CreatorId, baseAmount + fastTrackFee);
+                    _logger.LogInformation("Credited {Amount} to Creator ID: {CreatorId}", baseAmount + fastTrackFee, request.CreatorId);
+                }
+            }
+
             if (transaction.WalletId != null)
             {
                 var wallet = await _walletRepository.GetWalletByIdAsync(transaction.WalletId);
@@ -256,6 +202,26 @@ public class PaymentController : Controller
                 }
             }
 
+            // Store the card details after a successful payment
+            var storeCardRequest = new StoreCardRequest
+            {
+                AuthorizationCode = authorizationCode,
+                Email = email,
+                CardType = payload.Data.CardType,
+                Last4 = payload.Data.Last4,
+                ExpMonth = payload.Data.ExpiryMonth,
+                ExpYear = payload.Data.ExpiryYear,
+                Bank = payload.Data.Bank,
+                AccountName = payload.Data.AccountName,
+                Reusable = payload.Data.Reusable,
+                CountryCode = payload.Data.CountryCode,
+                Bin = payload.Data.Bin,
+                Signature = payload.Data.Signature,
+                Channel = payload.Data.Channel
+            };
+
+            await StoreCardForRecurringPayment(storeCardRequest);
+
             await _walletRepository.UpdateTransactionAsync(transaction);
             _logger.LogInformation("Transaction with reference {TrxRef} marked as successful.", trxRef);
             return Ok(new { status = "success" });
@@ -266,6 +232,136 @@ public class PaymentController : Controller
         _logger.LogInformation("Transaction with reference {TrxRef} marked as failed.", trxRef);
         return Ok(new { status = "failure" });
     }
+
+
+    //[HttpPost("paystack/webhook")]
+    //[AllowAnonymous]
+    //public async Task<IActionResult> PaystackWebhook()
+    //{
+    //    HttpContext.Request.EnableBuffering();
+    //    string rawBody;
+
+    //    using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
+    //    {
+    //        rawBody = await reader.ReadToEndAsync();
+    //    }
+
+    //    _logger.LogInformation("Webhook received with raw body: {RawBody}", rawBody);
+    //    HttpContext.Request.Body.Position = 0;
+
+    //    PaystackWebhookPayload payload;
+    //    try
+    //    {
+    //        payload = JsonConvert.DeserializeObject<PaystackWebhookPayload>(rawBody);
+    //        if (payload?.Data == null)
+    //        {
+    //            _logger.LogError("Invalid webhook payload format.");
+    //            return BadRequest(new { status = "invalid_payload" });
+    //        }
+
+    //        _logger.LogInformation("Deserialized payload: {Payload}", JsonConvert.SerializeObject(payload));
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Failed to deserialize webhook payload.");
+    //        return BadRequest(new { status = "invalid_payload_format" });
+    //    }
+
+    //    string trxRef = payload.Data.Reference;
+    //    string status = payload.Data.Status;
+
+    //    if (string.IsNullOrEmpty(trxRef) || string.IsNullOrEmpty(status))
+    //    {
+    //        _logger.LogWarning("Transaction reference or status is missing.");
+    //        return BadRequest(new { status = "missing_data" });
+    //    }
+
+    //    var transaction = await _walletRepository.GetTransactionByTrxRefAsync(trxRef);
+    //    if (transaction == null)
+    //    {
+    //        _logger.LogWarning("Transaction with reference {TrxRef} not found.", trxRef);
+    //        return BadRequest(new { status = "transaction_not_found" });
+    //    }
+
+    //    if (transaction.Status)
+    //    {
+    //        _logger.LogInformation("Transaction with reference {TrxRef} already processed.", trxRef);
+    //        return Ok(new { status = "already_processed" });
+    //    }
+
+    //    if (status == "success")
+    //    {
+    //        transaction.Status = true;
+    //        if (transaction.WalletId != null)
+    //        {
+    //            var wallet = await _walletRepository.GetWalletByIdAsync(transaction.WalletId);
+    //            if (wallet != null)
+    //            {
+    //                wallet.Balance += transaction.Amount;
+    //                await _walletRepository.UpdateWalletAsync(wallet);
+    //                _logger.LogInformation("Wallet balance updated for WalletId: {WalletId}.", transaction.WalletId);
+    //            }
+    //        }
+
+    //        await _walletRepository.UpdateTransactionAsync(transaction);
+    //        _logger.LogInformation("Transaction with reference {TrxRef} marked as successful.", trxRef);
+    //        return Ok(new { status = "success" });
+    //    }
+
+    //    transaction.Status = false;
+    //    await _walletRepository.UpdateTransactionAsync(transaction);
+    //    _logger.LogInformation("Transaction with reference {TrxRef} marked as failed.", trxRef);
+    //    return Ok(new { status = "failure" });
+    //}
+
+    
+    [HttpPost("paystack/store-card")]
+    public async Task<IActionResult> StoreCardForRecurringPayment([FromBody] StoreCardRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.AuthorizationCode) || string.IsNullOrEmpty(request.Email))
+        {
+            _logger.LogError("Invalid request data.");
+            return BadRequest(new { status = "invalid_data", message = "Authorization code and email are required." });
+        }
+
+        try
+        {
+            // Check if the email already has a stored card
+            var existingCard = await _walletRepository.GetCardAuthorizationByEmailAsync(request.Email);
+            if (existingCard != null)
+            {
+                _logger.LogInformation("Card already stored for email: {Email}", request.Email);
+                return Ok(new { status = "card_already_stored", message = "Card is already stored for this email." });
+            }
+
+            // Store the card authorization details
+            var cardAuthorization = new CardAuthorization
+            {
+                AuthorizationCode = request.AuthorizationCode,
+                Email = request.Email,
+                CardType = request.CardType,
+                Last4 = request.Last4,
+                ExpiryMonth = request.ExpMonth,
+                ExpiryYear = request.ExpYear,
+                Bank = request.Bank,
+                AccountName = request.AccountName,
+                Reusable = request.Reusable,
+                CountryCode = request.CountryCode
+            };
+
+            await _walletRepository.StoreCardAuthorizationAsync(cardAuthorization);
+
+            _logger.LogInformation("Card stored successfully for email: {Email}", request.Email);
+
+            return Ok(new { status = "success", message = "Card stored successfully." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error storing card authorization.");
+            return StatusCode(500, new { status = "error", message = "An error occurred while storing the card." });
+        }
+    }
+
 
 
 
@@ -390,6 +486,78 @@ public class PaymentController : Controller
     //    return Ok(new { status = "failure" });
 
 
+    //}
+
+
+    //[HttpPost("paystack/webhook")]
+    //public async Task<IActionResult> PaystackWebhook([FromBody] PaystackWebhookPayload payload, [FromHeader(Name = "x-paystack-signature")] string signature)
+    //{
+    //    // Log that the webhook endpoint was hit
+    //    Console.WriteLine("Paystack webhook triggered.");
+    //    _logger.LogInformation("Paystack webhook triggered.");
+
+    //    // Verify Paystack webhook signature
+    //    var isValid = _paymentService.VerifyPaystackSignature(payload, signature, _paystackSecretKey);
+    //    if (!isValid)
+    //    {
+    //        Console.WriteLine("Invalid Paystack webhook signature.");
+    //        _logger.LogWarning("Invalid Paystack webhook signature.");
+    //        return BadRequest(new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "400",
+    //            ResponseMessage = "Invalid signature."
+    //        });
+    //    }
+
+    //    // Log the received payload for debugging purposes
+    //    Console.WriteLine("Webhook Payload: " + JsonConvert.SerializeObject(payload));
+    //    _logger.LogInformation("Webhook Payload: {Payload}", JsonConvert.SerializeObject(payload));
+
+    //    // Find the transaction in your database
+    //    var transaction = await _paymentService.GetTransactionByReferenceAsync(payload.Data.Reference);
+    //    if (transaction == null)
+    //    {
+    //        Console.WriteLine("Transaction not found for reference: " + payload.Data.Reference);
+    //        _logger.LogWarning("Transaction not found for reference: {Reference}", payload.Data.Reference);
+    //        return NotFound(new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "404",
+    //            ResponseMessage = "Transaction not found."
+    //        });
+    //    }
+
+    //    // Log before updating transaction status
+    //    Console.WriteLine($"Updating transaction status for reference: {transaction.TrxRef}");
+    //    _logger.LogInformation("Updating transaction status for reference: {Reference}", transaction.TrxRef);
+
+    //    // Update the transaction status
+    //    transaction.Status = payload.Data.Status == "success";
+
+    //    // Save the updated transaction
+    //    try
+    //    {
+    //        await _paymentService.UpdateTransactionAsync(transaction);
+    //        Console.WriteLine($"Transaction status updated to {transaction.Status} for reference: {transaction.TrxRef}");
+    //        _logger.LogInformation("Transaction status updated to {Status} for reference: {Reference}", transaction.Status, transaction.TrxRef);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine("Error updating transaction: " + ex.Message);
+    //        _logger.LogError(ex, "Error updating transaction for reference: {Reference}", transaction.TrxRef);
+    //        return StatusCode(500, new ServerResponse<string>
+    //        {
+    //            IsSuccessful = false,
+    //            ResponseCode = "500",
+    //            ResponseMessage = "Internal Server Error. Unable to update transaction status."
+    //        });
+    //    }
+
+    //    // Return success response to Paystack
+    //    Console.WriteLine("Webhook processed successfully.");
+    //    _logger.LogInformation("Webhook processed successfully.");
+    //    return Ok(new { status = "success" });
     //}
 
 }

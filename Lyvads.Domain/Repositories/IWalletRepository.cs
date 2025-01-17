@@ -6,6 +6,7 @@ namespace Lyvads.Domain.Repositories;
 
 public interface IWalletRepository
 {
+    Task<Wallet> GetCreatorWalletAsync(string creatorId);
     Task<Wallet> GetWalletWithTransactionsAsync(string userId);
     Task SaveTransferDetailsAsync(string userId, decimal amount, string transferReference);
     Task<Transfer> GetTransferDetailsAsync(string transferReference);
@@ -26,4 +27,6 @@ public interface IWalletRepository
     void Update(Wallet wallet);
     Task<Wallet?> GetWalletByRegularUserIdAsync(string userId);
     Task<Wallet?> GetWalletByCreatorIdAsync(string userId);
+    Task<CardAuthorization> GetCardAuthorizationByEmailAsync(string email);
+    Task StoreCardAuthorizationAsync(CardAuthorization cardAuthorization);
 }
