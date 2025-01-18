@@ -261,9 +261,7 @@ public class CollaborationController : ControllerBase
         var result = await _collaborationService.ResendRequestAsync(resendRequestDto);
 
         if (!result.IsSuccessful)
-        {
             return BadRequest(result);
-        }
 
         return Ok(result);
     }
@@ -275,9 +273,7 @@ public class CollaborationController : ControllerBase
         var result = await _collaborationService.CloseRequestAsync(closeRequestDto);
 
         if (!result.IsSuccessful)
-        {
             return BadRequest(result);
-        }
 
         return Ok(result);
     }
@@ -289,9 +285,7 @@ public class CollaborationController : ControllerBase
         var result = await _collaborationService.GetDeclinedDetailsAsync(requestId);
 
         if (!result.IsSuccessful)
-        {
             return BadRequest(result);
-        }
 
         return Ok(result);
     }
