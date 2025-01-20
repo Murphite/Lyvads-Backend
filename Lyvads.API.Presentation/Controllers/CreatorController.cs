@@ -1,20 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using Lyvads.Application.Interfaces;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Enums;
-using Lyvads.API.Presentation.Dtos;
 using Microsoft.AspNetCore.Authorization;
-using Lyvads.Application.Dtos.RegularUserDtos;
-using Lyvads.Application.Implementations;
 using Lyvads.Domain.Responses;
 using Lyvads.Application.Dtos;
 using System.Security.Claims;
-using Lyvads.Shared.DTOs;
-using Azure;
 
 namespace Lyvads.API.Presentation.Controllers;
 
