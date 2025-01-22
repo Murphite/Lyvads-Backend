@@ -185,7 +185,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
             var fastTrackFee = charges.FirstOrDefault(c => c.ChargeName == "Fast Track Fee");
 
             // Additional charges
-            var feeDetails = CalculateTotalAmountWithCharges(createRequestDto.Amount, charges);
+            var feeDetails = CalculateTotalAmountWithCharges(createRequestDto.Amount, charges, createRequestDto);
             int totalAmount = feeDetails.TotalAmount;
             int FastTrackFee = feeDetails.FastTrackFee;
             int WatermarkFee = feeDetails.WatermarkFee;
@@ -281,7 +281,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
                 }
 
                 //await _walletService.CreditWalletAmountAsync(creator.Id, baseAmount + FastTrackFee);
-                await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+                await SaveChargeTransactionsAsync(charges, totalAmount, request.Id, createRequestDto);
                 // Send amounts to respective destinations
                 
                // await _paymentGatewayService.CreditBusinessAccountAsync(WatermarkFee + CreatorPostFee + WithholdingTax);
@@ -376,7 +376,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
 
                         await _transactionRepository.CreateTransactionAsync(transact);
 
-                        await SaveChargeTransactionsAsync(charges, totalAmount, request.Id);
+                        await SaveChargeTransactionsAsync(charges, totalAmount, request.Id, createRequestDto);
 
                         // Commit the transaction
                         await transaction.CommitAsync();
@@ -465,7 +465,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
     }
 
 
-    private FeeDetailsDto CalculateTotalAmountWithCharges(int amount, List<Charge> charges)
+    private FeeDetailsDto CalculateTotalAmountWithCharges(int amount, List<Charge> charges, CreateRequestDto requestDto)
     {
         int totalAmount = amount;
         int withholdingTaxAmount = 0;
@@ -481,32 +481,31 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         // Calculate withholding tax if applicable
         if (withholdingTax != null && totalAmount >= withholdingTax.MinAmount)
         {
-            withholdingTaxAmount = (int)(totalAmount * (withholdingTax.Percentage / 100m));  // Use 100m for decimal
+            withholdingTaxAmount = (int)(totalAmount * (withholdingTax.Percentage / 100m));
             totalAmount += withholdingTaxAmount;
         }
 
-        // Calculate watermark fee if applicable
-        if (watermarkFee != null && totalAmount >= watermarkFee.MinAmount)
+        // Calculate watermark fee if applicable and toggle is enabled
+        if (requestDto.EnableWatermarkFee && watermarkFee != null && totalAmount >= watermarkFee.MinAmount)
         {
             watermarkFeeAmount = (int)(totalAmount * (watermarkFee.Percentage / 100m));
             totalAmount += watermarkFeeAmount;
         }
 
-        // Calculate creator post fee if applicable
-        if (creatorPostFee != null && totalAmount >= creatorPostFee.MinAmount)
+        // Calculate creator post fee if applicable and toggle is enabled
+        if (requestDto.EnableCreatorFee && creatorPostFee != null && totalAmount >= creatorPostFee.MinAmount)
         {
             creatorPostFeeAmount = (int)(totalAmount * (creatorPostFee.Percentage / 100m));
             totalAmount += creatorPostFeeAmount;
         }
 
-        // Calculate fast track fee if applicable
-        if (fastTrackFee != null && totalAmount >= fastTrackFee.MinAmount)
+        // Calculate fast track fee if applicable and toggle is enabled
+        if (requestDto.EnableFastTrackFee && fastTrackFee != null && totalAmount >= fastTrackFee.MinAmount)
         {
             fastTrackFeeAmount = (int)(totalAmount * (fastTrackFee.Percentage / 100m));
             totalAmount += fastTrackFeeAmount;
         }
 
-        // Return the total amount and individual charges in a FeeDetails object
         return new FeeDetailsDto
         {
             TotalAmount = totalAmount,
@@ -517,21 +516,18 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         };
     }
 
-    private async Task SaveChargeTransactionsAsync(List<Charge> charges, int totalAmount, string requestId)
-    {
-        // Try to fetch the transaction from the transaction table
-        var transaction = await _transactionRepository.GetByIdAsync(requestId);
 
-        // If not found, try to fetch it from the wallet table
+    private async Task SaveChargeTransactionsAsync(List<Charge> charges, int totalAmount, string requestId, CreateRequestDto requestDto)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(requestId);
         if (transaction == null)
         {
-            var wallet = await _walletRepository.GetByRequestIdAsync(requestId); 
+            var wallet = await _walletRepository.GetByRequestIdAsync(requestId);
             if (wallet == null)
             {
                 throw new InvalidOperationException($"Transaction with ID {requestId} not found in both Transaction and Wallet tables.");
             }
 
-            // Create a pseudo-transaction object based on wallet details
             transaction = new Transaction
             {
                 Id = requestId,
@@ -539,80 +535,70 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
             };
         }
 
-        var withholdingTax = charges.FirstOrDefault(c => c.ChargeName == "Withholding Tax");
-        var watermarkFee = charges.FirstOrDefault(c => c.ChargeName == "WaterMark");
-        var creatorPostFee = charges.FirstOrDefault(c => c.ChargeName == "Creator Post Fee");
-        var fastTrackFee = charges.FirstOrDefault(c => c.ChargeName == "Fast Track Fee");
-
         var chargeTransactions = new List<ChargeTransaction>();
 
-        // Add withholding tax transaction if applicable
-        if (withholdingTax != null && totalAmount >= withholdingTax.MinAmount)
+        // Add applicable charges based on toggles
+        if (requestDto.EnableWatermarkFee)
         {
-            chargeTransactions.Add(new ChargeTransaction
+            var watermarkFee = charges.FirstOrDefault(c => c.ChargeName == "WaterMark");
+            if (watermarkFee != null && totalAmount >= watermarkFee.MinAmount)
             {
-                ChargeName = withholdingTax.ChargeName,
-                Amount = (decimal)(totalAmount * (withholdingTax.Percentage / 100m)),
-                Description = "Withholding tax charge",
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow,
-                TransactionId = requestId,
-                Transaction = transaction,
-                Status = transaction.Status ? CTransStatus.NotPaid : CTransStatus.Paid,
-                ApplicationUserId = transaction.ApplicationUserId!
-            });
+                chargeTransactions.Add(new ChargeTransaction
+                {
+                    ChargeName = watermarkFee.ChargeName,
+                    Amount = (decimal)(totalAmount * (watermarkFee.Percentage / 100m)),
+                    Description = "Watermark fee charge",
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    TransactionId = requestId,
+                    Transaction = transaction,
+                    Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                    ApplicationUserId = transaction.ApplicationUserId!
+                });
+            }
         }
 
-        // Add other fee transactions (similar logic as above)
-        if (watermarkFee != null && totalAmount >= watermarkFee.MinAmount)
+        if (requestDto.EnableCreatorFee)
         {
-            chargeTransactions.Add(new ChargeTransaction
+            var creatorPostFee = charges.FirstOrDefault(c => c.ChargeName == "Creator Post Fee");
+            if (creatorPostFee != null && totalAmount >= creatorPostFee.MinAmount)
             {
-                ChargeName = watermarkFee.ChargeName,
-                Amount = (decimal)(totalAmount * (watermarkFee.Percentage / 100m)),
-                Description = "Watermark fee charge",
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow,
-                TransactionId = requestId,
-                Transaction = transaction,
-                Status = transaction.Status ? CTransStatus.NotPaid : CTransStatus.Paid,
-                ApplicationUserId = transaction.ApplicationUserId!
-            });
+                chargeTransactions.Add(new ChargeTransaction
+                {
+                    ChargeName = creatorPostFee.ChargeName,
+                    Amount = (decimal)(totalAmount * (creatorPostFee.Percentage / 100m)),
+                    Description = "Creator post fee charge",
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    TransactionId = requestId,
+                    Transaction = transaction,
+                    Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                    ApplicationUserId = transaction.ApplicationUserId!
+                });
+            }
         }
 
-        if (creatorPostFee != null && totalAmount >= creatorPostFee.MinAmount)
+        if (requestDto.EnableFastTrackFee)
         {
-            chargeTransactions.Add(new ChargeTransaction
+            var fastTrackFee = charges.FirstOrDefault(c => c.ChargeName == "Fast Track Fee");
+            if (fastTrackFee != null && totalAmount >= fastTrackFee.MinAmount)
             {
-                ChargeName = creatorPostFee.ChargeName,
-                Amount = (decimal)(totalAmount * (creatorPostFee.Percentage / 100m)),
-                Description = "Creator post fee charge",
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow,
-                TransactionId = requestId,
-                Transaction = transaction,
-                Status = transaction.Status ? CTransStatus.NotPaid : CTransStatus.Paid,
-                ApplicationUserId = transaction.ApplicationUserId!
-            });
+                chargeTransactions.Add(new ChargeTransaction
+                {
+                    ChargeName = fastTrackFee.ChargeName,
+                    Amount = (decimal)(totalAmount * (fastTrackFee.Percentage / 100m)),
+                    Description = "Fast track fee charge",
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow,
+                    TransactionId = requestId,
+                    Transaction = transaction,
+                    Status = transaction.Status ? CTransStatus.Paid : CTransStatus.NotPaid,
+                    ApplicationUserId = transaction.ApplicationUserId!
+                });
+            }
         }
 
-        if (fastTrackFee != null && totalAmount >= fastTrackFee.MinAmount)
-        {
-            chargeTransactions.Add(new ChargeTransaction
-            {
-                ChargeName = fastTrackFee.ChargeName,
-                Amount = (decimal)(totalAmount * (fastTrackFee.Percentage / 100m)),
-                Description = "Fast track fee charge",
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow,
-                TransactionId = requestId,
-                Transaction = transaction,
-                Status = transaction.Status ? CTransStatus.NotPaid : CTransStatus.Paid,
-                ApplicationUserId = transaction.ApplicationUserId!
-            });
-        }
-
-        // Save all charge transactions to the database
+        // Save all charge transactions
         if (chargeTransactions.Any())
         {
             await _chargeTransactionRepository.AddRangeAsync(chargeTransactions);

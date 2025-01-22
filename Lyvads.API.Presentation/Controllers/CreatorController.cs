@@ -110,7 +110,7 @@ public class CreatorController : ControllerBase
 
 
     [HttpPost("CreatePost")]
-    [Authorize(Roles = "Creator")]
+    //[Authorize(Roles = "Creator")]
     public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromQuery] PostVisibility visibility,
     [FromForm] List<IFormFile> mediaFiles)
     {

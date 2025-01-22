@@ -93,27 +93,28 @@ public class PaymentController : Controller
     }
 
 
-    //[HttpGet("wallet-transactions")]
-    //public async Task<IActionResult> GetWalletTransactions()
-    //{
-    //    var user = await _userManager.GetUserAsync(User);
-    //    if (user == null)
-    //    {
-    //        return BadRequest(new ServerResponse<string>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "400",
-    //            ResponseMessage = "User not logged In."
-    //        });
-    //    }
+    [HttpGet("wallet-transactions")]
+    public async Task<IActionResult> GetWalletTransactions()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return BadRequest(new ServerResponse<string>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "User not logged In."
+            });
+        }
 
-    //    var response = await _walletService.GetWalletTransactions();
-    //    if (!response.IsSuccessful)
-    //        return BadRequest(response);
+        var response = await _walletService.GetWalletTransactions();
+        if (!response.IsSuccessful)
+            return BadRequest(response);
 
-    //    return Ok(response);
+        return Ok(response);
 
-    //}
+    }
+
 
     [HttpPost("paystack/webhook")]
     [AllowAnonymous]

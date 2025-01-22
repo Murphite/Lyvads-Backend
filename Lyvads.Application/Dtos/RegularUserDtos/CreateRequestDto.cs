@@ -9,9 +9,9 @@ public class CreateRequestDto
     public string? Script { get; set; }
     public string? RequestType { get; set; }
     public int Amount { get; set; }
-    public bool FastTrack { get; set; } 
-    public bool RemoveWatermark { get; set; } 
-    public bool CreatorPost { get; set; } 
+    public bool EnableWatermarkFee { get; set; }
+    public bool EnableCreatorFee { get; set; }
+    public bool EnableFastTrackFee { get; set; }
     public AppPaymentMethod payment {  get; set; }
 }
 
