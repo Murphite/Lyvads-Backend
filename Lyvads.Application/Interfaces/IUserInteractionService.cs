@@ -2,6 +2,7 @@
 using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
+using Lyvads.Domain.Entities;
 using Lyvads.Domain.Enums;
 using Lyvads.Domain.Responses;
 using Lyvads.Shared.DTOs;
@@ -15,6 +16,7 @@ public interface IUserInteractionService
     Task<ServerResponse<int>> GetUsersFollowingCreatorCountAsync(string creatorId);
     Task<ServerResponse<List<UserFollowerDto>>> GetUsersFollowingCreatorDetailsAsync(string creatorId);
     Task<ServerResponse<int>> GetCreatorsFollowingCountAsync(string userId);
+    List<ChargeAmountDto> GetChargeDetails(int totalAmount, List<Charge> charges, CreateRequestDto requestDto);
     Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId, AppPaymentMethod payment,
        CreateRequestDto createRequestDto);
     Task<ServerResponse<CommentResponseDto>> EditCommentAsync(string commentId, string userId, string newContent);

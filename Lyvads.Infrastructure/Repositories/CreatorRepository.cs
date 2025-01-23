@@ -14,6 +14,15 @@ public class CreatorRepository : ICreatorRepository
         _context = context;
     }
 
+    public async Task<Creator> GetCreatorWithUserDetailsAsync(string userId)
+    {
+        // Use Include to eagerly load the ApplicationUser navigation property
+        var creator = await _context.Set<Creator>()
+            .Include(c => c.ApplicationUser) // Ensure the ApplicationUser navigation property is loaded
+            .FirstOrDefaultAsync(c => c.ApplicationUserId == userId);
+
+        return creator;
+    }
     public async Task AddAsync(Creator creator)
     {
         await _context.Creators.AddAsync(creator);

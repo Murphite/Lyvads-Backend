@@ -14,6 +14,7 @@ using Lyvads.Domain.Responses;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Lyvads.Domain.Enums;
+using Stripe;
 
 namespace Lyvads.API.Controllers;
 
@@ -289,6 +290,36 @@ public class UserInteractionController : ControllerBase
 
         return Ok(result);
     }
+
+    //[HttpPost("calculate-charges")]
+    //public IActionResult CalculateCharges([FromBody] CalculateChargesRequest request)
+    //{
+    //    if (request == null || request.Charges == null || request.RequestDto == null)
+    //    {
+    //        return BadRequest("Invalid request payload.");
+    //    }
+
+    //    try
+    //    {
+    //        var chargeDetails = _userInteractionService.GetChargeDetails(request.TotalAmount, request.Charges, request.RequestDto);
+
+    //        return Ok(new
+    //        {
+    //            Success = true,
+    //            Message = "Charges calculated successfully.",
+    //            Data = chargeDetails
+    //        });
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        return StatusCode(StatusCodes.Status500InternalServerError, new
+    //        {
+    //            Success = false,
+    //            Message = "An error occurred while calculating charges.",
+    //            Error = ex.Message
+    //        });
+    //    }
+    //}
 
 
     [HttpGet("favorite-creators")]

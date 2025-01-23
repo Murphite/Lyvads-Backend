@@ -605,6 +605,77 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         }
     }
 
+    public List<ChargeAmountDto> GetChargeDetails(int totalAmount, List<Charge> charges, CreateRequestDto requestDto)
+    {
+        var chargeDetails = new List<ChargeAmountDto>();
+
+        foreach (var charge in charges)
+        {
+            // Skip if the charge conditions are not met
+            if (totalAmount < charge.MinAmount)
+            {
+                continue;
+            }
+
+            decimal calculatedAmount = 0;
+
+            // Calculate the charge amount based on the toggles and charge name
+            switch (charge.ChargeName)
+            {
+                case "Withholding Tax":
+                    calculatedAmount = totalAmount * (charge.Percentage / 100m);
+                    chargeDetails.Add(new ChargeAmountDto
+                    {
+                        ChargeName = charge.ChargeName,
+                        CalculatedAmount = calculatedAmount
+                    });
+                    break;
+
+                case "WaterMark":
+                    if (requestDto.EnableWatermarkFee)
+                    {
+                        calculatedAmount = totalAmount * (charge.Percentage / 100m);
+                        chargeDetails.Add(new ChargeAmountDto
+                        {
+                            ChargeName = charge.ChargeName,
+                            CalculatedAmount = calculatedAmount
+                        });
+                    }
+                    break;
+
+                case "Creator Post Fee":
+                    if (requestDto.EnableCreatorFee)
+                    {
+                        calculatedAmount = totalAmount * (charge.Percentage / 100m);
+                        chargeDetails.Add(new ChargeAmountDto
+                        {
+                            ChargeName = charge.ChargeName,
+                            CalculatedAmount = calculatedAmount
+                        });
+                    }
+                    break;
+
+                case "Fast Track Fee":
+                    if (requestDto.EnableFastTrackFee)
+                    {
+                        calculatedAmount = totalAmount * (charge.Percentage / 100m);
+                        chargeDetails.Add(new ChargeAmountDto
+                        {
+                            ChargeName = charge.ChargeName,
+                            CalculatedAmount = calculatedAmount
+                        });
+                    }
+                    break;
+
+                default:
+                    // Skip unsupported charges
+                    break;
+            }
+        }
+
+        return chargeDetails;
+    }
+
 
     public async Task<ServerResponse<CommentResponseDto>> EditCommentAsync(string commentId, string userId, string newContent)
     {

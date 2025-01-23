@@ -162,7 +162,7 @@ public class CreatorService : ICreatorService
             };
         }
 
-        var creator = await _repository.GetAll<Creator>().FirstOrDefaultAsync(c => c.ApplicationUserId == userId);
+        var creator = await _creatorRepository.GetCreatorWithUserDetailsAsync(userId);
         if (creator == null)
         {
             return new ServerResponse<PostResponseDto>
