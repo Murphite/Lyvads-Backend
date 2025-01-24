@@ -21,7 +21,8 @@ public class AdminChargeTransactionService : IAdminChargeTransactionService
     private readonly ICurrentUserService _currentUserService;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public AdminChargeTransactionService(ILogger<AdminChargeTransactionService> logger,
+    public AdminChargeTransactionService(
+        ILogger<AdminChargeTransactionService> logger,
         IChargeTransactionRepository chargeTransactionRepository,
         IHttpContextAccessor httpContextAccessor,
         IAdminActivityLogService adminActivityLogService,

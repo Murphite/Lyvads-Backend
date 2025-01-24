@@ -14,7 +14,6 @@ using Lyvads.Domain.Responses;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Lyvads.Domain.Enums;
-using Stripe;
 
 namespace Lyvads.API.Controllers;
 
@@ -26,14 +25,21 @@ public class UserInteractionController : ControllerBase
     private readonly IUserInteractionService _userInteractionService;
     private readonly ILogger<UserInteractionController> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IAdminChargeTransactionService _chargeTransactionService;
 
 
-    public UserInteractionController(IUserInteractionService userInteractionService, ILogger<UserInteractionController> logger,
-                 UserManager<ApplicationUser> userManager)
+
+    public UserInteractionController(
+        IUserInteractionService userInteractionService,
+        ILogger<UserInteractionController> logger,
+        UserManager<ApplicationUser> userManager,
+        IAdminChargeTransactionService chargeTransactionService
+        )
     {
         _userInteractionService = userInteractionService;
         _logger = logger;
         _userManager = userManager;
+        _chargeTransactionService = chargeTransactionService;
     }
 
     [HttpPost("Comment")]
@@ -51,6 +57,7 @@ public class UserInteractionController : ControllerBase
 
         return Ok(result);
     }
+
 
     [HttpPost("Reply")]
     public async Task<IActionResult> ReplyToComment(string parentCommentId, string content)
@@ -241,7 +248,6 @@ public class UserInteractionController : ControllerBase
     }
 
 
-
     [HttpPost("{commentId}/toggle-like-comment")]
     public async Task<IActionResult> ToggleLikeComment(string commentId)
     {
@@ -290,36 +296,6 @@ public class UserInteractionController : ControllerBase
 
         return Ok(result);
     }
-
-    //[HttpPost("calculate-charges")]
-    //public IActionResult CalculateCharges([FromBody] CalculateChargesRequest request)
-    //{
-    //    if (request == null || request.Charges == null || request.RequestDto == null)
-    //    {
-    //        return BadRequest("Invalid request payload.");
-    //    }
-
-    //    try
-    //    {
-    //        var chargeDetails = _userInteractionService.GetChargeDetails(request.TotalAmount, request.Charges, request.RequestDto);
-
-    //        return Ok(new
-    //        {
-    //            Success = true,
-    //            Message = "Charges calculated successfully.",
-    //            Data = chargeDetails
-    //        });
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        return StatusCode(StatusCodes.Status500InternalServerError, new
-    //        {
-    //            Success = false,
-    //            Message = "An error occurred while calculating charges.",
-    //            Error = ex.Message
-    //        });
-    //    }
-    //}
 
 
     [HttpGet("favorite-creators")]
@@ -399,6 +375,38 @@ public class UserInteractionController : ControllerBase
         if (user == null)
             return Unauthorized("User not found or unauthorized.");
         var result = await _userInteractionService.ViewWalletBalanceAsync(user.Id);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+    [HttpGet("get-posts")]
+    public async Task<IActionResult> GetPostsForUserAsync()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+        var result = await _userInteractionService.GetPostsForUserAsync(user.Id);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
+
+    [HttpGet("get-all-charges")]
+    public async Task<IActionResult> GetAllCharges()
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        _logger.LogInformation("Fetching all charges...");
+        var result = await _userInteractionService.GetAllChargesAsync();
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);

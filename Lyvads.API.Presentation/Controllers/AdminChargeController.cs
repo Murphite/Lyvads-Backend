@@ -19,7 +19,8 @@ public class AdminChargeController : ControllerBase
     private readonly IAdminActivityLogService _activityLogService;
     private readonly UserManager<ApplicationUser> _userManager;
 
-    public AdminChargeController(IAdminChargeTransactionService chargeTransactionService,
+    public AdminChargeController(
+        IAdminChargeTransactionService chargeTransactionService,
         ILogger<AdminChargeController> logger,
         IAdminActivityLogService activityLogService,
         UserManager<ApplicationUser> userManager)

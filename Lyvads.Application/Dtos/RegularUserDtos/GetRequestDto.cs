@@ -107,6 +107,17 @@ public class PaymentResponseDto
 }
 
 
+public class StorePaymentCardResponseDto
+{
+    public string? AuthorizationCode { get; set; }
+    public string? Email { get; set; }
+    public string? CardType { get; set; }
+    public string? Last4 { get; set; }
+    public int ExpiryMonth { get; set; }
+    public int ExpiryYear { get; set; }
+}
+
+
 public class WalletTrasactionResponseDto
 {
     public string? Id { get; set; }

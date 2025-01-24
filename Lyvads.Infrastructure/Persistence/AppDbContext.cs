@@ -53,8 +53,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
-       // optionsBuilder.UseSqlServer("Data Source=SQL8011.site4now.net;Initial Catalog=db_ab085c_lyvadsdb;User Id=db_ab085c_lyvadsdb_admin;Password=Lyvads@123");
-
         modelBuilder.Entity<AdminRole>()
         .Property(r => r.RoleName)
         .HasConversion<string>();

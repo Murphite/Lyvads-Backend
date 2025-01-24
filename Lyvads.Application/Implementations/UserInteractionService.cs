@@ -14,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Lyvads.Shared.DTOs;
 using Lyvads.Domain.Constants;
 using Lyvads.Application.Utilities;
-using Org.BouncyCastle.Asn1.Cmp;
+using System.Security.Claims;
 
 
 namespace Lyvads.Application.Implementations;
@@ -37,6 +37,8 @@ public class UserInteractionService : IUserInteractionService
     private readonly IConfiguration _configuration;
     private readonly IRegularUserRepository _regularUserRepository;
     private readonly IChargeTransactionRepository _chargeTransactionRepository;
+    private readonly IAdminActivityLogService _adminActivityLogService;
+    private readonly ICurrentUserService _currentUserService;
 
     public UserInteractionService(
         IUserRepository userRepository,
@@ -54,7 +56,10 @@ public class UserInteractionService : IUserInteractionService
         IPostRepository postRepository,
         IHttpContextAccessor httpContextAccessor,
         IRegularUserRepository regularUserRepository, 
-        IChargeTransactionRepository chargeTransactionRepository)
+        IChargeTransactionRepository chargeTransactionRepository,
+         IAdminActivityLogService adminActivityLogService,
+        ICurrentUserService currentUserService
+        )
     {
         _userRepository = userRepository;
         _transactionRepository = transactionRepository;
@@ -72,6 +77,8 @@ public class UserInteractionService : IUserInteractionService
         _postRepository = postRepository;
         _regularUserRepository = regularUserRepository;
         _chargeTransactionRepository = chargeTransactionRepository;
+        _adminActivityLogService = adminActivityLogService;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId,
@@ -479,7 +486,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         var fastTrackFee = charges.FirstOrDefault(c => c.ChargeName == "Fast Track Fee");
 
         // Calculate withholding tax if applicable
-        if (withholdingTax != null && totalAmount >= withholdingTax.MinAmount)
+        if (withholdingTax != null)
         {
             withholdingTaxAmount = (int)(totalAmount * (withholdingTax.Percentage / 100m));
             totalAmount += withholdingTaxAmount;
@@ -605,75 +612,79 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         }
     }
 
-    public List<ChargeAmountDto> GetChargeDetails(int totalAmount, List<Charge> charges, CreateRequestDto requestDto)
+    public async Task<ServerResponse<List<ChargeDto>>> GetAllChargesAsync()
     {
-        var chargeDetails = new List<ChargeAmountDto>();
-
-        foreach (var charge in charges)
+        try
         {
-            // Skip if the charge conditions are not met
-            if (totalAmount < charge.MinAmount)
+            var charges = await _chargeTransactionRepository.GetAllChargesAsync();
+
+            var result = charges.Select(c => new ChargeDto
             {
-                continue;
+                Id = c.Id,
+                ChargeName = c.ChargeName,
+                Percentage = c.Percentage,
+                MinAmount = c.MinAmount,
+                MaxAmount = c.MaxAmount,
+                Status = c.Status.ToString(),
+            }).ToList();
+
+            // Get the currently logged-in admin user's ID
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Use current user service to fetch the current admin username
+            var currentUserId = _currentUserService.GetCurrentUserId();
+            var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+            var rolesToCheck = new[] { RolesConstant.SuperAdmin, RolesConstant.Admin, RolesConstant.RegularUser, RolesConstant.Creator };
+            string? userRole = null;
+
+            foreach (var role in rolesToCheck)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, role))
+                {
+                    userRole = role;
+                    break;
+                }
             }
 
-            decimal calculatedAmount = 0;
-
-            // Calculate the charge amount based on the toggles and charge name
-            switch (charge.ChargeName)
+            // Ensure user ID and username are not null before proceeding
+            if (string.IsNullOrEmpty(userId) || currentUser == null)
             {
-                case "Withholding Tax":
-                    calculatedAmount = totalAmount * (charge.Percentage / 100m);
-                    chargeDetails.Add(new ChargeAmountDto
-                    {
-                        ChargeName = charge.ChargeName,
-                        CalculatedAmount = calculatedAmount
-                    });
-                    break;
-
-                case "WaterMark":
-                    if (requestDto.EnableWatermarkFee)
-                    {
-                        calculatedAmount = totalAmount * (charge.Percentage / 100m);
-                        chargeDetails.Add(new ChargeAmountDto
-                        {
-                            ChargeName = charge.ChargeName,
-                            CalculatedAmount = calculatedAmount
-                        });
-                    }
-                    break;
-
-                case "Creator Post Fee":
-                    if (requestDto.EnableCreatorFee)
-                    {
-                        calculatedAmount = totalAmount * (charge.Percentage / 100m);
-                        chargeDetails.Add(new ChargeAmountDto
-                        {
-                            ChargeName = charge.ChargeName,
-                            CalculatedAmount = calculatedAmount
-                        });
-                    }
-                    break;
-
-                case "Fast Track Fee":
-                    if (requestDto.EnableFastTrackFee)
-                    {
-                        calculatedAmount = totalAmount * (charge.Percentage / 100m);
-                        chargeDetails.Add(new ChargeAmountDto
-                        {
-                            ChargeName = charge.ChargeName,
-                            CalculatedAmount = calculatedAmount
-                        });
-                    }
-                    break;
-
-                default:
-                    // Skip unsupported charges
-                    break;
+                _logger.LogWarning("User ID or current user is null. Activity log will not be recorded.");
             }
+            else
+            {
+                // Log the admin activity
+                await _adminActivityLogService.LogActivityAsync(
+                    userId,
+                    currentUser.FullName!,
+                    userRole!,
+                    "Got All Charges",
+                    "Charge Management");
+            }
+
+            return new ServerResponse<List<ChargeDto>>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "Success",
+                Data = result
+            };
         }
-
-        return chargeDetails;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching all charges");
+            return new ServerResponse<List<ChargeDto>>
+            {
+                IsSuccessful = false,
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "500",
+                    ResponseMessage = "Internal Server Error",
+                    ResponseDescription = ex.Message
+                }
+            };
+        }
     }
 
 
@@ -2188,6 +2199,58 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         };
     }
 
+    public async Task<ServerResponse<List<GetPostDto>>> GetPostsForUserAsync(string userId)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning("User ID is null or empty.");
+            return new ServerResponse<List<GetPostDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "User ID is null or empty."
+            };
+        }
 
+        // Fetch user with their followers
+        var user = await _userRepository.GetUserWithFollowersAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning($"User not found for ID: {userId}");
+            return new ServerResponse<List<GetPostDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found."
+            };
+        }
+
+        // Fetch the list of creator IDs the user is following
+        var followingIds = await _userRepository.GetFollowingCreatorIdsAsync(userId);
+
+        // Get filtered posts based on visibility and following status
+        var posts = await _postRepository.GetFilteredPostsAsync(followingIds);
+
+        // Map posts to DTOs
+        var postDtos = posts.Select(p => new GetPostDto
+        {
+            PostId = p.Id,
+            CreatorName = p.Creator.ApplicationUser?.FullName,
+            Caption = p.Caption,
+            Location = p.Location,
+            Visibility = p.Visibility.ToString(),
+            CreatedAt = p.CreatedAt,
+            MediaUrls = p.MediaFiles != null && p.MediaFiles.Any() ? p.MediaFiles.Select(m => m.Url).ToList() : new List<string>()
+        }).ToList();
+
+        // Return the response
+        return new ServerResponse<List<GetPostDto>>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Posts retrieved successfully.",
+            Data = postDtos
+        };
+    }
 
 }

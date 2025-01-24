@@ -221,7 +221,7 @@ public class PaymentController : Controller
                 Channel = payload.Data.Channel
             };
 
-            await StoreCardForRecurringPayment(storeCardRequest);
+            await _walletService.StoreCardForRecurringPayment(storeCardRequest);
 
             await _walletRepository.UpdateTransactionAsync(transaction);
             _logger.LogInformation("Transaction with reference {TrxRef} marked as successful.", trxRef);
@@ -315,56 +315,42 @@ public class PaymentController : Controller
     //    return Ok(new { status = "failure" });
     //}
 
-    
-    [HttpPost("paystack/store-card")]
-    public async Task<IActionResult> StoreCardForRecurringPayment([FromBody] StoreCardRequest request)
+
+    [HttpGet("paystack/store-card")]
+    public async Task<IActionResult> GetCardTokenForRecurringPayment([FromQuery] string email)
     {
-        if (request == null || string.IsNullOrEmpty(request.AuthorizationCode) || string.IsNullOrEmpty(request.Email))
+        if (string.IsNullOrEmpty(email))
         {
-            _logger.LogError("Invalid request data.");
-            return BadRequest(new { status = "invalid_data", message = "Authorization code and email are required." });
+            _logger.LogError("Email is required.");
+            return BadRequest(new { status = "invalid_data", message = "Email is required." });
         }
 
         try
         {
-            // Check if the email already has a stored card
-            var existingCard = await _walletRepository.GetCardAuthorizationByEmailAsync(request.Email);
-            if (existingCard != null)
+            // Retrieve the stored card authorization details by email
+            var storedCard = await _walletRepository.GetCardAuthorizationByEmailAsync(email);
+            if (storedCard == null)
             {
-                _logger.LogInformation("Card already stored for email: {Email}", request.Email);
-                return Ok(new { status = "card_already_stored", message = "Card is already stored for this email." });
+                _logger.LogInformation("No card found for email: {Email}", email);
+                return NotFound(new { status = "card_not_found", message = "No card found for this email." });
             }
 
-            // Store the card authorization details
-            var cardAuthorization = new CardAuthorization
-            {
-                AuthorizationCode = request.AuthorizationCode,
-                Email = request.Email,
-                CardType = request.CardType,
-                Last4 = request.Last4,
-                ExpiryMonth = request.ExpMonth,
-                ExpiryYear = request.ExpYear,
-                Bank = request.Bank,
-                AccountName = request.AccountName,
-                Reusable = request.Reusable,
-                CountryCode = request.CountryCode
-            };
+            // Assuming 'AuthorizationCode' or another field is used as a token for recurring payments
+            var cardToken = storedCard.AuthorizationCode;
 
-            await _walletRepository.StoreCardAuthorizationAsync(cardAuthorization);
+            _logger.LogInformation("Card token retrieved successfully for email: {Email}", email);
 
-            _logger.LogInformation("Card stored successfully for email: {Email}", request.Email);
-
-            return Ok(new { status = "success", message = "Card stored successfully." });
+            return Ok(new { status = "success", cardToken = cardToken });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error storing card authorization.");
-            return StatusCode(500, new { status = "error", message = "An error occurred while storing the card." });
+            _logger.LogError(ex, "Error retrieving card token.");
+            return StatusCode(500, new { status = "error", message = "An error occurred while retrieving the card token." });
         }
     }
 
 
-
+    
 
     //[HttpPost("paystack/webhook")]
     //[AllowAnonymous]

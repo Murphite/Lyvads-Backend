@@ -11,12 +11,14 @@ namespace Lyvads.Application.Interfaces;
 
 public interface IUserInteractionService
 {
+    Task<ServerResponse<List<ChargeDto>>> GetAllChargesAsync();
+    Task<ServerResponse<List<GetPostDto>>> GetPostsForUserAsync(string userId);
     Task<ServerResponse<bool>> CheckIfCreatorIsInUserFavoritesAsync(string userId, string creatorId);
     Task<ServerResponse<WalletBalanceDto>> ViewWalletBalanceAsync(string userId);
     Task<ServerResponse<int>> GetUsersFollowingCreatorCountAsync(string creatorId);
     Task<ServerResponse<List<UserFollowerDto>>> GetUsersFollowingCreatorDetailsAsync(string creatorId);
     Task<ServerResponse<int>> GetCreatorsFollowingCountAsync(string userId);
-    List<ChargeAmountDto> GetChargeDetails(int totalAmount, List<Charge> charges, CreateRequestDto requestDto);
+    //List<ChargeAmountDto> GetChargeDetails(int totalAmount, List<Charge> charges, CreateRequestDto requestDto);
     Task<ServerResponse<MakeRequestDetailsDto>> MakeRequestAsync(string creatorId, AppPaymentMethod payment,
        CreateRequestDto createRequestDto);
     Task<ServerResponse<CommentResponseDto>> EditCommentAsync(string commentId, string userId, string newContent);

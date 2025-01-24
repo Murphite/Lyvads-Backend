@@ -52,6 +52,85 @@ public class WalletService : IWalletService
         _httpContextAccessor = httpContextAccessor;
     }
 
+    public async Task<ServerResponse<StorePaymentCardResponseDto>> StoreCardForRecurringPayment(StoreCardRequest request)
+    {
+        if (request == null || string.IsNullOrEmpty(request.AuthorizationCode) || string.IsNullOrEmpty(request.Email))
+        {
+            _logger.LogError("Invalid request data.");
+            return new ServerResponse<StorePaymentCardResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Authorization code and email are required.",
+                Data = null // You can return null or an empty PaymentResponseDto
+            };
+        }
+
+        try
+        {
+            // Check if the email already has a stored card
+            var existingCard = await _walletRepository.GetCardAuthorizationByEmailAsync(request.Email);
+            if (existingCard != null)
+            {
+                _logger.LogInformation("Card already stored for email: {Email}", request.Email);
+                return new ServerResponse<StorePaymentCardResponseDto>
+                {
+                    IsSuccessful = false,
+                    ResponseCode = "409", // Conflict
+                    ResponseMessage = "Card is already stored for this email.",
+                    Data = null
+                };
+            }
+
+            // Store the card authorization details
+            var cardAuthorization = new CardAuthorization
+            {
+                AuthorizationCode = request.AuthorizationCode,
+                Email = request.Email,
+                CardType = request.CardType,
+                Last4 = request.Last4,
+                ExpiryMonth = request.ExpMonth,
+                ExpiryYear = request.ExpYear,
+                Bank = request.Bank,
+                AccountName = request.AccountName,
+                Reusable = request.Reusable,
+                CountryCode = request.CountryCode
+                // Optional fields if needed
+            };
+
+            await _walletRepository.StoreCardAuthorizationAsync(cardAuthorization);
+
+            _logger.LogInformation("Card stored successfully for email: {Email}", request.Email);
+
+            return new ServerResponse<StorePaymentCardResponseDto>
+            {
+                IsSuccessful = true,
+                ResponseCode = "200", // OK
+                ResponseMessage = "Card stored successfully.",
+                Data = new StorePaymentCardResponseDto
+                {
+                    // Populate with any relevant details for the response DTO
+                    AuthorizationCode = request.AuthorizationCode,
+                    Email = request.Email,
+                    CardType = request.CardType,
+                    Last4 = request.Last4,
+                    ExpiryMonth = request.ExpMonth,
+                    ExpiryYear = request.ExpYear
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error storing card authorization.");
+            return new ServerResponse<StorePaymentCardResponseDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "500", // Internal Server Error
+                ResponseMessage = "An error occurred while storing the card.",
+                Data = null
+            };
+        }
+    }
 
     public async Task<ServerResponse<PaymentResponseDto>> FundWalletAsync(int amount, string email, string name)
     {

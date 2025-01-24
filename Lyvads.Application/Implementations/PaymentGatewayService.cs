@@ -16,6 +16,7 @@ using System.Text;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Lyvads.Application.Implementations;
 
@@ -51,6 +52,9 @@ public class PaymentGatewayService : IPaymentGatewayService
         StripeConfiguration.ApiKey = _stripeSecretKey ?? throw new ArgumentNullException(nameof(StripeConfiguration.ApiKey));
         _stripeClient = new StripeClient(_stripeSecretKey);
     }
+
+   
+
 
     public async Task<ServerResponse<PaymentResponseDto>> InitializePaymentAsync(int amount, string email, string name)
     {

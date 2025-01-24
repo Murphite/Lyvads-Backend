@@ -8,6 +8,7 @@ namespace Lyvads.Domain.Repositories;
 
 public interface IPostRepository
 {
+    Task<List<Post>> GetFilteredPostsAsync(List<string> followingIds);
     Task<IEnumerable<Post>> GetAllAsync(
    Func<IQueryable<Post>, IIncludableQueryable<Post, object>>? include = null);
     Task<ServerResponse<Post>> GetByIdAsync(string id);

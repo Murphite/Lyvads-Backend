@@ -7,6 +7,8 @@ namespace Lyvads.Domain.Repositories;
 
 public interface IUserRepository
 {
+    Task<List<string>> GetFollowingCreatorIdsAsync(string userId);
+    Task<ApplicationUser> GetUserWithFollowersAsync(string userId);
     Task<ApplicationUser> GetUserByIdAsync(string userId);
     Task AddCommentAsync(Comment comment);
     Task AddLikeAsync(Like like);

@@ -47,6 +47,38 @@ public class CollabRateDto
     public decimal TotalAmount { get; set; }
 }
 
+public class GetPostDto
+{
+    public string? PostId { get; set; }    
+    public string? CreatorName { get; set; }
+    public string? Caption { get; set; }
+    public string? Location { get; set; }
+    public string? Visibility { get; set; }   
+    public DateTimeOffset CreatedAt { get; set; }
+    public List<string>? MediaUrls { get; set; }
+}
+
+public class UserWithFollowersDto
+{
+    public string? UserId { get; set; }
+    public string? UserName { get; set; }
+    public int FollowersCount { get; set; }
+    public int FollowingCount { get; set; }
+    public List<FollowerDto>? Followers { get; set; }
+    public List<FollowerDto>? Following { get; set; }
+}
+
+
+public class FollowerDto
+{
+    public string? UserId { get; set; }
+    public string? UserName { get; set; }
+    public string? CreatorId { get; set; }
+    public string? CreatorName { get; set; }
+}
+
+
+
 public class UserFollowerDto
 {
     public string UserId { get; set; } = string.Empty;

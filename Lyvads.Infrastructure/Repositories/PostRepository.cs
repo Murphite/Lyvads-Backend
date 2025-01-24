@@ -1,6 +1,7 @@
 ﻿
 using Azure;
 using Lyvads.Domain.Entities;
+using Lyvads.Domain.Enums;
 using Lyvads.Domain.Repositories;
 using Lyvads.Domain.Responses;
 using Lyvads.Infrastructure.Persistence;
@@ -21,6 +22,14 @@ public class PostRepository : IPostRepository
     public IQueryable<Post> GetAllPosts()
     {
         return _context.Posts.AsQueryable();
+    }
+
+    public async Task<List<Post>> GetFilteredPostsAsync(List<string> followingIds)
+    {
+        return await _context.Posts
+            .Where(p => p.Visibility == PostVisibility.Public ||
+                        (p.Visibility == PostVisibility.Private && followingIds.Contains(p.CreatorId)))
+            .ToListAsync();
     }
 
 

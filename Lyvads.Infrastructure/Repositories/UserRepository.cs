@@ -12,6 +12,8 @@ public class UserRepository : IUserRepository
     private readonly AppDbContext _context;
     private readonly ILogger<UserRepository> _logger;
 
+   
+
     public UserRepository(AppDbContext context, ILogger<UserRepository> logger)
     {
         _context = context;
@@ -24,6 +26,31 @@ public class UserRepository : IUserRepository
         if (user == null)
             return null!;
         return user;
+    }
+
+    public async Task<ApplicationUser> GetUserWithFollowersAsync(string userId)
+    {
+        return await _context.Users
+            .Include(u => u.Creator) // Includes the Creator entity for the user, if they are a creator
+            .Include(u => u.RegularUser) // Includes the RegularUser entity for the user, if they are a regular user
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
+    public async Task<List<string>> GetFollowingCreatorIdsAsync(string userId)
+    {
+        return await _context.Follows
+            .Where(f => f.ApplicationUserId == userId)
+            .Select(f => f.CreatorId)
+            .ToListAsync();
+    }
+
+
+
+    public async Task FollowCreatorAsync(string userId, string creatorId)
+    {
+        var follow = new Follow { ApplicationUserId = userId, CreatorId = creatorId };
+        await _context.Follows.AddAsync(follow);
+        await _context.SaveChangesAsync();
     }
 
     public async Task AddCommentAsync(Comment comment)
@@ -92,12 +119,7 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task FollowCreatorAsync(string userId, string creatorId)
-    {
-        var follow = new Follow { ApplicationUserId = userId, CreatorId = creatorId };
-        await _context.Follows.AddAsync(follow);
-        await _context.SaveChangesAsync();
-    }
+    
 
     public async Task<bool> CreatorExistsAsync(string creatorId)
     {
