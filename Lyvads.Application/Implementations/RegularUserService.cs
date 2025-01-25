@@ -3,7 +3,7 @@ using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Interfaces;
-using Lyvads.Application.Utilities;
+using Lyvads.Shared.DTOs;
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Interfaces;
 using Lyvads.Domain.Repositories;

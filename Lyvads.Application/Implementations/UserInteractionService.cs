@@ -2199,12 +2199,12 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         };
     }
 
-    public async Task<ServerResponse<List<GetPostDto>>> GetPostsForUserAsync(string userId)
+    public async Task<ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>> GetPostsForUserAsync(string userId, PaginationFilter paginationFilter)
     {
         if (string.IsNullOrEmpty(userId))
         {
             _logger.LogWarning("User ID is null or empty.");
-            return new ServerResponse<List<GetPostDto>>
+            return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
             {
                 IsSuccessful = false,
                 ResponseCode = "400",
@@ -2217,7 +2217,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         if (user == null)
         {
             _logger.LogWarning($"User not found for ID: {userId}");
-            return new ServerResponse<List<GetPostDto>>
+            return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
@@ -2228,29 +2228,123 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         // Fetch the list of creator IDs the user is following
         var followingIds = await _userRepository.GetFollowingCreatorIdsAsync(userId);
 
-        // Get filtered posts based on visibility and following status
-        var posts = await _postRepository.GetFilteredPostsAsync(followingIds);
+        // Get filtered posts based on visibility and following status, applying pagination
+        var paginatedPosts = await _postRepository.GetPaginatedPostsAsync(followingIds, paginationFilter);
+
+        // Check if no posts were found
+        if (!paginatedPosts.PageItems!.Any())
+        {
+            _logger.LogInformation("No posts found for the user.");
+            return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
+            {
+                IsSuccessful = true, // Still return a successful response
+                ResponseCode = "00",
+                ResponseMessage = "No posts found for the user.",
+                Data = new PaginatorDto<IEnumerable<GetPostDto>>
+                {
+                    CurrentPage = paginatedPosts.CurrentPage,
+                    PageSize = paginatedPosts.PageSize,
+                    NumberOfPages = paginatedPosts.NumberOfPages,
+                    PageItems = new List<GetPostDto>() // Return an empty list
+                }
+            };
+        }
 
         // Map posts to DTOs
-        var postDtos = posts.Select(p => new GetPostDto
+        var postDtos = paginatedPosts.PageItems!.Select(p => new GetPostDto
         {
             PostId = p.Id,
             CreatorName = p.Creator.ApplicationUser?.FullName,
+            CreatorImage = p.Creator.ApplicationUser?.ImageUrl,
+            CreatorOccupation = p.Creator.ApplicationUser?.Occupation,
+            CreatorAppUserName = p.Creator.ApplicationUser?.AppUserName,
             Caption = p.Caption,
             Location = p.Location,
             Visibility = p.Visibility.ToString(),
             CreatedAt = p.CreatedAt,
-            MediaUrls = p.MediaFiles != null && p.MediaFiles.Any() ? p.MediaFiles.Select(m => m.Url).ToList() : new List<string>()
+            MediaUrls = p.MediaFiles.Select(m => m.Url).ToList()
         }).ToList();
 
-        // Return the response
-        return new ServerResponse<List<GetPostDto>>
+        _logger.LogInformation("Retrieved {PostCount} posts for the user.", postDtos.Count);
+
+        // Return paginated response
+        return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
         {
             IsSuccessful = true,
             ResponseCode = "00",
             ResponseMessage = "Posts retrieved successfully.",
-            Data = postDtos
+            Data = new PaginatorDto<IEnumerable<GetPostDto>>
+            {
+                CurrentPage = paginatedPosts.CurrentPage,
+                PageSize = paginatedPosts.PageSize,
+                NumberOfPages = paginatedPosts.NumberOfPages,
+                PageItems = postDtos
+            }
         };
     }
+
+
+    public async Task<ServerResponse<GetPostWithCommentsDto>> GetPostDetailsWithCommentsAsync(string postId)
+    {
+        if (string.IsNullOrEmpty(postId))
+        {
+            _logger.LogWarning("Post ID is null or empty.");
+            return new ServerResponse<GetPostWithCommentsDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Post ID is null or empty."
+            };
+        }
+
+        // Fetch the post with comments and replies
+        var post = await _postRepository.GetPostWithDetailsAsync(postId);
+        if (post == null)
+        {
+            _logger.LogWarning($"Post not found for ID: {postId}");
+            return new ServerResponse<GetPostWithCommentsDto>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Post not found."
+            };
+        }
+
+        // Map the post details to a DTO
+        var postDto = new GetPostWithCommentsDto
+        {
+            PostId = post.Id,
+            CreatorName = post.Creator.ApplicationUser?.FullName,
+            Caption = post.Caption,
+            Location = post.Location,
+            Visibility = post.Visibility.ToString(),
+            CreatedAt = post.CreatedAt,
+            MediaUrls = post.MediaFiles.Select(m => m.Url).ToList(),
+            Comments = post.Comments.Select(c => new GetCommentDto
+            {
+                CommentId = c.Id,
+                Content = c.Content,
+                CommentedBy = c.CommentBy,
+                CreatedAt = c.CreatedAt,
+                Replies = c.Replies.Select(r => new GetReplyDto
+                {
+                    ReplyId = r.Id,
+                    Content = r.Content,
+                    RepliedBy = r.ParentComment.CommentBy,  
+                    CreatedAt = r.CreatedAt
+                }).ToList()
+            }).ToList()
+        };
+
+        // Return the response
+        return new ServerResponse<GetPostWithCommentsDto>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Post details retrieved successfully.",
+            Data = postDto
+        };
+    }
+
 
 }

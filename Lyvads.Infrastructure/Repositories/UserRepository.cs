@@ -31,8 +31,8 @@ public class UserRepository : IUserRepository
     public async Task<ApplicationUser> GetUserWithFollowersAsync(string userId)
     {
         return await _context.Users
-            .Include(u => u.Creator) // Includes the Creator entity for the user, if they are a creator
-            .Include(u => u.RegularUser) // Includes the RegularUser entity for the user, if they are a regular user
+            .Include(u => u.Creator)
+            .Include(u => u.RegularUser)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 

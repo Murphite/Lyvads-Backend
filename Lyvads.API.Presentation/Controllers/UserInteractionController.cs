@@ -380,21 +380,7 @@ public class UserInteractionController : ControllerBase
             return BadRequest(result.ErrorResponse);
 
         return Ok(result);
-    }
-
-    [HttpGet("get-posts")]
-    public async Task<IActionResult> GetPostsForUserAsync()
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            return Unauthorized("User not found or unauthorized.");
-        var result = await _userInteractionService.GetPostsForUserAsync(user.Id);
-
-        if (!result.IsSuccessful)
-            return BadRequest(result.ErrorResponse);
-
-        return Ok(result);
-    }
+    }    
 
 
     [HttpGet("get-all-charges")]
@@ -413,6 +399,46 @@ public class UserInteractionController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("GetPostsForUsers")]
+    public async Task<IActionResult> GetPostsForUserAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    {
+        // Get the logged-in user
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+
+        // Create a pagination filter using the query parameters
+        var paginationFilter = new PaginationFilter(pageNumber, pageSize);
+
+        // Call the service method
+        var result = await _userInteractionService.GetPostsForUserAsync(user.Id, paginationFilter);
+
+        // Check the result and return the appropriate response
+        if (!result.IsSuccessful)
+            return BadRequest(new { result.ResponseCode, result.ResponseMessage });
+
+        return Ok(new { result.ResponseCode, result.ResponseMessage, Data = result.Data });
+    }
+
+
+    [HttpGet("GetPostDetailsWithComments")]
+    public async Task<IActionResult> GetPostDetailsWithComments(string postId)
+    {
+        // Get the logged-in user's ID
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not logged in.");
+
+        _logger.LogInformation("Fetching all charges...");
+        var result = await _userInteractionService.GetPostDetailsWithCommentsAsync(postId);
+
+        if (!result.IsSuccessful)
+            return BadRequest(result.ErrorResponse);
+
+        return Ok(result);
+    }
+
 
 
     public class FundWalletViaOnlinePaymentDto

@@ -1,5 +1,6 @@
 ﻿using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
+using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Repositories;
@@ -27,6 +28,8 @@ public class PaymentController : Controller
     private readonly IConfiguration _configuration;
     private readonly IWalletRepository _walletRepository;
     private readonly IRequestRepository _requestRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserService _currentUserService;
 
     public PaymentController(
         IConfiguration configuration,
@@ -35,7 +38,9 @@ public class PaymentController : Controller
         IRequestRepository requestRepository,
         UserManager<ApplicationUser> userManager,
         IPaymentGatewayService paymentService,
-        ILogger<PaymentController> logger)
+        ILogger<PaymentController> logger,
+        IHttpContextAccessor httpContextAccessor,
+        ICurrentUserService currentUserService)
     {
         _configuration = configuration;
         _walletService = walletService;
@@ -45,6 +50,8 @@ public class PaymentController : Controller
         _paystackSecretKey = _configuration["Paystack:PaystackSK"];
         _walletRepository = walletRepository;
         _requestRepository = requestRepository;
+        _httpContextAccessor = httpContextAccessor;
+        _currentUserService = currentUserService;
     }
 
     [HttpPost("fund-wallet")]
@@ -317,9 +324,13 @@ public class PaymentController : Controller
 
 
     [HttpGet("paystack/store-card")]
-    public async Task<IActionResult> GetCardTokenForRecurringPayment([FromQuery] string email)
+    public async Task<IActionResult> GetCardTokenForRecurringPayment()
     {
-        if (string.IsNullOrEmpty(email))
+        // Use current user service to fetch the current admin username
+        var currentUserId = _currentUserService.GetCurrentUserId();
+        var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+        if (string.IsNullOrEmpty(currentUser.Email))
         {
             _logger.LogError("Email is required.");
             return BadRequest(new { status = "invalid_data", message = "Email is required." });
@@ -328,17 +339,17 @@ public class PaymentController : Controller
         try
         {
             // Retrieve the stored card authorization details by email
-            var storedCard = await _walletRepository.GetCardAuthorizationByEmailAsync(email);
+            var storedCard = await _walletRepository.GetCardAuthorizationByEmailAsync(currentUser.Email);
             if (storedCard == null)
             {
-                _logger.LogInformation("No card found for email: {Email}", email);
+                _logger.LogInformation("No card found for email: {Email}", currentUser.Email);
                 return NotFound(new { status = "card_not_found", message = "No card found for this email." });
             }
 
             // Assuming 'AuthorizationCode' or another field is used as a token for recurring payments
             var cardToken = storedCard.AuthorizationCode;
 
-            _logger.LogInformation("Card token retrieved successfully for email: {Email}", email);
+            _logger.LogInformation("Card token retrieved successfully for email: {Email}", currentUser.Email);
 
             return Ok(new { status = "success", cardToken = cardToken });
         }

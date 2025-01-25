@@ -1,8 +1,4 @@
-﻿using Lyvads.API.Presentation.Dtos;
-using Lyvads.Application.Dtos;
-using Lyvads.Application.Dtos.CreatorDtos;
-using Lyvads.Application.Dtos.RegularUserDtos;
-using Lyvads.Application.Implementations;
+﻿using Lyvads.Shared.DTOs;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;

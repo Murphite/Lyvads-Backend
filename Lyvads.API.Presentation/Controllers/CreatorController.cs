@@ -6,7 +6,7 @@ using Lyvads.Domain.Entities;
 using Lyvads.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Lyvads.Domain.Responses;
-using Lyvads.Application.Dtos;
+using Lyvads.Shared.DTOs;
 using System.Security.Claims;
 
 namespace Lyvads.API.Presentation.Controllers;

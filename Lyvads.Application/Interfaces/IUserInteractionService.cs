@@ -2,7 +2,7 @@
 using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
-using Lyvads.Domain.Entities;
+using Lyvads.Shared.DTOs;
 using Lyvads.Domain.Enums;
 using Lyvads.Domain.Responses;
 using Lyvads.Shared.DTOs;
@@ -11,8 +11,9 @@ namespace Lyvads.Application.Interfaces;
 
 public interface IUserInteractionService
 {
+    Task<ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>> GetPostsForUserAsync(string userId, PaginationFilter paginationFilter);
+    Task<ServerResponse<GetPostWithCommentsDto>> GetPostDetailsWithCommentsAsync(string postId);
     Task<ServerResponse<List<ChargeDto>>> GetAllChargesAsync();
-    Task<ServerResponse<List<GetPostDto>>> GetPostsForUserAsync(string userId);
     Task<ServerResponse<bool>> CheckIfCreatorIsInUserFavoritesAsync(string userId, string creatorId);
     Task<ServerResponse<WalletBalanceDto>> ViewWalletBalanceAsync(string userId);
     Task<ServerResponse<int>> GetUsersFollowingCreatorCountAsync(string creatorId);
@@ -26,10 +27,6 @@ public interface IUserInteractionService
     Task<ServerResponse<CommentResponseDto>> ReplyToCommentAsync(string parentCommentId, string userId, string content);
     Task<ServerResponse<CommentResponseDto>> EditReplyAsync(string replyId, string userId, string newContent);
     Task<ServerResponse<object>> DeleteCommentAsync(string userId, string commentId);
-    //Task<ServerResponse<object>> LikeContentAsync(string userId, string contentId);
-   // Task<ServerResponse<object>> UnlikeContentAsync(string userId, string contentId);
-   // Task<ServerResponse<object>> FundWalletAsync(string userId, decimal amount, string paymentMethodId, string currency);
-    //Task<ServerResponse<string>> FundWalletViaOnlinePaymentAsync(string userId, decimal amount, string paymentMethodId, string currency);
     Task<ServerResponse<object>> ConfirmPaymentAsync(string paymentIntentId, string userId, decimal amount);
     Task<ServerResponse<int>> GetNumberOfLikesAsync(string postId);
     Task<ServerResponse<int>> GetNumberOfCommentsAsync(string postId);

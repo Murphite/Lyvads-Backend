@@ -1,5 +1,5 @@
 ﻿using Lyvads.Application.Dtos.CreatorDtos;
-using Lyvads.Application.Dtos;
+using Lyvads.Shared.DTOs;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Enums;
@@ -7,15 +7,10 @@ using Lyvads.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Domain.Interfaces;
-using System.Reflection;
 using Lyvads.Domain.Responses;
-using Lyvads.Infrastructure.Repositories;
 using Lyvads.Application.Utilities;
-using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Lyvads.Application.Implementations;
 

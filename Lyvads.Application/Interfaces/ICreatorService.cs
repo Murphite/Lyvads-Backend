@@ -1,5 +1,5 @@
 ﻿using Lyvads.Application.Dtos.CreatorDtos;
-using Lyvads.Application.Dtos;
+using Lyvads.Shared.DTOs;
 using Lyvads.Domain.Enums;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Domain.Responses;

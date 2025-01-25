@@ -51,6 +51,9 @@ public class GetPostDto
 {
     public string? PostId { get; set; }    
     public string? CreatorName { get; set; }
+    public string? CreatorImage { get; set; }
+    public string? CreatorAppUserName { get; set; }
+    public string? CreatorOccupation { get; set; }
     public string? Caption { get; set; }
     public string? Location { get; set; }
     public string? Visibility { get; set; }   
@@ -127,3 +130,31 @@ public class FeaturedCreatorDto
 }
 
 
+public class GetPostWithCommentsDto
+{
+    public string? PostId { get; set; }
+    public string? CreatorName { get; set; }
+    public string? Caption { get; set; }
+    public string? Location { get; set; }
+    public string? Visibility { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public List<string>? MediaUrls { get; set; }
+    public List<GetCommentDto>? Comments { get; set; }
+}
+
+public class GetCommentDto
+{
+    public string? CommentId { get; set; }
+    public string? Content { get; set; }
+    public string? CommentedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public List<GetReplyDto>? Replies { get; set; }
+}
+
+public class GetReplyDto
+{
+    public string? ReplyId { get; set; }
+    public string? Content { get; set; }
+    public string? RepliedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
