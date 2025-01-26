@@ -15,6 +15,9 @@ public class CardAuthorization : Entity, IAuditable
     public string? AccountName { get; set; }
     public bool Reusable { get; set; }
     public string? CountryCode { get; set; }
+    public string? Bin { get; set; }
+    public string? Signature { get; set; }
+    public string? Channel { get; set; }
     public DateTimeOffset CreatedAt { get ; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }

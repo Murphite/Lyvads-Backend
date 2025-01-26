@@ -89,13 +89,15 @@ public class WalletService : IWalletService
                 Email = request.Email,
                 CardType = request.CardType,
                 Last4 = request.Last4,
-                ExpiryMonth = request.ExpMonth,
-                ExpiryYear = request.ExpYear,
+                ExpiryMonth = request.ExpiryMonth,
+                ExpiryYear = request.ExpiryYear,
                 Bank = request.Bank,
                 AccountName = request.AccountName,
                 Reusable = request.Reusable,
-                CountryCode = request.CountryCode
-                // Optional fields if needed
+                CountryCode = request.CountryCode,
+                Bin = request.Bin,
+                Signature = request.Signature,
+                Channel = request.Channel,
             };
 
             await _walletRepository.StoreCardAuthorizationAsync(cardAuthorization);
@@ -114,8 +116,8 @@ public class WalletService : IWalletService
                     Email = request.Email,
                     CardType = request.CardType,
                     Last4 = request.Last4,
-                    ExpiryMonth = request.ExpMonth,
-                    ExpiryYear = request.ExpYear
+                    ExpiryMonth = request.ExpiryMonth,
+                    ExpiryYear = request.ExpiryYear
                 }
             };
         }

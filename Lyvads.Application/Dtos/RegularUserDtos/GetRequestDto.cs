@@ -220,8 +220,8 @@ public class StoreCardRequest
     public string? Email { get; set; }
     public string? CardType { get; set; }
     public string? Last4 { get; set; }
-    public int ExpMonth { get; set; }
-    public int ExpYear { get; set; }
+    public int ExpiryMonth { get; set; }
+    public int ExpiryYear { get; set; }
     public string? Bank { get; set; }
     public string? Bin { get; set; }
     public string? Signature { get; set; }

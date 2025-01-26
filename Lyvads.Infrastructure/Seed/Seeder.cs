@@ -94,8 +94,8 @@ public class Seeder
         var config = app.ApplicationServices.CreateScope().ServiceProvider.GetRequiredService<IConfiguration>();
         try
         {
-            var dataGenerator = new DataGenerator(userManager, context, config);
-            await dataGenerator.Run();
+            //var dataGenerator = new DataGenerator(userManager, context, config);
+            //await dataGenerator.Run();
         }
         catch (Exception ex)
         {

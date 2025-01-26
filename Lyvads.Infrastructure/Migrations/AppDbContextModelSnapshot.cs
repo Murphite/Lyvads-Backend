@@ -53,7 +53,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.ToTable("ActivityLogs");
+                    b.ToTable("ActivityLogs", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Admin", b =>
@@ -76,7 +76,7 @@ namespace Lyvads.Infrastructure.Migrations
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admins", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.AdminPermission", b =>
@@ -122,7 +122,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[ApplicationUserId] IS NOT NULL");
 
-                    b.ToTable("AdminPermissions");
+                    b.ToTable("AdminPermissions", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.AdminRole", b =>
@@ -135,7 +135,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AdminRoles");
+                    b.ToTable("AdminRoles", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.ApplicationUser", b =>
@@ -274,7 +274,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BankAccounts");
+                    b.ToTable("BankAccounts", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.CardAuthorization", b =>
@@ -320,7 +320,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CardAuthorizations");
+                    b.ToTable("CardAuthorizations", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Charge", b =>
@@ -351,7 +351,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Charges");
+                    b.ToTable("Charges", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.ChargeTransaction", b =>
@@ -391,7 +391,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("TransactionId");
 
-                    b.ToTable("ChargeTransactions");
+                    b.ToTable("ChargeTransactions", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Comment", b =>
@@ -436,7 +436,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("RegularUserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Content", b =>
@@ -466,7 +466,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Contents");
+                    b.ToTable("Contents", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Creator", b =>
@@ -510,7 +510,7 @@ namespace Lyvads.Infrastructure.Migrations
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
 
-                    b.ToTable("Creators");
+                    b.ToTable("Creators", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Dispute", b =>
@@ -560,7 +560,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("RequestId");
 
-                    b.ToTable("Disputes");
+                    b.ToTable("Disputes", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.ExclusiveDeal", b =>
@@ -584,7 +584,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("ExclusiveDeals");
+                    b.ToTable("ExclusiveDeals", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Favorite", b =>
@@ -610,7 +610,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favorites");
+                    b.ToTable("Favorites", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Follow", b =>
@@ -636,7 +636,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Follows");
+                    b.ToTable("Follows", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Impression", b =>
@@ -673,7 +673,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Impressions");
+                    b.ToTable("Impressions", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Like", b =>
@@ -707,7 +707,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Likes");
+                    b.ToTable("Likes", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Media", b =>
@@ -734,7 +734,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("Media");
+                    b.ToTable("Media", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Notification", b =>
@@ -762,7 +762,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Promotion", b =>
@@ -793,7 +793,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Promotions");
+                    b.ToTable("Promotions", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Rate", b =>
@@ -820,7 +820,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Rates");
+                    b.ToTable("Rates", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.RegularUser", b =>
@@ -843,7 +843,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[ApplicationUserId] IS NOT NULL");
 
-                    b.ToTable("RegularUsers");
+                    b.ToTable("RegularUsers", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Request", b =>
@@ -905,7 +905,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Requests");
+                    b.ToTable("Requests", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.SuperAdmin", b =>
@@ -928,7 +928,7 @@ namespace Lyvads.Infrastructure.Migrations
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
 
-                    b.ToTable("SuperAdmins");
+                    b.ToTable("SuperAdmins", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Transaction", b =>
@@ -982,7 +982,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Transfer", b =>
@@ -1015,7 +1015,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transfers");
+                    b.ToTable("Transfers", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.UserAd", b =>
@@ -1054,7 +1054,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.ToTable("UserAds");
+                    b.ToTable("UserAds", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.VerificationRecord", b =>
@@ -1083,7 +1083,7 @@ namespace Lyvads.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[Email] IS NOT NULL AND [Code] IS NOT NULL");
 
-                    b.ToTable("VerificationRecords");
+                    b.ToTable("VerificationRecords", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.WaitlistEntry", b =>
@@ -1099,7 +1099,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WaitlistEntries");
+                    b.ToTable("WaitlistEntries", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Wallet", b =>
@@ -1125,7 +1125,7 @@ namespace Lyvads.Infrastructure.Migrations
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
 
-                    b.ToTable("Wallets");
+                    b.ToTable("Wallets", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Withdrawal", b =>
@@ -1155,7 +1155,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Withdrawals");
+                    b.ToTable("Withdrawals", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -1327,7 +1327,7 @@ namespace Lyvads.Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Posts", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.ActivityLog", b =>

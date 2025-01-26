@@ -217,8 +217,8 @@ public class PaymentController : Controller
                 Email = email,
                 CardType = payload.Data.CardType,
                 Last4 = payload.Data.Last4,
-                ExpMonth = payload.Data.ExpiryMonth,
-                ExpYear = payload.Data.ExpiryYear,
+                ExpiryMonth = payload.Data.ExpiryMonth,
+                ExpiryYear = payload.Data.ExpiryYear,
                 Bank = payload.Data.Bank,
                 AccountName = payload.Data.AccountName,
                 Reusable = payload.Data.Reusable,
@@ -323,7 +323,7 @@ public class PaymentController : Controller
     //}
 
 
-    [HttpGet("paystack/store-card")]
+    [HttpPost("paystack/store-card")]
     public async Task<IActionResult> GetCardTokenForRecurringPayment()
     {
         // Use current user service to fetch the current admin username
