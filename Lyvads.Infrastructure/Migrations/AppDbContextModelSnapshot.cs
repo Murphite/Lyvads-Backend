@@ -87,6 +87,9 @@ namespace Lyvads.Infrastructure.Migrations
                     b.Property<string>("AdminRoleId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("AdminRoleId1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("nvarchar(450)");
 
@@ -117,6 +120,8 @@ namespace Lyvads.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AdminRoleId");
+
+                    b.HasIndex("AdminRoleId1");
 
                     b.HasIndex("ApplicationUserId")
                         .IsUnique()
@@ -275,52 +280,6 @@ namespace Lyvads.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("BankAccounts", (string)null);
-                });
-
-            modelBuilder.Entity("Lyvads.Domain.Entities.CardAuthorization", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("AccountName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AuthorizationCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Bank")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CardType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CountryCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ExpiryMonth")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ExpiryYear")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Last4")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Reusable")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CardAuthorizations", (string)null);
                 });
 
             modelBuilder.Entity("Lyvads.Domain.Entities.Charge", b =>
@@ -1354,9 +1313,13 @@ namespace Lyvads.Infrastructure.Migrations
 
             modelBuilder.Entity("Lyvads.Domain.Entities.AdminPermission", b =>
                 {
-                    b.HasOne("Lyvads.Domain.Entities.AdminRole", "AdminRole")
+                    b.HasOne("Lyvads.Domain.Entities.AdminRole", null)
                         .WithMany("AdminPermissions")
                         .HasForeignKey("AdminRoleId");
+
+                    b.HasOne("Lyvads.Domain.Entities.AdminRole", "AdminRole")
+                        .WithMany()
+                        .HasForeignKey("AdminRoleId1");
 
                     b.HasOne("Lyvads.Domain.Entities.ApplicationUser", "ApplicationUser")
                         .WithOne("AdminPermissions")
