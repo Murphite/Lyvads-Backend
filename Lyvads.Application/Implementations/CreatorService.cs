@@ -251,8 +251,6 @@ public class CreatorService : ICreatorService
         };
     }
 
-
-
     public string DetermineFileType(IFormFile file)
     {
         // Use MIME type or file extension to determine if the file is an image or video
@@ -1173,6 +1171,81 @@ public class CreatorService : ICreatorService
         };
     }
 
+    public async Task<ServerResponse<PaginatorDto<IEnumerable<PostResponseDto>>>> GetPostsByCreatorAsync(string applicationUserId, PaginationFilter paginationFilter)
+    {
+        if (string.IsNullOrEmpty(applicationUserId))
+            return new ServerResponse<PaginatorDto<IEnumerable<PostResponseDto>>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "ApplicationUser ID cannot be null or empty."
+            };
+
+        var creator = await _repository.GetAll<Creator>()
+            .Where(c => c.ApplicationUserId == applicationUserId)
+            .FirstOrDefaultAsync();
+
+        if (creator == null)
+            return new ServerResponse<PaginatorDto<IEnumerable<PostResponseDto>>>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "No creator found.",
+                Data = new PaginatorDto<IEnumerable<PostResponseDto>>
+                {
+                    CurrentPage = paginationFilter.PageNumber,
+                    PageSize = paginationFilter.PageSize,
+                    NumberOfPages = 0,
+                    PageItems = new List<PostResponseDto>()
+                }
+            };
+
+        var paginatedPosts = await _postRepository.GetPaginatedPostsByCreatorAsync(creator.Id, paginationFilter);
+
+        if (!paginatedPosts.Data.Any())
+            return new ServerResponse<PaginatorDto<IEnumerable<PostResponseDto>>>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "No posts found for this creator.",
+                Data = new PaginatorDto<IEnumerable<PostResponseDto>>
+                {
+                    CurrentPage = paginatedPosts.CurrentPage,
+                    PageSize = paginatedPosts.PageSize,
+                    NumberOfPages = paginatedPosts.PageNumber,
+                    PageItems = new List<PostResponseDto>()
+                }
+            };
+
+        var postResponses = paginatedPosts.Data.Select(p => new PostResponseDto
+        {
+            PostId = p.Id,
+            CreatorId = p.CreatorId,
+            CreatorName = p.Creator?.ApplicationUser?.FullName ?? "Unknown",
+            Caption = p.Caption,
+            MediaUrls = p.MediaFiles.Select(m => m.Url).ToList(),
+            Location = p.Location,
+            Visibility = p.Visibility.ToString(),
+            CreatedAt = p.CreatedAt,
+            UpdatedAt = p.UpdatedAt
+        }).ToList();
+
+        return new ServerResponse<PaginatorDto<IEnumerable<PostResponseDto>>>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Posts retrieved successfully.",
+            Data = new PaginatorDto<IEnumerable<PostResponseDto>>
+            {
+                CurrentPage = paginatedPosts.CurrentPage,
+                PageSize = paginatedPosts.PageSize,
+                NumberOfPages = paginatedPosts.PageNumber,
+                PageItems = postResponses
+            }
+        };
+    }
+
+
     public async Task<ServerResponse<CreatorRateResponseDto>> UpdateCreatorRatesAsync(UpdateCreatorRateDto dto, string userId)
     {
         // Find the user by ID
@@ -1334,7 +1407,6 @@ public class CreatorService : ICreatorService
             Data = "Rate deleted successfully."
         };
     }
-
 
     //public async Task<ServerResponse<CreatorProfileResponseDto>> UpdateCreatorSetUpRatesAsync(UpdateCreatorProfileDto dto, string userId)
     //{
@@ -1606,6 +1678,125 @@ public class CreatorService : ICreatorService
         return random.Next(10000, 99999).ToString();
     }
 
+    public async Task<ServerResponse<bool>> IsPostLikedByUserAsync(string postId, string userId)
+    {
+        _logger.LogInformation("Checking if user {UserId} likes post {PostId}", userId, postId);
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User does not exist."
+            };
+        }
+
+        var post = await _repository.FindByCondition<Post>(p => p.Id == postId);
+        if (post == null)
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Post does not exist."
+            };
+        }
+
+        var likeExists = await _repository.Exists<Like>(l => l.PostId == postId && l.UserId == userId);
+
+        return new ServerResponse<bool>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Check completed.",
+            Data = likeExists
+        };
+    }
+
+
+    public async Task<ServerResponse<bool>> IsCommentLikedByUserAsync(string commentId, string userId)
+    {
+        _logger.LogInformation("Checking if user {UserId} likes comment {CommentId}", userId, commentId);
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User does not exist."
+            };
+        }
+
+        var comment = await _repository.FindByCondition<Comment>(c => c.Id == commentId);
+        if (comment == null)
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Comment does not exist."
+            };
+        }
+
+        var likeExists = await _repository.Exists<Like>(l => l.CommentId == commentId && l.UserId == userId);
+
+        return new ServerResponse<bool>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Check completed.",
+            Data = likeExists
+        };
+    }
+
+
+    public async Task<ServerResponse<IEnumerable<PostCommentResponseDto>>> GetCommentsByPostIdAsync(string postId)
+    {
+        _logger.LogInformation("Fetching all comments for post {PostId}", postId);
+
+        var post = await _repository.FindByCondition<Post>(p => p.Id == postId);
+        if (post == null)
+        {
+            return new ServerResponse<IEnumerable<PostCommentResponseDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Post does not exist."
+            };
+        }
+
+        var comments = await _repository.FindAllByCondition<Comment>(c => c.PostId == postId);
+        if (comments == null || !comments.Any())
+        {
+            return new ServerResponse<IEnumerable<PostCommentResponseDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "No comments found for the specified post."
+            };
+        }
+
+        var commentDtos = comments.Select(c => new PostCommentResponseDto
+        {
+            CommentId = c.Id,
+            Content = c.Content,
+            UserId = c.ApplicationUserId,
+            CreatedAt = c.CreatedAt,
+            CommentedBy = c.CommentBy
+        }).ToList();
+
+        return new ServerResponse<IEnumerable<PostCommentResponseDto>>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Comments retrieved successfully.",
+            Data = commentDtos
+        };
+    }
 
     //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
     //{

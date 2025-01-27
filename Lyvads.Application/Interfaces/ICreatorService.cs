@@ -10,6 +10,9 @@ namespace Lyvads.Application.Interfaces;
 
 public interface ICreatorService
 {
+    Task<ServerResponse<IEnumerable<PostCommentResponseDto>>> GetCommentsByPostIdAsync(string postId);
+    Task<ServerResponse<bool>> IsCommentLikedByUserAsync(string commentId, string userId);
+    Task<ServerResponse<bool>> IsPostLikedByUserAsync(string postId, string userId);
     Task<ServerResponse<CreatorRateResponseDto>> UpdateCreatorRatesAsync(UpdateCreatorRateDto dto, string userId);
     Task<ServerResponse<string>> DeleteCreatorRateAsync(string rateId, string userId);
     Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility,

@@ -67,6 +67,38 @@ public class PostRepository : IPostRepository
     }
 
 
+    public async Task<PaginatedResponse<Post>> GetPaginatedPostsByCreatorAsync(string creatorId, PaginationFilter paginationFilter)
+    {
+        // Ensure the creatorId is not null or empty
+        if (string.IsNullOrEmpty(creatorId))
+        {
+            throw new ArgumentException("Creator ID cannot be null or empty", nameof(creatorId));
+        }
+
+        // Retrieve the base query to filter posts by the creatorId
+        var query = _context.Posts.Where(post => post.CreatorId == creatorId);
+
+        // Get the total count of posts for the creator
+        var totalRecords = await query.CountAsync();
+
+        // Apply pagination (skip and take) to the query
+        var paginatedPosts = await query
+            .OrderByDescending(post => post.CreatedAt) // Adjust ordering as needed
+            .Skip((paginationFilter.PageNumber - 1) * paginationFilter.PageSize)
+            .Take(paginationFilter.PageSize)
+            .ToListAsync();
+
+        // Prepare the paginated response
+        return new PaginatedResponse<Post>
+        {
+            Data = paginatedPosts,
+            PageNumber = paginationFilter.PageNumber,
+            PageSize = paginationFilter.PageSize,
+            TotalRecords = totalRecords
+        };
+    }
+
+
     public async Task<Post> GetPostWithDetailsAsync(string postId)
     {
         if (string.IsNullOrEmpty(postId))

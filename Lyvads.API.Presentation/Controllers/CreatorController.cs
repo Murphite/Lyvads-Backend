@@ -65,50 +65,6 @@ public class CreatorController : ControllerBase
         return Ok(result);
     }
 
-    //[HttpPost("CreatePost")]
-    //[Authorize(Roles = "Creator")]
-    //public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromQuery] PostVisibility visibility,
-    //    [FromForm] UploadImage photo)
-    //{
-    //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    //    if (string.IsNullOrEmpty(userId))
-    //    {
-    //        return Unauthorized(new ServerResponse<PostResponseDto>
-    //        {
-    //            IsSuccessful = false,
-    //            ResponseCode = "401",
-    //            ResponseMessage = "Unauthorized. User ID not found."
-    //        });
-    //    }
-
-    //    // Validate the file (photo) if provided
-    //    if (photo.Image != null && !IsValidFile(photo.Image))  // Validate using the Image property
-    //    {
-    //        return BadRequest(new { message = "Invalid File Extension" });
-    //    }
-
-    //    // Convert IFormFile to byte array
-    //    byte[] fileBytes = null!;
-    //    if (photo.Image != null)
-    //    {
-    //        using (var stream = new MemoryStream())
-    //        {
-    //            await photo.Image.CopyToAsync(stream);  // Use the Image property for file operations
-    //            fileBytes = stream.ToArray();
-    //        }
-    //    }
-
-    //    // Call the service with the Image file and other post details
-    //    var response = await _creatorService.CreatePostAsync(postDto, visibility, userId, photo.Image!);
-
-    //    if (!response.IsSuccessful)
-    //        return BadRequest(response.ErrorResponse);
-
-    //    return Ok(response);
-    //}
-
-
     [HttpPost("CreatePost")]
     //[Authorize(Roles = "Creator")]
     public async Task<IActionResult> CreatePost([FromForm] PostDto postDto, [FromQuery] PostVisibility visibility,
@@ -160,14 +116,12 @@ public class CreatorController : ControllerBase
         return Ok(response);
     }
 
-
     private bool IsValidFile(IFormFile file)
     {
         var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
         var extension = Path.GetExtension(file.FileName).ToLower();
         return validExtensions.Contains(extension);
     }
-
 
     [HttpDelete("deletePost/{postId}")]
     public async Task<IActionResult> DeletePost(string postId)
@@ -286,6 +240,40 @@ public class CreatorController : ControllerBase
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
 
+        return Ok(result);
+    }
+
+
+    [HttpGet("posts/{postId}/isLiked")]
+    public async Task<IActionResult> IsPostLikedByUser(string postId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+
+        var result = await _creatorService.IsPostLikedByUserAsync(postId, user.Id);
+        return Ok(result);
+    }
+
+    [HttpGet("comments/{commentId}/isLiked")]
+    public async Task<IActionResult> IsCommentLikedByUser(string commentId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+
+        var result = await _creatorService.IsCommentLikedByUserAsync(commentId, user.Id);
+        return Ok(result);
+    }
+
+    [HttpGet("posts/{postId}/comments")]
+    public async Task<IActionResult> GetCommentsByPostId(string postId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized("User not found or unauthorized.");
+
+        var result = await _creatorService.GetCommentsByPostIdAsync(postId);
         return Ok(result);
     }
 

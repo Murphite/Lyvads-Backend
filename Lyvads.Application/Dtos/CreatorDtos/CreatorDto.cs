@@ -23,3 +23,13 @@ public class FilterCreatorDto
     public string Location { get; set; } = default!;
     public decimal Price { get; set; }
 }
+
+
+public class PostCommentResponseDto
+{
+    public string? CommentId { get; set; }
+    public string? Content { get; set; }
+    public string? UserId { get; set; }
+    public string? CommentedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}

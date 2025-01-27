@@ -60,4 +60,14 @@ public class Repository : IRepository
             .FirstOrDefaultAsync(c => c.Id == commentId);
     }
 
+    public async Task<bool> Exists<T>(Expression<Func<T, bool>> predicate) where T : class
+    {
+        return await _context.Set<T>().AnyAsync(predicate);
+    }
+
+    public async Task<IEnumerable<T>> FindAllByCondition<T>(Expression<Func<T, bool>> predicate) where T : class
+    {
+        return await _context.Set<T>().Where(predicate).ToListAsync();
+    }
+
 }

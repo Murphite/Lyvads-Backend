@@ -9,6 +9,7 @@ namespace Lyvads.Domain.Repositories;
 
 public interface IPostRepository
 {
+    Task<PaginatedResponse<Post>> GetPaginatedPostsByCreatorAsync(string creatorId, PaginationFilter paginationFilter);
     Task<Post> GetPostWithDetailsAsync(string postId);
     Task<List<Post>> GetFilteredPostsAsync(List<string> followingIds);
     Task<IEnumerable<Post>> GetAllAsync(

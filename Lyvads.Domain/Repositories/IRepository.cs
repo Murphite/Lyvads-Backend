@@ -18,4 +18,7 @@ public interface IRepository
 
     Task<IDbContextTransaction> BeginTransactionAsync();
     Task<Comment?> GetCommentByIdAsync(string commentId);
+
+    Task<bool> Exists<T>(Expression<Func<T, bool>> predicate) where T : class;
+    Task<IEnumerable<T>> FindAllByCondition<T>(Expression<Func<T, bool>> predicate) where T : class;
 }
