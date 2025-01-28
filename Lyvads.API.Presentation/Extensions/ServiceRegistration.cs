@@ -152,5 +152,7 @@ public static class ServiceRegistration
         services.AddHttpContextAccessor();
         services.AddScoped<WebSocketHandler>();
         services.AddHttpContextAccessor();
+        services.AddHttpClient();
+
     }
 }

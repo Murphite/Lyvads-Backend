@@ -77,6 +77,32 @@ namespace Lyvads.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CardAuthorizations",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AuthorizationCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CardType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Last4 = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExpiryMonth = table.Column<int>(type: "int", nullable: false),
+                    ExpiryYear = table.Column<int>(type: "int", nullable: false),
+                    Bank = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AccountName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Reusable = table.Column<bool>(type: "bit", nullable: false),
+                    CountryCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Bin = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Signature = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Channel = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CardAuthorizations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Charges",
                 columns: table => new
                 {
@@ -1262,6 +1288,9 @@ namespace Lyvads.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "BankAccounts");
+
+            migrationBuilder.DropTable(
+                name: "CardAuthorizations");
 
             migrationBuilder.DropTable(
                 name: "Charges");

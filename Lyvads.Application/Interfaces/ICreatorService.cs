@@ -33,4 +33,5 @@ public interface ICreatorService
     Task<ServerResponse<IEnumerable<PostResponseDto>>> GetPostsByCreatorAsync(string creatorId);
     Task<ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>> SearchCreatorsAsync(
     decimal? minPrice, decimal? maxPrice, string? location, string? industry, string? keyword, PaginationFilter paginationFilter);
+    Task<ServerResponse<PaginatorDto<IEnumerable<PostResponseDto>>>> GetPostsByCreatorAsync(string applicationUserId, PaginationFilter paginationFilter);
 }

@@ -16,7 +16,7 @@ using System.Text;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Lyvads.Domain.Repositories;
 
 namespace Lyvads.Application.Implementations;
 
@@ -30,7 +30,9 @@ public class PaymentGatewayService : IPaymentGatewayService
     private readonly ILogger<PaymentGatewayService> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
+    private readonly IWalletRepository _walletRepository;
+    private readonly string _paystackSecretKey;
+    private readonly HttpClient _httpClient;
     private PayStackApi Paystack { get; set; }
 
     public PaymentGatewayService(
@@ -38,7 +40,9 @@ public class PaymentGatewayService : IPaymentGatewayService
         AppDbContext context, 
         ILogger<PaymentGatewayService> logger,
         UserManager<ApplicationUser> userManager,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+         HttpClient httpClient
+        )
     {
         _configuration = configuration;
         paystackToken = _configuration["Paystack:PaystackSK"];
@@ -46,15 +50,111 @@ public class PaymentGatewayService : IPaymentGatewayService
         _context = context;
         _logger = logger;
         _userManager = userManager;
-        _httpContextAccessor = httpContextAccessor; 
-
+        _httpContextAccessor = httpContextAccessor;
+        _httpClient = httpClient;
         _stripeSecretKey = _configuration["Stripe:SecretKey"] ?? throw new ArgumentNullException(nameof(_stripeSecretKey));
         StripeConfiguration.ApiKey = _stripeSecretKey ?? throw new ArgumentNullException(nameof(StripeConfiguration.ApiKey));
         _stripeClient = new StripeClient(_stripeSecretKey);
     }
 
-   
+    public async Task<bool> RefundTransaction(Transaction transaction)
+    {
+        try
+        {
+            // Assuming RefundTransactionAsync expects the transaction reference as a string
+            var response = await RefundTransactionAsync(transaction.TrxRef);
 
+            if (response.Status)
+            {
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error refunding transaction {TrxRef}", transaction.TrxRef);
+        }
+        return false;
+    }
+
+
+
+    public async Task<ApiResponse<bool>> RefundTransactionAsync(string transactionReference)
+    {
+        try
+        {
+            var apiUrl = $"https://api.paystack.co/transaction/charge_refund";
+
+            // Assuming you have an API client to handle the request
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_paystackSecretKey}");
+
+            var content = new StringContent(JsonConvert.SerializeObject(new { transaction_reference = transactionReference }), Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync(apiUrl, content);
+
+            // Check if the response was successful
+            if (response.IsSuccessStatusCode)
+            {
+                return new ApiResponse<bool> { Status = true, Data = true }; // Indicating success
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during refund.");
+        }
+
+        return new ApiResponse<bool> { Status = false, Data = false }; // Indicating failure
+    }
+
+
+    //public async Task<RefundResponse> RefundTransactionAsync(string transactionReference)
+    //{
+    //    try
+    //    {
+    //        // Prepare the request body for refunding the transaction
+    //        var refundRequest = new
+    //        {
+    //            transaction = transactionReference // Reference of the transaction to refund
+    //        };
+
+    //        // Set up the HTTP request message
+    //        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api.paystack.co/refund")
+    //        {
+    //            Content = new StringContent(JsonConvert.SerializeObject(refundRequest), Encoding.UTF8, "application/json")
+    //        };
+
+    //        // Add the authorization header with the Paystack secret key
+    //        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _paystackSecretKey);
+
+    //        // Send the request to Paystack API
+    //        var response = await _httpClient.SendAsync(requestMessage);
+
+    //        // If the request is successful
+    //        if (response.IsSuccessStatusCode)
+    //        {
+    //            var content = await response.Content.ReadAsStringAsync();
+    //            var refundResponse = JsonConvert.DeserializeObject<RefundResponse>(content);
+    //            return refundResponse; // Return the successful refund response
+    //        }
+
+    //        // If the request fails, log the error and return a failure response
+    //        var errorContent = await response.Content.ReadAsStringAsync();
+    //        return new RefundResponse
+    //        {
+    //            Status = "failure",
+    //            Message = $"Error: {errorContent}"
+    //        };
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        // Log the exception and return an error response
+    //        return new RefundResponse
+    //        {
+    //            Status = "error",
+    //            Message = $"An error occurred: {ex.Message}"
+    //        };
+    //    }
+    //}
 
     public async Task<ServerResponse<PaymentResponseDto>> InitializePaymentAsync(int amount, string email, string name)
     {
@@ -127,39 +227,6 @@ public class PaymentGatewayService : IPaymentGatewayService
             ResponseMessage = response.Message
         };
     }
-
-    //public async Task CreditBusinessAccountAsync(decimal amount)
-    //{
-    //    // Ensure valid amount
-    //    if (amount <= 0)
-    //        throw new ArgumentException("Invalid amount. Must be greater than zero.");
-
-    //    // Convert amount to kobo (Paystack works in kobo for NGN)
-    //    var amountInKobo = (int)(amount * 100);
-
-    //    // Create transfer recipient (if not already created)
-    //    var recipientCode = await _paystackService.GetOrCreateRecipientAsync("Business Account", "1234567890", "058");
-
-    //    // Initiate transfer
-    //    var transferResult = await _paystackService.InitiateTransferAsync(recipientCode, amountInKobo, "Credit to business account");
-    //    if (!transferResult.IsSuccess)
-    //        throw new InvalidOperationException($"Failed to credit business account: {transferResult.ErrorMessage}");
-
-    //    // Optionally, log the transaction locally
-    //    var transaction = new BusinessTransaction
-    //    {
-    //        AccountId = "ExternalAccount",
-    //        Amount = amount,
-    //        TransactionType = TransactionType.Credit,
-    //        Timestamp = DateTime.UtcNow,
-    //        Description = "Credit to business account via Paystack"
-    //    };
-    //    await _businessTransactionRepository.AddAsync(transaction);
-
-    //    // Save changes
-    //    await _unitOfWork.SaveChangesAsync();
-    //}
-
 
     public async Task<ServerResponse<PaymentResponseDto>> InitializeRequestPaymentAsync(int amount, string email, string name)
     {

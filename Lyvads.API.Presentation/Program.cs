@@ -80,7 +80,7 @@ FirebaseApp.Create(new AppOptions()
 });
 
 
-// Database migration (if needed)
+//Database migration(if needed)
 //using (var scope = app.Services.CreateScope())
 //{
 //    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -102,7 +102,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
+    //app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
@@ -120,6 +120,6 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 
-//await Seeder.Run(app);
+await Seeder.Run(app);
 
 app.Run();

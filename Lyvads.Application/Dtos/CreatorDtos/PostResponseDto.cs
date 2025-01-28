@@ -6,6 +6,7 @@ public class PostResponseDto
     public string? PostId { get; set; }
     public string? CreatorId { get; set; }
     public string? CreatorName { get; set; } 
+    public string? CreatorImage { get; set; }
     public string? Caption { get; set; }
     public List<string> MediaUrls { get; set; } = new List<string>();
     public string? Location { get; set; }

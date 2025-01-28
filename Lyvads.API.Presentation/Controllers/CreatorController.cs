@@ -91,7 +91,7 @@ public class CreatorController : ControllerBase
 
 
     [HttpPost("update-post/{postId}")]
-    [Authorize(Roles = "Creator")]
+    //[Authorize(Roles = "Creator")]
     public async Task<IActionResult> UpdatePost(string postId, [FromForm] UpdatePostDto postDto,
     [FromQuery] PostVisibility visibility, [FromForm] List<IFormFile> mediaFiles)
     {
@@ -159,17 +159,26 @@ public class CreatorController : ControllerBase
 
 
     [HttpGet("posts")]
-    public async Task<IActionResult> GetPostsByCreator()
+    public async Task<IActionResult> GetPostsByCreator([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
+        // Get the logged-in user
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return Unauthorized("User not found or unauthorized.");
 
-        var result = await _creatorService.GetPostsByCreatorAsync(user.Id);
+        // Create a pagination filter using the query parameters
+        var paginationFilter = new PaginationFilter(pageNumber, pageSize);
 
-        // No longer returning a BadRequest, instead return Ok with empty data if no posts found
-        return Ok(result);
+        // Call the service method
+        var result = await _creatorService.GetPostsByCreatorAsync(user.Id, paginationFilter);
+
+        // Check the result and return the appropriate response
+        if (!result.IsSuccessful)
+            return BadRequest(new { result.ResponseCode, result.ResponseMessage });
+
+        return Ok(new { result.ResponseCode, result.ResponseMessage, Data = result.Data });
     }
+
 
 
     [HttpGet("searchQuery")]

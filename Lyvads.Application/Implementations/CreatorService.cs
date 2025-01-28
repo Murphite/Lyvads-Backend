@@ -241,6 +241,7 @@ public class CreatorService : ICreatorService
             {
                 PostId = post.Id,
                 CreatorName = creator.ApplicationUser?.FullName,
+                CreatorImage = creator.ApplicationUser?.ImageUrl,
                 CreatorId = creator.Id,
                 Location = post.Location,
                 Visibility = post.Visibility.ToString(),
@@ -404,6 +405,7 @@ public class CreatorService : ICreatorService
                 PostId = post.Id,
                 CreatorId = creator.Id,
                 CreatorName = creator.ApplicationUser?.FullName,
+                CreatorImage = creator.ApplicationUser?.ImageUrl,
                 Caption = post.Caption,
                 MediaUrls = post.MediaFiles.Select(m => m.Url).ToList(),
                 Location = post.Location,

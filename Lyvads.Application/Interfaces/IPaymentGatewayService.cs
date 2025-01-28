@@ -9,6 +9,7 @@ namespace Lyvads.Application.Interfaces;
 
 public interface IPaymentGatewayService
 {
+    Task<bool> RefundTransaction(Transaction transaction);
     Task<ServerResponse<PaymentResponseDto>> InitializePaymentAsync(int amount, string email, string name);
     Task<ServerResponse<PaymentResponseDto>> InitializeRequestPaymentAsync(int amount, string email, string name);
     Task<ServerResponse<string>> VerifyPaymentAsync(string reference);

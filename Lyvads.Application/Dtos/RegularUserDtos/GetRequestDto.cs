@@ -118,6 +118,22 @@ public class StorePaymentCardResponseDto
 }
 
 
+public class RefundResponse
+{
+    public string? Status { get; set; }
+    public string? Message { get; set; }
+    public RefundData? Data { get; set; }
+}
+
+public class RefundData
+{
+    public string? Status { get; set; }
+    public string? Message { get; set; }
+    public string? Reference { get; set; }
+    public decimal AmountRefunded { get; set; }
+}
+
+
 public class WalletTrasactionResponseDto
 {
     public string? Id { get; set; }
@@ -229,4 +245,10 @@ public class StoreCardRequest
     public string? Channel { get; set; }
     public bool Reusable { get; set; }
     public string? CountryCode { get; set; }
+    public string? TransactionReference { get; set; }
+}
+
+public class RefundRequest
+{
+    public string? TransactionReference { get; set; }
 }

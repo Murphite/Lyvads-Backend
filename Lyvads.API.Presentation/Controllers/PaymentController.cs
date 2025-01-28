@@ -123,6 +123,124 @@ public class PaymentController : Controller
     }
 
 
+    //[HttpPost("paystack/webhook")]
+    //[AllowAnonymous]
+    //public async Task<IActionResult> PaystackWebhook()
+    //{
+    //    HttpContext.Request.EnableBuffering();
+    //    string rawBody;
+
+    //    using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
+    //    {
+    //        rawBody = await reader.ReadToEndAsync();
+    //    }
+
+    //    _logger.LogInformation("Webhook received with raw body: {RawBody}", rawBody);
+    //    HttpContext.Request.Body.Position = 0;
+
+    //    PaystackWebhookPayload payload;
+    //    try
+    //    {
+    //        payload = JsonConvert.DeserializeObject<PaystackWebhookPayload>(rawBody);
+    //        if (payload?.Data == null)
+    //        {
+    //            _logger.LogError("Invalid webhook payload format.");
+    //            return BadRequest(new { status = "invalid_payload" });
+    //        }
+
+    //        _logger.LogInformation("Deserialized payload: {Payload}", JsonConvert.SerializeObject(payload));
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Failed to deserialize webhook payload.");
+    //        return BadRequest(new { status = "invalid_payload_format" });
+    //    }
+
+    //    string trxRef = payload.Data.Reference;
+    //    string status = payload.Data.Status;
+    //    string email = payload.Data.Email;
+    //    string authorizationCode = payload.Data.AuthorizationCode;
+
+    //    if (string.IsNullOrEmpty(trxRef) || string.IsNullOrEmpty(status))
+    //    {
+    //        _logger.LogWarning("Transaction reference or status is missing.");
+    //        return BadRequest(new { status = "missing_data" });
+    //    }
+
+    //    var transaction = await _walletRepository.GetTransactionByTrxRefAsync(trxRef);
+    //    if (transaction == null)
+    //    {
+    //        _logger.LogWarning("Transaction with reference {TrxRef} not found.", trxRef);
+    //        return BadRequest(new { status = "transaction_not_found" });
+    //    }
+
+    //    if (transaction.Status)
+    //    {
+    //        _logger.LogInformation("Transaction with reference {TrxRef} already processed.", trxRef);
+    //        return Ok(new { status = "already_processed" });
+    //    }
+
+    //    if (status == "success")
+    //    {
+    //        transaction.Status = true;
+
+    //        // Check if the transaction is for a request to a creator
+    //        if (transaction.RequestId != null)
+    //        {
+    //            var request = await _requestRepository.GetRequestByIdAsync(transaction.RequestId);
+    //            if (request != null && request.CreatorId != null)
+    //            {
+    //                decimal baseAmount = request.RequestAmount;
+    //                decimal fastTrackFee = request.FastTrackFee;
+
+    //                // Credit the creator's wallet with the base amount and fast track fee
+    //                await _walletService.CreditWalletAmountAsync(request.CreatorId, baseAmount + fastTrackFee);
+    //                _logger.LogInformation("Credited {Amount} to Creator ID: {CreatorId}", baseAmount + fastTrackFee, request.CreatorId);
+    //            }
+    //        }
+
+    //        if (transaction.WalletId != null)
+    //        {
+    //            var wallet = await _walletRepository.GetWalletByIdAsync(transaction.WalletId);
+    //            if (wallet != null)
+    //            {
+    //                wallet.Balance += transaction.Amount;
+    //                await _walletRepository.UpdateWalletAsync(wallet);
+    //                _logger.LogInformation("Wallet balance updated for WalletId: {WalletId}.", transaction.WalletId);
+    //            }
+    //        }
+
+    //        // Store the card details after a successful payment
+    //        var storeCardRequest = new StoreCardRequest
+    //        {
+    //            AuthorizationCode = authorizationCode,
+    //            Email = email,
+    //            CardType = payload.Data.CardType,
+    //            Last4 = payload.Data.Last4,
+    //            ExpiryMonth = payload.Data.ExpiryMonth,
+    //            ExpiryYear = payload.Data.ExpiryYear,
+    //            Bank = payload.Data.Bank,
+    //            AccountName = payload.Data.AccountName,
+    //            Reusable = payload.Data.Reusable,
+    //            CountryCode = payload.Data.CountryCode,
+    //            Bin = payload.Data.Bin,
+    //            Signature = payload.Data.Signature,
+    //            Channel = payload.Data.Channel
+    //        };
+
+    //        await _walletService.StoreCardForRecurringPayment(storeCardRequest);
+
+    //        await _walletRepository.UpdateTransactionAsync(transaction);
+    //        _logger.LogInformation("Transaction with reference {TrxRef} marked as successful.", trxRef);
+    //        return Ok(new { status = "success" });
+    //    }
+
+    //    transaction.Status = false;
+    //    await _walletRepository.UpdateTransactionAsync(transaction);
+    //    _logger.LogInformation("Transaction with reference {TrxRef} marked as failed.", trxRef);
+    //    return Ok(new { status = "failure" });
+    //}
+
     [HttpPost("paystack/webhook")]
     [AllowAnonymous]
     public async Task<IActionResult> PaystackWebhook()
@@ -158,8 +276,6 @@ public class PaymentController : Controller
 
         string trxRef = payload.Data.Reference;
         string status = payload.Data.Status;
-        string email = payload.Data.Email;
-        string authorizationCode = payload.Data.AuthorizationCode;
 
         if (string.IsNullOrEmpty(trxRef) || string.IsNullOrEmpty(status))
         {
@@ -184,37 +300,11 @@ public class PaymentController : Controller
         {
             transaction.Status = true;
 
-            // Check if the transaction is for a request to a creator
-            if (transaction.RequestId != null)
-            {
-                var request = await _requestRepository.GetRequestByIdAsync(transaction.RequestId);
-                if (request != null && request.CreatorId != null)
-                {
-                    decimal baseAmount = request.RequestAmount;
-                    decimal fastTrackFee = request.FastTrackFee;
-
-                    // Credit the creator's wallet with the base amount and fast track fee
-                    await _walletService.CreditWalletAmountAsync(request.CreatorId, baseAmount + fastTrackFee);
-                    _logger.LogInformation("Credited {Amount} to Creator ID: {CreatorId}", baseAmount + fastTrackFee, request.CreatorId);
-                }
-            }
-
-            if (transaction.WalletId != null)
-            {
-                var wallet = await _walletRepository.GetWalletByIdAsync(transaction.WalletId);
-                if (wallet != null)
-                {
-                    wallet.Balance += transaction.Amount;
-                    await _walletRepository.UpdateWalletAsync(wallet);
-                    _logger.LogInformation("Wallet balance updated for WalletId: {WalletId}.", transaction.WalletId);
-                }
-            }
-
-            // Store the card details after a successful payment
+            // Save the card details
             var storeCardRequest = new StoreCardRequest
             {
-                AuthorizationCode = authorizationCode,
-                Email = email,
+                AuthorizationCode = payload.Data.AuthorizationCode,
+                Email = payload.Data.Email,
                 CardType = payload.Data.CardType,
                 Last4 = payload.Data.Last4,
                 ExpiryMonth = payload.Data.ExpiryMonth,
@@ -230,6 +320,20 @@ public class PaymentController : Controller
 
             await _walletService.StoreCardForRecurringPayment(storeCardRequest);
 
+            // Refund ₦50 for card saving
+            if (transaction.Amount == 50)
+            {
+                var refundResult = await _paymentService.RefundTransaction(transaction);
+                if (!refundResult)
+                {
+                    _logger.LogWarning("Refund of ₦50 failed for transaction: {TrxRef}", trxRef);
+                }
+                else
+                {
+                    _logger.LogInformation("Refund of ₦50 successfully processed for transaction: {TrxRef}", trxRef);
+                }
+            }
+
             await _walletRepository.UpdateTransactionAsync(transaction);
             _logger.LogInformation("Transaction with reference {TrxRef} marked as successful.", trxRef);
             return Ok(new { status = "success" });
@@ -240,6 +344,98 @@ public class PaymentController : Controller
         _logger.LogInformation("Transaction with reference {TrxRef} marked as failed.", trxRef);
         return Ok(new { status = "failure" });
     }
+
+
+    //[HttpPost("paystack/webhook")]
+    //[AllowAnonymous]
+    //public async Task<IActionResult> PaystackWebhook()
+    //{
+    //    HttpContext.Request.EnableBuffering();
+    //    string rawBody;
+
+    //    using (var reader = new StreamReader(HttpContext.Request.Body, Encoding.UTF8, leaveOpen: true))
+    //    {
+    //        rawBody = await reader.ReadToEndAsync();
+    //    }
+
+    //    _logger.LogInformation("Webhook received with raw body: {RawBody}", rawBody);
+    //    HttpContext.Request.Body.Position = 0;
+
+    //    PaystackWebhookPayload payload;
+    //    try
+    //    {
+    //        payload = JsonConvert.DeserializeObject<PaystackWebhookPayload>(rawBody);
+    //        if (payload?.Data == null)
+    //        {
+    //            _logger.LogError("Invalid webhook payload format.");
+    //            return BadRequest(new { status = "invalid_payload" });
+    //        }
+
+    //        _logger.LogInformation("Deserialized payload: {Payload}", JsonConvert.SerializeObject(payload));
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Failed to deserialize webhook payload.");
+    //        return BadRequest(new { status = "invalid_payload_format" });
+    //    }
+
+    //    string trxRef = payload.Data.Reference;
+    //    string status = payload.Data.Status;
+    //    string eventType = payload.Event;  // This is important to identify the event type like "charge.success"
+
+    //    if (string.IsNullOrEmpty(trxRef) || string.IsNullOrEmpty(status))
+    //    {
+    //        _logger.LogWarning("Transaction reference or status is missing.");
+    //        return BadRequest(new { status = "missing_data" });
+    //    }
+
+    //    var transaction = await _walletRepository.GetTransactionByTrxRefAsync(trxRef);
+    //    if (transaction == null)
+    //    {
+    //        _logger.LogWarning("Transaction with reference {TrxRef} not found.", trxRef);
+    //        return BadRequest(new { status = "transaction_not_found" });
+    //    }
+
+    //    // Check if the transaction has been processed already
+    //    if (transaction.Status)
+    //    {
+    //        _logger.LogInformation("Transaction with reference {TrxRef} already processed.", trxRef);
+    //        return Ok(new { status = "already_processed" });
+    //    }
+
+    //    // Handle charge success or failure
+    //    if (eventType == "charge.success" && status == "success")
+    //    {
+    //        // Assuming the 50 Naira charge needs to be refunded
+    //        if (transaction.Amount == 50)
+    //        {
+    //            // Refund the 50 Naira charge
+    //            var refundResult = await _paymentService.RefundTransaction(transaction);
+    //            if (refundResult)
+    //            {
+    //                // Update transaction status after refund
+    //                transaction.Status = true;
+    //                await _walletRepository.UpdateTransactionAsync(transaction);
+    //                _logger.LogInformation("Refund successful for transaction {TrxRef}. Balance updated.");
+    //                return Ok(new { status = "success", message = "Refund successful." });
+    //            }
+    //            else
+    //            {
+    //                _logger.LogError("Refund failed for transaction {TrxRef}.");
+    //                return BadRequest(new { status = "refund_failed", message = "Refund failed." });
+    //            }
+    //        }
+    //    }
+    //    else if (eventType == "charge.failed" && status == "failed")
+    //    {
+    //        _logger.LogWarning("Charge failed for transaction {TrxRef}.");
+    //        transaction.Status = false;
+    //        await _walletRepository.UpdateTransactionAsync(transaction);
+    //        return Ok(new { status = "failure", message = "Charge failed." });
+    //    }
+
+    //    return Ok(new { status = "event_not_handled" });
+    //}
 
 
     //[HttpPost("paystack/webhook")]
@@ -323,7 +519,64 @@ public class PaymentController : Controller
     //}
 
 
-    [HttpPost("paystack/store-card")]
+    //[HttpPost("paystack/save-card")]
+    //[Authorize]
+    //public async Task<IActionResult> SaveCard([FromBody] StoreCardRequest saveCardRequest)
+    //{
+    //    // Use the current user's ID
+    //    var currentUserId = _currentUserService.GetCurrentUserId();
+    //    var currentUser = await _userManager.FindByIdAsync(currentUserId);
+
+    //    if (string.IsNullOrEmpty(currentUser.Email))
+    //    {
+    //        _logger.LogError("Email is required.");
+    //        return BadRequest(new { status = "invalid_data", message = "Email is required." });
+    //    }
+
+    //    try
+    //    {
+    //        // Assuming StoreCardRequest contains authorization code and other details
+    //        var cardAuthorizationDetails = new StoreCardRequest
+    //        {
+    //            AuthorizationCode = saveCardRequest.AuthorizationCode,
+    //            Email = currentUser.Email,
+    //            CardType = saveCardRequest.CardType,
+    //            Last4 = saveCardRequest.Last4,
+    //            ExpiryMonth = saveCardRequest.ExpiryMonth,
+    //            ExpiryYear = saveCardRequest.ExpiryYear,
+    //            Bank = saveCardRequest.Bank,
+    //            AccountName = saveCardRequest.AccountName,
+    //            Reusable = saveCardRequest.Reusable,
+    //            CountryCode = saveCardRequest.CountryCode,
+    //            Bin = saveCardRequest.Bin,
+    //            Signature = saveCardRequest.Signature,
+    //            Channel = saveCardRequest.Channel
+    //        };
+
+    //        // Save the card details to the database
+    //        await _walletService.StoreCardForRecurringPayment(cardAuthorizationDetails);
+
+    //        _logger.LogInformation("Card saved successfully for user: {UserId}", currentUserId);
+
+    //        // After saving, trigger the Paystack webhook to refund the 50 Naira charge
+    //        var transaction = await _walletRepository.GetTransactionByTrxRefAsync(saveCardRequest.TransactionReference);
+    //        if (transaction != null && transaction.Amount == 50)
+    //        {
+    //            await _paymentService.RefundTransaction(transaction);
+    //        }
+
+    //        return Ok(new { status = "success", message = "Card saved successfully." });
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "Error saving card details.");
+    //        return StatusCode(500, new { status = "error", message = "An error occurred while saving the card details." });
+    //    }
+    //}
+
+
+
+    [HttpGet("paystack/get-stored-card")]
     public async Task<IActionResult> GetCardTokenForRecurringPayment()
     {
         // Use current user service to fetch the current admin username
@@ -359,8 +612,6 @@ public class PaymentController : Controller
             return StatusCode(500, new { status = "error", message = "An error occurred while retrieving the card token." });
         }
     }
-
-
     
 
     //[HttpPost("paystack/webhook")]
