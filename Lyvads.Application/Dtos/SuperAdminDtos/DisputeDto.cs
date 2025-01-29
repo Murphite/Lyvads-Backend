@@ -33,6 +33,6 @@ public class DisputeDetailsDto
     public string? RegularUserFullName { get; set; }
     public DateTime CreatedAt { get; set; }
    // public string? DisputeType { get; set; } // e.g. "Disputed Video", "Declined Request"
-    public DisputeReasons DisputeReason { get; set; } // Reason for dispute
+    public string? DisputeReason { get; set; } // Reason for dispute
     public string? DisputeMessage { get; set; } // Additional message or details
 }

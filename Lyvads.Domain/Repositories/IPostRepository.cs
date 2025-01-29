@@ -9,6 +9,9 @@ namespace Lyvads.Domain.Repositories;
 
 public interface IPostRepository
 {
+    Task<IEnumerable<Comment>> GetCommentsByUserAndPostsAsync(string userId, List<string> postIds);
+    Task<IEnumerable<Like>> GetLikesByUserAndPostsAsync(string userId, List<string> postIds);
+    Task<Post> GetPostWithMediaAsync(string postId);
     Task<PaginatedResponse<Post>> GetPaginatedPostsByCreatorAsync(string creatorId, PaginationFilter paginationFilter);
     Task<Post> GetPostWithDetailsAsync(string postId);
     Task<List<Post>> GetFilteredPostsAsync(List<string> followingIds);

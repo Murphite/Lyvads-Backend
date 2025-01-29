@@ -21,4 +21,5 @@ public interface IRepository
 
     Task<bool> Exists<T>(Expression<Func<T, bool>> predicate) where T : class;
     Task<IEnumerable<T>> FindAllByCondition<T>(Expression<Func<T, bool>> predicate) where T : class;
+    IQueryable<T> QueryFindByCondition<T>(Expression<Func<T, bool>> expression) where T : class;
 }

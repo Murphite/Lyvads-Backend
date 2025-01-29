@@ -1223,7 +1223,8 @@ public class CreatorService : ICreatorService
         {
             PostId = p.Id,
             CreatorId = p.CreatorId,
-            CreatorName = p.Creator?.ApplicationUser?.FullName ?? "Unknown",
+            CreatorName = p.Creator?.ApplicationUser?.FullName,
+            CreatorImage = p.Creator?.ApplicationUser?.ImageUrl,
             Caption = p.Caption,
             MediaUrls = p.MediaFiles.Select(m => m.Url).ToList(),
             Location = p.Location,
@@ -1246,6 +1247,7 @@ public class CreatorService : ICreatorService
             }
         };
     }
+
 
 
     public async Task<ServerResponse<CreatorRateResponseDto>> UpdateCreatorRatesAsync(UpdateCreatorRateDto dto, string userId)
@@ -1336,6 +1338,79 @@ public class CreatorService : ICreatorService
             ResponseCode = "00",
             ResponseMessage = "Creator's profile updated successfully.",
             Data = creatorProfileResponse
+        };
+    }
+
+
+    public async Task<ServerResponse<bool>> DeleteMediaPostAsync(string postId, string userId, PostEditDto editDto)
+    {
+        // Retrieve the post by its ID
+        var post = await _postRepository.GetPostWithMediaAsync(postId);
+        if (post == null)
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Post not found."
+            };
+        }
+
+        // Validate that the user is the owner of the post
+        if (post.Creator.ApplicationUser.Id != userId)
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ResponseCode = "403",
+                ResponseMessage = "You do not have permission to delete media from this post."
+            };
+        }
+
+        // Validate if there are media files to delete
+        if (editDto.MediaToDelete == null || !editDto.MediaToDelete.Any())
+        {
+            return new ServerResponse<bool>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "No media files specified for deletion."
+            };
+        }
+
+        // Iterate through the media files to delete
+        foreach (var mediaId in editDto.MediaToDelete)
+        {
+            var media = post.MediaFiles.FirstOrDefault(m => m.Url == mediaId);            
+            if (media != null)
+            {
+                // Remove the media file from the post
+                post.MediaFiles.Remove(media);
+
+                // Optionally, delete the file from cloud storage
+                var deleteResult = await _mediaService.DeleteMediaAsync(media.Url);
+                if (!deleteResult)
+                {
+                    return new ServerResponse<bool>
+                    {
+                        IsSuccessful = false,
+                        ResponseCode = "500",
+                        ResponseMessage = $"Failed to delete media with ID: {mediaId}."
+                    };
+                }
+            }
+        }
+
+        // Update the post entity in the database
+        _repository.Update(post);
+        await _unitOfWork.SaveChangesAsync();
+
+        return new ServerResponse<bool>
+        {
+            IsSuccessful = true,
+            ResponseCode = "00",
+            ResponseMessage = "Media files deleted successfully.",
+            Data = true
         };
     }
 

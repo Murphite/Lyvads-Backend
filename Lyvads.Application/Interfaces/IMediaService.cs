@@ -7,6 +7,7 @@ namespace Lyvads.Application.Interfaces;
 
 public interface IMediaService
 {
+    Task<bool> DeleteMediaAsync(string mediaUrl);
     Task<DeletionResult> DeleteImageAsync(string publicUrl);
     Task<DeletionResult> DeleteVideoAsync(string publicUrl);
     Task<Dictionary<string, string>> UploadImageAsync(IFormFile photo, string folderName);

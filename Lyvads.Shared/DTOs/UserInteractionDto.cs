@@ -59,6 +59,8 @@ public class GetPostDto
     public string? Visibility { get; set; }   
     public DateTimeOffset CreatedAt { get; set; }
     public List<string>? MediaUrls { get; set; }
+    public bool IsLikedByUser { get; set; }
+    public bool HasCommentedByUser { get; set; }
 }
 
 public class UserWithFollowersDto

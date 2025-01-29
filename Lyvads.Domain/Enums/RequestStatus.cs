@@ -9,7 +9,8 @@ public enum RequestStatus
     Flagged,
     Declined,
     Completed,
-    Canceled
+    Canceled, 
+    VideoSent
 }
 
 public enum CollaborationStatus

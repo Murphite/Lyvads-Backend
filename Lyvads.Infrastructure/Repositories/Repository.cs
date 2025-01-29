@@ -48,6 +48,12 @@ public class Repository : IRepository
         return await _context.Set<T>().FirstOrDefaultAsync(expression);
     }
 
+    public IQueryable<T> QueryFindByCondition<T>(Expression<Func<T, bool>> expression) where T : class
+    {
+        return _context.Set<T>().Where(expression);
+    }
+
+
     public async Task<IDbContextTransaction> BeginTransactionAsync()
     {
         return await _context.Database.BeginTransactionAsync();

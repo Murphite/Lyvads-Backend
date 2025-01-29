@@ -120,6 +120,6 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 
-await Seeder.Run(app);
+//await Seeder.Run(app);
 
 app.Run();

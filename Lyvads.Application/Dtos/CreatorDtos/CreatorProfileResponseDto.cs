@@ -41,3 +41,18 @@ public class ValidatePasswordDto
 {
     public string? Password { get; set; }
 }
+
+public class PostEditDto
+{
+    //public string? Caption { get; set; }
+    //public string? Location { get; set; }
+    //public PostVisibility? Visibility { get; set; }
+    public List<string>? MediaToDelete { get; set; }
+}    
+
+
+public class DeleteMediaRequestDto
+{
+    public string? PostId { get; set; }
+    public List<string>? MediaToDelete { get; set; }
+}

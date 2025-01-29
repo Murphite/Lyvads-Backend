@@ -16,13 +16,41 @@ public class PostRepository : IPostRepository
 {
     private readonly AppDbContext _context;
     private readonly ILogger<PostRepository> _logger;
+    private readonly IRepository _repository;
 
     public PostRepository(
         AppDbContext context, 
-        ILogger<PostRepository> logger)
+        ILogger<PostRepository> logger,
+        IRepository repository)
     {
         _context = context;
         _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Post> GetPostWithMediaAsync(string postId)
+    {
+        // Query the database to fetch the post and include its media files
+        var post = await _context.Posts
+            .Include(p => p.MediaFiles) // Include media files
+            .Include(p => p.Creator)   // Include creator information if necessary
+            .ThenInclude(c => c.ApplicationUser) // Include application user details
+            .FirstOrDefaultAsync(p => p.Id == postId);
+
+        return post!;
+    }
+
+    public async Task<IEnumerable<Like>> GetLikesByUserAndPostsAsync(string userId, List<string> postIds)
+    {
+        return await _repository.QueryFindByCondition<Like>(l => postIds.Contains(l.PostId) && l.UserId == userId).ToListAsync();
+    }
+
+    public async Task<IEnumerable<Comment>> GetCommentsByUserAndPostsAsync(string userId, List<string> postIds)
+    {
+        return await _repository.QueryFindByCondition<Comment>(c =>
+            postIds.Contains(c.PostId) &&
+            (c.RegularUserId == userId || c.ApplicationUserId == userId))
+            .ToListAsync();
     }
 
     public IQueryable<Post> GetAllPosts()
@@ -76,7 +104,12 @@ public class PostRepository : IPostRepository
         }
 
         // Retrieve the base query to filter posts by the creatorId
-        var query = _context.Posts.Where(post => post.CreatorId == creatorId);
+        var query = _context.Posts
+             .Include(p => p.Creator)
+            .ThenInclude(c => c.ApplicationUser)
+            .Include(p => p.MediaFiles)
+            //.Where(p => p.Visibility == PostVisibility.Public || followingIds.Contains(p.CreatorId));
+            .Where(post => post.CreatorId == creatorId);
 
         // Get the total count of posts for the creator
         var totalRecords = await query.CountAsync();

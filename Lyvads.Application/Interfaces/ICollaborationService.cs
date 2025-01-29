@@ -17,7 +17,7 @@ public interface ICollaborationService
     Task<ServerResponse<List<GetRequestDto>>> GetAllRequestsByUserAsync(string userId, RequestStatus status);
     Task<ServerResponse<RequestDetailsDto>> GetRequestDetailsAsync(string requestId);
     Task<ServerResponse<DeclineResponseDto>> DeclineRequestAsync(DeclineRequestDto declineRequestDto);
-    Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string userId, string requestId, DisputeReasons disputeReason, OpenDisputeDto disputeDto);
+    Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string userId, string requestId, OpenDisputeDto disputeDto);
     Task<ServerResponse<List<GetUserRequestDto>>> GetAllRequestsForCreatorAsync(string creatorId, RequestStatus status);
     Task<ServerResponse<List<FetchDisputeDto>>> FetchDisputesByCreatorAsync(string userId);
     Task<ServerResponse<VideoResponseDto>> SendVideoToUserAsync(string requestId, IFormFile video);

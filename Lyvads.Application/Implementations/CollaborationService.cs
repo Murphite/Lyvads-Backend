@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Microsoft.AspNetCore.Http;
 using Lyvads.Infrastructure.Repositories;
+using Lyvads.Domain.Constants;
 
 
 namespace Lyvads.Application.Implementations;
@@ -493,9 +494,9 @@ public class CollaborationService : ICollaborationService
         };
     }
 
-    public async Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string userId, string requestId, DisputeReasons disputeReason, OpenDisputeDto disputeDto)
+    public async Task<ServerResponse<DisputeResponseDto>> OpenDisputeAsync(string userId, string requestId, OpenDisputeDto disputeDto)
     {
-        _logger.LogInformation("Opening dispute for request: {RequestId}, Reason: {Reason}", requestId, disputeReason);
+        _logger.LogInformation("Opening dispute for request: {RequestId}, Reasons: {Reasons}", requestId, string.Join(", ", disputeDto.DisputeReason));
 
         var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
         var roles = await _userManager.GetRolesAsync(user!);
@@ -524,7 +525,7 @@ public class CollaborationService : ICollaborationService
                 ResponseCode = "404",
                 ResponseMessage = "Request not found."
             };
-        }        
+        }
 
         var regularUser = await _regularUserRepository.GetByIdWithApplicationUser(request.RegularUserId!);
         if (regularUser == null || regularUser.ApplicationUser == null)
@@ -542,7 +543,7 @@ public class CollaborationService : ICollaborationService
                 }
             };
         }
-        //var regularUser = await _userRepository.GetUserByIdAsync(dispute.RegularUserId!);
+
         var creator = await _creatorRepository.GetCreatorByIdWithApplicationUser(request.CreatorId!);
         if (creator == null || creator.ApplicationUser == null)
         {
@@ -563,7 +564,7 @@ public class CollaborationService : ICollaborationService
         var dispute = new Dispute
         {
             Id = Guid.NewGuid().ToString(),
-            Reason = disputeReason,
+            Reason = string.Join(", ", disputeDto.DisputeReason),
             DisputeMessage = disputeDto.Message,
             Status = DisputeStatus.Pending,
             CreatedAt = DateTime.UtcNow,
@@ -587,7 +588,7 @@ public class CollaborationService : ICollaborationService
         var disputeResponse = new DisputeResponseDto
         {
             RequestId = requestId,
-            Reason = disputeReason.ToString(),
+            Reason = disputeDto.DisputeReason != null ? string.Join(", ", disputeDto.DisputeReason) : string.Empty, // Ensure this is joined properly
             DisputeMessage = dispute.DisputeMessage,
             Status = dispute.Status.ToString(),
             CreatedAt = dispute.CreatedAt,
@@ -604,6 +605,7 @@ public class CollaborationService : ICollaborationService
             Data = disputeResponse
         };
     }
+
 
     public async Task<ServerResponse<VideoResponseDto>> SendVideoToUserAsync(string requestId, IFormFile video)
     {
@@ -677,9 +679,11 @@ public class CollaborationService : ICollaborationService
                 }
             };
         }
-
-        var roles = await _userManager.GetRolesAsync(user);
-        if (roles == null || !roles.Contains("Creator"))
+        var currentUserId = _currentUserService.GetCurrentUserId();
+        var currentUser = await _userManager.FindByIdAsync(currentUserId);
+        var isCreator = await _userManager.IsInRoleAsync(currentUser, RolesConstant.Creator);
+        //var roles = await _userManager.GetRolesAsync(user);
+        if (!isCreator)
         {
             _logger.LogWarning("User with ID: {UserId} is not authorized to send videos.", request.RegularUserId);
             return new ServerResponse<VideoResponseDto>
@@ -718,7 +722,8 @@ public class CollaborationService : ICollaborationService
         var videoUrl = uploadResult["Url"];
 
         // Save the video URL to the database
-        request.VideoUrl = videoUrl; 
+        request.VideoUrl = videoUrl;
+        request.Status = RequestStatus.VideoSent;
         _repository.Update(request); 
         await _unitOfWork.SaveChangesAsync();
 

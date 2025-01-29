@@ -5,12 +5,13 @@ using Lyvads.Application.Implementations;
 using Lyvads.Application.Interfaces;
 using Lyvads.Domain.Entities;
 using Lyvads.Domain.Enums;
+using Lyvads.Domain.Repositories;
 using Lyvads.Domain.Responses;
+using Lyvads.Infrastructure.Repositories;
 using Lyvads.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Stripe.Forwarding;
 using System.Security.Claims;
 
 namespace Lyvads.API.Presentation.Controllers;
@@ -21,18 +22,22 @@ namespace Lyvads.API.Presentation.Controllers;
 public class CollaborationController : ControllerBase
 {
     private readonly ICollaborationService _collaborationService;
-    private readonly ILogger<CollaborationController> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CollaborationController> _logger;
 
 
     public CollaborationController(ICollaborationService collaborationService, 
         ILogger<CollaborationController> logger,
-        UserManager<ApplicationUser> userManager
+        UserManager<ApplicationUser> userManager,
+        IUnitOfWork unitOfWork
         )
     {
         _collaborationService = collaborationService;
         _logger = logger;
         _userManager = userManager;
+        _unitOfWork = unitOfWork;
     }
 
 
@@ -119,8 +124,7 @@ public class CollaborationController : ControllerBase
 
 
     [HttpPost("dispute/open/{requestId}")]
-    public async Task<ActionResult> OpenDispute(string requestId, DisputeReasons disputeReason, 
-        [FromBody] OpenDisputeDto disputeDto)
+    public async Task<ActionResult> OpenDispute(string requestId,[FromBody] OpenDisputeDto disputeDto)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -129,7 +133,7 @@ public class CollaborationController : ControllerBase
         }
 
 
-        var response = await _collaborationService.OpenDisputeAsync(user.Id, requestId, disputeReason, disputeDto);
+        var response = await _collaborationService.OpenDisputeAsync(user.Id, requestId, disputeDto);
         if (!response.IsSuccessful)
             return BadRequest(response.ErrorResponse);
 
@@ -288,6 +292,52 @@ public class CollaborationController : ControllerBase
             return BadRequest(result);
 
         return Ok(result);
+    }
+
+
+    [HttpPatch("{requestId}/complete")]
+    public async Task<IActionResult> MarkRequestAsComplete(string requestId)
+    {
+        _logger.LogInformation("Attempting to mark request with ID: {RequestId} as complete.", requestId);
+
+        // Validate request exists
+        var request = await _repository.GetById<Request>(requestId);
+        if (request == null)
+        {
+            _logger.LogWarning("Request with ID: {RequestId} not found.", requestId);
+            return NotFound(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "Request not found."
+            });
+        }
+
+        // Check if the request status can be updated to "Complete"
+        if (request.Status != RequestStatus.VideoSent)
+        {
+            _logger.LogWarning("Request with ID: {RequestId} cannot be marked as complete. Current status: {Status}", requestId, request.Status);
+            return BadRequest(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "Request cannot be marked as complete. Status must be 'Video Sent'."
+            });
+        }
+
+        // Update the request status
+        request.Status = RequestStatus.Completed;
+        _repository.Update(request);
+        await _unitOfWork.SaveChangesAsync();
+
+        _logger.LogInformation("Request with ID: {RequestId} successfully marked as complete.", requestId);
+
+        return Ok(new
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = "Request marked as complete successfully."
+        });
     }
 
 }

@@ -116,6 +116,46 @@ public class CreatorController : ControllerBase
         return Ok(response);
     }
 
+    [HttpDelete("delete-media")]
+    public async Task<IActionResult> DeleteMediaFromPost([FromBody] DeleteMediaRequestDto request)
+    {
+        if (string.IsNullOrEmpty(request.PostId) || request.MediaToDelete == null || !request.MediaToDelete.Any())
+        {
+            return BadRequest(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "PostId and MediaToDelete are required."
+            });
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "Unauthorized request."
+            });
+        }
+
+        var editDto = new PostEditDto
+        {
+            MediaToDelete = request.MediaToDelete
+        };
+
+        var response = await _creatorService.DeleteMediaPostAsync(request.PostId, user.Id, editDto);
+
+        if (response.IsSuccessful)
+        {
+            return Ok(response);
+        }
+
+        return StatusCode(response.ResponseCode == "404" ? 404 : 400, response);
+    }
+
+
     private bool IsValidFile(IFormFile file)
     {
         var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };

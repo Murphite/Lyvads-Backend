@@ -304,7 +304,7 @@ public class DataGenerator
             .RuleFor(d => d.ApplicationUserId, f => f.PickRandom(validApplicationUserIds)) // Pick a valid ApplicationUserId from AspNetUsers
             .RuleFor(d => d.Amount, (f, d) => f.Finance.Amount(50, 500))
             .RuleFor(d => d.DisputeMessage, (f, d) => f.Lorem.Paragraph())
-            .RuleFor(d => d.Reason, (f, d) => f.PickRandom<DisputeReasons>())
+            //.RuleFor(d => d.Reason, (f, d) => f.PickRandom<DisputeReasons>())
             .RuleFor(d => d.Status, (f, d) => f.PickRandom<DisputeStatus>())
             .RuleFor(d => d.CreatedAt, (f, d) => f.Date.PastOffset())
             .RuleFor(d => d.UpdatedAt, (f, d) => f.Date.RecentOffset());

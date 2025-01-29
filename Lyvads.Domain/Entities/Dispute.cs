@@ -15,7 +15,7 @@ public class Dispute : Entity, IAuditable
     [Column(TypeName = "decimal(18, 2)")]
     public decimal Amount { get; set; }
     public string DisputeMessage { get; set; } = default!;
-    public DisputeReasons Reason { get; set; }
+    public string? Reason { get; set; }
     public DisputeStatus Status { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

@@ -15,10 +15,8 @@ public class DisputeResponseDto
     public decimal Amount { get; set; }
 }
 
-
 public class OpenDisputeDto
 {
-    public string Message { get; set; } = default!;
-
-    //public DisputeReasons DisputeReason { get; set; }
+    public List<string>? DisputeReason { get; set; }
+    public string? Message { get; set; }
 }
