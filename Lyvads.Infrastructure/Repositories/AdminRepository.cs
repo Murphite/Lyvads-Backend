@@ -170,29 +170,29 @@ public class AdminRepository : IAdminRepository
 
         foreach (var role in roles)
         {
-            switch (role)
+            switch (role.ToLowerInvariant())  // Convert to lowercase for case-insensitive comparison
             {
-                case "RegularUser":
+                case "regularuser":
                     if (user.RegularUser != null)
                     {
                         await DeleteRegularUserAsync(user.RegularUser.Id);
                         //_context.RegularUsers.Remove(user.RegularUser);
                     }
                     break;
-                case "Creator":
+                case "creator":
                     if (user.Creator != null)
                     {
                         await DeleteCreatorAsync(user.Creator.Id);
                         //_context.Creators.Remove(user.Creator);
                     }
                     break;
-                case "Admin":
+                case "admin":
                     if (user.Admin != null)
                     {
                         _context.Admins.Remove(user.Admin);
                     }
                     break;
-                case "SuperAdmin":
+                case "superadmin":
                     if (user.SuperAdmin != null)
                     {
                         _context.SuperAdmins.Remove(user.SuperAdmin);

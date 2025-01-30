@@ -500,7 +500,7 @@ public class CollaborationService : ICollaborationService
 
         var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
         var roles = await _userManager.GetRolesAsync(user!);
-        if (roles == null || !roles.Contains("RegularUser"))
+        if (roles == null || !roles.Any(role => role.Equals("RegularUser", StringComparison.OrdinalIgnoreCase)))
         {
             _logger.LogWarning("User with ID: {UserId} is not authorized to send videos.", userId);
             return new ServerResponse<DisputeResponseDto>
