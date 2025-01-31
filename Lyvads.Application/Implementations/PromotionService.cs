@@ -244,7 +244,7 @@ public class PromotionService : IPromotionPlanService
 
         var subscribedCreators = new List<SubscribedCreatorDto>();
 
-        foreach (var subscription in subscriptions.PageItems.Where(s => s.IsActive))
+        foreach (var subscription in subscriptions.PageItems!.Where(s => s.IsActive))
         {
             var creator = await _creatorRepository.GetCreatorByIdAsync(subscription.ApplicationUserId);
             var plan = await _promotionPlanRepository.GetByIdAsync(subscription.PromotionPlanId);
@@ -253,11 +253,11 @@ public class PromotionService : IPromotionPlanService
             {
                 SubscriptionId = subscription.Id,
                 CreatorId = subscription.CreatorId,
-                CreatorName = creator?.ApplicationUser.FullName!,
-                CreatorImage = creator?.ApplicationUser.ImageUrl!,
-                CreatorOccupation = creator?.ApplicationUser.Occupation!,
+                CreatorName = creator?.ApplicationUser!.FullName!,
+                CreatorImage = creator?.ApplicationUser!.ImageUrl!,
+                CreatorOccupation = creator?.ApplicationUser!.Occupation!,
                 Email = creator?.ApplicationUser?.Email!,
-                AmountPaid = plan.Price,
+                AmountPaid = plan!.Price,
                 PlanName = plan?.Name!,
                 SubscriptionDate = subscription.SubscriptionDate,
                 ExpiryDate = subscription.ExpiryDate
