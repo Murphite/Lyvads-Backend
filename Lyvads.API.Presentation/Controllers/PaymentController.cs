@@ -27,6 +27,7 @@ public class PaymentController : Controller
     private readonly string _paystackSecretKey;
     private readonly IConfiguration _configuration;
     private readonly IWalletRepository _walletRepository;
+    private readonly IPromotionSubRepository _promotionSubRepository;
     private readonly IRequestRepository _requestRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ICurrentUserService _currentUserService;
@@ -35,6 +36,7 @@ public class PaymentController : Controller
         IConfiguration configuration,
         IWalletService walletService,
         IWalletRepository walletRepository,
+        IPromotionSubRepository promotionSubRepository,
         IRequestRepository requestRepository,
         UserManager<ApplicationUser> userManager,
         IPaymentGatewayService paymentService,
@@ -48,6 +50,7 @@ public class PaymentController : Controller
         _paymentService = paymentService;
         _logger = logger;
         _paystackSecretKey = _configuration["Paystack:PaystackSK"];
+        _promotionSubRepository = promotionSubRepository;
         _walletRepository = walletRepository;
         _requestRepository = requestRepository;
         _httpContextAccessor = httpContextAccessor;
@@ -336,6 +339,17 @@ public class PaymentController : Controller
 
             await _walletRepository.UpdateTransactionAsync(transaction);
             _logger.LogInformation("Transaction with reference {TrxRef} marked as successful.", trxRef);
+
+            // Fetch the associated subscription and mark it as active
+            var subscription = await _promotionSubRepository.GetByPaymentReferenceAsync(trxRef);
+            if (subscription != null)
+            {
+                subscription.IsActive = true;
+                await _promotionSubRepository.UpdateAsync(subscription);
+                _logger.LogInformation("Subscription for creator {CreatorId} marked as active.", subscription.CreatorId);
+            }
+
+
             return Ok(new { status = "success" });
         }
 

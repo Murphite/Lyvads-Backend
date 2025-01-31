@@ -1550,6 +1550,7 @@ public class CreatorService : ICreatorService
 
     //}
 
+    ///keyword should focus on name and appusername of creator 
     public async Task<ServerResponse<PaginatorDto<IEnumerable<FilterCreatorDto>>>> SearchCreatorsAsync(
     decimal? minPrice, decimal? maxPrice, string? location, string? industry, string? keyword, PaginationFilter paginationFilter)
     {
@@ -1831,14 +1832,14 @@ public class CreatorService : ICreatorService
     }
 
 
-    public async Task<ServerResponse<IEnumerable<PostCommentResponseDto>>> GetCommentsByPostIdAsync(string postId)
+    public async Task<ServerResponse<PaginatorDto<IEnumerable<PostCommentResponseDto>>>> GetCommentsByPostIdAsync(string postId, PaginationFilter paginationFilter)
     {
         _logger.LogInformation("Fetching all comments for post {PostId}", postId);
 
         var post = await _repository.FindByCondition<Post>(p => p.Id == postId);
         if (post == null)
         {
-            return new ServerResponse<IEnumerable<PostCommentResponseDto>>
+            return new ServerResponse<PaginatorDto<IEnumerable<PostCommentResponseDto>>>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
@@ -1846,10 +1847,12 @@ public class CreatorService : ICreatorService
             };
         }
 
-        var comments = await _repository.FindAllByCondition<Comment>(c => c.PostId == postId);
+        var totalComments = await _repository.CountByCondition<Comment>(c => c.PostId == postId);
+        var comments = await _repository.FindPaginatedByCondition<Comment>(c => c.PostId == postId, paginationFilter);
+
         if (comments == null || !comments.Any())
         {
-            return new ServerResponse<IEnumerable<PostCommentResponseDto>>
+            return new ServerResponse<PaginatorDto<IEnumerable<PostCommentResponseDto>>>
             {
                 IsSuccessful = false,
                 ResponseCode = "404",
@@ -1866,15 +1869,20 @@ public class CreatorService : ICreatorService
             CommentedBy = c.CommentBy
         }).ToList();
 
-        return new ServerResponse<IEnumerable<PostCommentResponseDto>>
+        return new ServerResponse<PaginatorDto<IEnumerable<PostCommentResponseDto>>>
         {
             IsSuccessful = true,
             ResponseCode = "00",
             ResponseMessage = "Comments retrieved successfully.",
-            Data = commentDtos
+            Data = new PaginatorDto<IEnumerable<PostCommentResponseDto>>
+            {
+                CurrentPage = paginationFilter.PageNumber,
+                PageSize = paginationFilter.PageSize,
+                NumberOfPages = (int)Math.Ceiling((double)totalComments / paginationFilter.PageSize),
+                PageItems = commentDtos
+            }
         };
     }
-
     //public async Task<ServerResponse<PostResponseDto>> CreatePostAsync(PostDto postDto, PostVisibility visibility, string userId, IFormFile photo)
     //{
     //    _logger.LogInformation("Creating post for creator with User ID: {UserId}", userId);

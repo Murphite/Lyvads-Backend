@@ -33,3 +33,24 @@ public class PromotionDto
     public DateTime UpdatedAt { get; set; }
 }
 
+public class CreatePromotionPlanDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int Price { get; set; }
+    public int DurationInDays { get; set; } // e.g., 30 for monthly, 365 for annually
+}
+
+public class SubscribedCreatorDto
+{
+    public string? SubscriptionId { get; set; }
+    public string? CreatorId { get; set; }
+    public string CreatorName { get; set; } = string.Empty;
+    public string CreatorImage { get; set; } = string.Empty;
+    public string CreatorOccupation { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string PlanName { get; set; } = string.Empty;
+    public int? AmountPaid { get; set; }
+    public DateTime SubscriptionDate { get; set; }
+    public DateTime ExpiryDate { get; set; }
+}

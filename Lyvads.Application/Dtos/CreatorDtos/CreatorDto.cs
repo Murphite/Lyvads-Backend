@@ -14,6 +14,13 @@ public class CreatorDto
 }
 
 
+public class CommentOnPostDto
+{
+    public string postId { get; set; } = default!;
+    public string content { get; set; } = default!;
+}
+
+
 public class FilterCreatorDto
 {
     public string ImageUrl { get; set; } = default!;

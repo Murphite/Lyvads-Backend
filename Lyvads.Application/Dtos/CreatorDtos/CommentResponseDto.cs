@@ -14,6 +14,7 @@ public class CommentResponseDto
     public string? Content { get; set; }
     public string? UserId { get; set; }
     public string? CommentBy { get; set; }
+    public string? CommenterImage { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }

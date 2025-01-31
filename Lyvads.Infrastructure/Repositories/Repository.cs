@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Lyvads.Domain.Entities;
+using Lyvads.Shared.DTOs;
 
 namespace Lyvads.Infrastructure.Repositories;
 
@@ -16,6 +17,7 @@ public class Repository : IRepository
         _context = context;
     }
 
+  
     public async Task Add<TEntity>(TEntity entity) where TEntity : class
     {
         await _context.Set<TEntity>().AddAsync(entity);
@@ -76,4 +78,17 @@ public class Repository : IRepository
         return await _context.Set<T>().Where(predicate).ToListAsync();
     }
 
+    public async Task<int> CountByCondition<T>(Expression<Func<T, bool>> expression) where T : class
+    {
+        return await _context.Set<T>().Where(expression).CountAsync();
+    }
+
+    public async Task<IEnumerable<T>> FindPaginatedByCondition<T>(Expression<Func<T, bool>> expression, PaginationFilter paginationFilter) where T : class
+    {
+        return await _context.Set<T>()
+                 .Where(expression)
+                 .Skip((paginationFilter.PageNumber - 1) * paginationFilter.PageSize) // Skip items for the current page
+                 .Take(paginationFilter.PageSize) // Take the page size amount of items
+                 .ToListAsync();
+    }
 }

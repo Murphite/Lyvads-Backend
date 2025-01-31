@@ -96,7 +96,7 @@ public class FeeDetailsDto
 public class PaymentResponseDto
 {
     public string? WalletId { get; set; }
-    public int? Amount { get; set; }
+    public decimal? Amount { get; set; }
     public string? UserName { get; set; }
     public string? UserEmail { get; set; }
     public bool Status { get; set; }
@@ -105,6 +105,21 @@ public class PaymentResponseDto
     public string? AuthorizationUrl { get; set; }
     public string? CancelUrl { get; set; }
 }
+
+
+public class SubscriptionPaymentResponseDto
+{
+    public string? SubscriptionId { get; set; }
+    public decimal? Amount { get; set; }
+    public string? UserName { get; set; }
+    public string? UserEmail { get; set; }
+    public bool Status { get; set; }
+    public DateTimeOffset DateCreated { get; set; }
+    public string? PaymentReference { get; set; }
+    public string? AuthorizationUrl { get; set; }
+    public string? CancelUrl { get; set; }
+}
+
 
 
 public class StorePaymentCardResponseDto
@@ -217,6 +232,15 @@ public class ResendResponseDto
     public string? UpdatedStatus { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }
+
+
+public class CreatorCollaborationDto
+{
+    public string? CreatorId { get; set; }
+    public string? CreatorName { get; set; }
+    public int CompletedJobsCount { get; set; }
+}
+
 
 
 public class CloseRequestResultDto

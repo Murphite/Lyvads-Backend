@@ -31,9 +31,12 @@ public class CreatorRepository : ICreatorRepository
 
     public async Task<Creator?> GetCreatorByIdAsync(string creatorId)
     {
-        return await _context.Creators
-            .Include(c => c.ApplicationUser)
-            .FirstOrDefaultAsync(c => c.Id == creatorId);
+        // Use Include to eagerly load the ApplicationUser navigation property
+        var creator = await _context.Set<Creator>()
+            .Include(c => c.ApplicationUser) // Ensure the ApplicationUser navigation property is loaded
+            .FirstOrDefaultAsync(c => c.ApplicationUserId == creatorId);
+
+        return creator;
     }
 
     public IQueryable<Creator> GetCreators()

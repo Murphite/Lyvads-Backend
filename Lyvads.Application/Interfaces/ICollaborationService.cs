@@ -11,6 +11,7 @@ namespace Lyvads.Application.Interfaces;
 
 public interface ICollaborationService
 {
+    Task<ServerResponse<List<CreatorCollaborationDto>>> GetFirstFiveCompletedCollaborationsAsync();
     Task<ServerResponse<List<CollaborationDto>>> GetCollaborationsAsync();
     Task<ServerResponse<CollaborationDetailsDto>> GetCollaborationDetailsAsync(string collaborationId);
     Task<ServerResponse<bool>> FlagToggleCollaborationAsync(string collaborationId);

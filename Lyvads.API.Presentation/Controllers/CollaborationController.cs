@@ -1,4 +1,5 @@
 ﻿using Lyvads.API.Presentation.Dtos;
+using Lyvads.Application.Dtos;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Lyvads.Application.Dtos.RegularUserDtos;
 using Lyvads.Application.Implementations;
@@ -114,6 +115,15 @@ public class CollaborationController : ControllerBase
     [HttpGet("GetRequestDetails/requestId")]
     public async Task<ActionResult<ServerResponse<RequestDetailsDto>>> GetRequestDetails(string requestId)
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
+
         var response = await _collaborationService.GetRequestDetailsAsync(requestId);
         if (!response.IsSuccessful)
         {
@@ -128,9 +138,12 @@ public class CollaborationController : ControllerBase
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
-        {
-            return Unauthorized("User not authenticated.");
-        }
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
 
 
         var response = await _collaborationService.OpenDisputeAsync(user.Id, requestId, disputeDto);
@@ -144,11 +157,14 @@ public class CollaborationController : ControllerBase
     [HttpPost("send-video/{requestId}")]
     public async Task<IActionResult> SendVideoToUser(string requestId, [FromForm] UploadVideo videoDto)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
-            return Unauthorized("User not authenticated.");
-        }
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
 
         // Check if the video is provided
         if (videoDto.Video == null)
@@ -228,8 +244,12 @@ public class CollaborationController : ControllerBase
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
-            return Unauthorized("User not authenticated.");
-
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
         var response = await _collaborationService.FetchDisputesByCreatorAsync(user.Id);
 
         if (!response.IsSuccessful)
@@ -246,7 +266,12 @@ public class CollaborationController : ControllerBase
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
-            return Unauthorized("User not authenticated.");
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
 
         var response = await _collaborationService.GetDisputeDetailsByIdAsync(disputeId, user.Id);
 
@@ -262,6 +287,15 @@ public class CollaborationController : ControllerBase
     [HttpPost("resend-request")]
     public async Task<IActionResult> ResendRequest([FromBody] ResendRequestDto resendRequestDto)
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
+
         var result = await _collaborationService.ResendRequestAsync(resendRequestDto);
 
         if (!result.IsSuccessful)
@@ -274,6 +308,15 @@ public class CollaborationController : ControllerBase
     [HttpPost("cancel-request")]
     public async Task<IActionResult> CloseRequest([FromBody] CloseRequestDto closeRequestDto)
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
+
         var result = await _collaborationService.CloseRequestAsync(closeRequestDto);
 
         if (!result.IsSuccessful)
@@ -286,6 +329,15 @@ public class CollaborationController : ControllerBase
     [HttpGet("declined-details/{requestId}")]
     public async Task<IActionResult> GetDeclinedDetails(string requestId)
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
+
         var result = await _collaborationService.GetDeclinedDetailsAsync(requestId);
 
         if (!result.IsSuccessful)
@@ -338,6 +390,35 @@ public class CollaborationController : ControllerBase
             ResponseCode = "200",
             ResponseMessage = "Request marked as complete successfully."
         });
+    }
+
+
+    [HttpGet("5-completed-creators")]
+    public async Task<IActionResult> GetFirstFiveCompletedCollaborations()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized(new
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User is not authenticated."
+            });
+        
+
+        var result = await _collaborationService.GetFirstFiveCompletedCollaborationsAsync();
+        //return Ok(new
+        //{
+        //    IsSuccessful = true,
+        //    ResponseCode = "200",
+        //    ResponseMessage = "Successfully retrieved completed collaborations.",
+        //    Data = collaborations
+        //});
+
+        if (!result.IsSuccessful)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
 }

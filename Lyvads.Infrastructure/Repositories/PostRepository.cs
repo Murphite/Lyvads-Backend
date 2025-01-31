@@ -53,6 +53,16 @@ public class PostRepository : IPostRepository
             .ToListAsync();
     }
 
+    public async Task<List<Comment>> GetRepliesByUserAndPostsAsync(string userId, List<string> postIds)
+    {
+        return await _context.Comments
+            .Where(c => c.ParentCommentId != null // Ensure it's a reply
+                        && (c.RegularUserId == userId || c.ApplicationUserId == userId) // Check if user made the reply
+                        && postIds.Contains(c.PostId)) // Ensure reply belongs to the given posts
+            .Include(c => c.Post) // Include post details if needed
+            .ToListAsync();
+    }
+
     public IQueryable<Post> GetAllPosts()
     {
         return _context.Posts.AsQueryable();

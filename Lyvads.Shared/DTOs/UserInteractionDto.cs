@@ -50,6 +50,7 @@ public class CollabRateDto
 public class GetPostDto
 {
     public string? PostId { get; set; }    
+    public string? CreatorId { get; set; }
     public string? CreatorName { get; set; }
     public string? CreatorImage { get; set; }
     public string? CreatorAppUserName { get; set; }
@@ -60,7 +61,11 @@ public class GetPostDto
     public DateTimeOffset CreatedAt { get; set; }
     public List<string>? MediaUrls { get; set; }
     public bool IsLikedByUser { get; set; }
-    public bool HasCommentedByUser { get; set; }
+    //public bool HasCommentedByUser { get; set; }
+    //public bool HasRepliedByUser { get; set; }
+    //public List<string> LikedByUserIds { get; set; } = new List<string>();  // FIXED
+    //public List<string> CommentedByUserIds { get; set; } = new List<string>();  // FIXED
+    //public List<string> RepliedByUserIds { get; set; } = new List<string>();  // FIXED
 }
 
 public class UserWithFollowersDto

@@ -69,10 +69,11 @@ public class MediaService : IMediaService
             {
                 File = new FileDescription(video.FileName, stream),
                 Transformation = new Transformation()
-                    .Width(1920).Height(1080).Crop("scale") // Adjust dimensions
+                    .Width(1080).Height(1350).Crop("fill") // Adjust dimensions
                     .Quality("auto") // Optimize quality
                     .FetchFormat("auto") // Automatically determine best format
                     .Dpr("auto"), // Set dynamic pixel ratio
+                    //.Gravity("auto"), // Set dynamic pixel ratio
                 Folder = folderName
             };
 
@@ -136,10 +137,11 @@ public class MediaService : IMediaService
             {
                 File = new FileDescription(photo.FileName, stream),
                 Transformation = new Transformation()
-                    .Width(1920).Height(1080).Crop("scale") // Adjust dimensions
+                    .Width(1080).Height(1350).Crop("fill") // Adjust dimensions
                     .Quality("auto") // Optimize quality
                     .FetchFormat("auto") // Automatically determine best format
                     .Dpr("auto"), // Set dynamic pixel ratio
+                    //.Gravity("auto"), // Set dynamic pixel ratio
                 Folder = folderName
             };
 

@@ -116,6 +116,7 @@ public class CreatorController : ControllerBase
         return Ok(response);
     }
 
+   
     [HttpDelete("delete-media")]
     public async Task<IActionResult> DeleteMediaFromPost([FromBody] DeleteMediaRequestDto request)
     {
@@ -181,15 +182,15 @@ public class CreatorController : ControllerBase
     }
 
     
-    [HttpPost("commentOnPost")]
-    public async Task<IActionResult> CommentOnPost(string postId, string content)
+    [HttpPost("CommentOnPost")]
+    public async Task<IActionResult> CommentOnPost(CommentOnPostDto commentOnPost)
     {
         var user = await _userManager.GetUserAsync(User);
         // Check if the user is null before proceeding
         if (user == null)
             return Unauthorized("User not found or unauthorized.");
 
-        var result = await _creatorService.CommentOnPostAsync(postId, user.Id, content);
+        var result = await _creatorService.CommentOnPostAsync(commentOnPost.postId, user.Id, commentOnPost.content);
 
         if (!result.IsSuccessful)
             return BadRequest(result.ErrorResponse);
@@ -198,7 +199,7 @@ public class CreatorController : ControllerBase
     }
 
 
-    [HttpGet("posts")]
+    [HttpGet("Posts")]
     public async Task<IActionResult> GetPostsByCreator([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         // Get the logged-in user
@@ -316,15 +317,21 @@ public class CreatorController : ControllerBase
     }
 
     [HttpGet("posts/{postId}/comments")]
-    public async Task<IActionResult> GetCommentsByPostId(string postId)
+    public async Task<IActionResult> GetCommentsByPostId(string postId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
             return Unauthorized("User not found or unauthorized.");
 
-        var result = await _creatorService.GetCommentsByPostIdAsync(postId);
-        return Ok(result);
+        var paginationFilter = new PaginationFilter(pageNumber, pageSize);
+        var result = await _creatorService.GetCommentsByPostIdAsync(postId, paginationFilter);
+
+        if (!result.IsSuccessful)
+            return BadRequest(new { result.ResponseCode, result.ResponseMessage });
+
+        return Ok(new { result.ResponseCode, result.ResponseMessage, Data = result.Data });
     }
+
 
 
     public class WithdrawFundsDto

@@ -810,7 +810,8 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
             UserId = comment.ApplicationUserId,
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,
-            CommentBy = comment.CommentBy
+            CommentBy = comment.CommentBy,
+            CommenterImage = user.ImageUrl,
         };
 
         return new ServerResponse<CommentResponseDto>
@@ -895,6 +896,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
             Content = replyComment.Content,
             CreatedAt = replyComment.CreatedAt,
             CommentBy = replyComment.CommentBy,
+            CommenterImage = user.ImageUrl,
             ParentCommentId = replyComment.ParentCommentId
         };
 
@@ -1437,6 +1439,7 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
         {
             IsSuccessful = true,
             Data = comments
+            //userid, user-image, appusername, counts of likes on posts, replies, comments, count of likes for post, 
         };
     }
 
@@ -2283,96 +2286,96 @@ AppPaymentMethod payment, CreateRequestDto createRequestDto)
     //    };
     //}
     public async Task<ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>> GetPostsForUserAsync(string userId, PaginationFilter paginationFilter)
-{
-    if (string.IsNullOrEmpty(userId))
     {
-        _logger.LogWarning("User ID is null or empty.");
+        if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning("User ID is null or empty.");
+            return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "400",
+                ResponseMessage = "User ID is null or empty."
+            };
+        }
+
+        var user = await _userRepository.GetUserWithFollowersAsync(userId);
+        if (user == null)
+        {
+            _logger.LogWarning($"User not found for ID: {userId}");
+            return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "404",
+                ResponseMessage = "User not found."
+            };
+        }
+
+        var followingIds = await _userRepository.GetFollowingCreatorIdsAsync(userId);
+        var paginatedPosts = await _postRepository.GetPaginatedPostsAsync(followingIds, paginationFilter);
+
+        if (!paginatedPosts.PageItems!.Any())
+        {
+            _logger.LogInformation("No posts found for the user.");
+            return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
+            {
+                IsSuccessful = true,
+                ResponseCode = "00",
+                ResponseMessage = "No posts found for the user.",
+                Data = new PaginatorDto<IEnumerable<GetPostDto>>
+                {
+                    CurrentPage = paginatedPosts.CurrentPage,
+                    PageSize = paginatedPosts.PageSize,
+                    NumberOfPages = paginatedPosts.NumberOfPages,
+                    PageItems = new List<GetPostDto>()
+                }
+            };
+        }
+
+        var postIds = paginatedPosts.PageItems.Select(p => p.Id).ToList();
+        var userLikes = await _postRepository.GetLikesByUserAndPostsAsync(userId, postIds);
+        var userComments = await _postRepository.GetCommentsByUserAndPostsAsync(userId, postIds);
+        var userReplies = await _postRepository.GetRepliesByUserAndPostsAsync(userId, postIds);
+
+        var postDtos = paginatedPosts.PageItems!.Select(p => new GetPostDto
+        {
+            PostId = p.Id,
+            CreatorName = p.Creator.ApplicationUser?.FullName,
+            CreatorImage = p.Creator.ApplicationUser?.ImageUrl,
+            CreatorId = p.Creator.Id,
+            CreatorOccupation = p.Creator.ApplicationUser?.Occupation,
+            CreatorAppUserName = p.Creator.ApplicationUser?.AppUserName,
+            Caption = p.Caption,
+            Location = p.Location,
+            Visibility = p.Visibility.ToString(),
+            CreatedAt = p.CreatedAt,
+            MediaUrls = p.MediaFiles.Select(m => m.Url).ToList(),
+            IsLikedByUser = userLikes.Any(l => l.PostId == p.Id),
+            //HasCommentedByUser = userComments.Any(c => c.PostId == p.Id),
+            //HasRepliedByUser = userReplies.Any(r => r.PostId == p.Id), // ✅ FIXED
+            //LikedByUserIds = userLikes.Where(l => l.PostId == p.Id).Select(l => l.UserId).ToList(),
+           // CommentedByUserIds = userComments.Where(c => c.PostId == p.Id).Select(c => c.ApplicationUserId).ToList(),
+            //RepliedByUserIds = userReplies.Where(r => r.PostId == p.Id)
+                //.Select(r => r.RegularUserId ?? r.ApplicationUserId) // ✅ FIXED
+                //.Where(id => id != null)
+                //.ToList()!
+        }).ToList();
+
         return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
         {
-            IsSuccessful = false,
-            ResponseCode = "400",
-            ResponseMessage = "User ID is null or empty."
-        };
-    }
-
-    // Fetch user with their followers
-    var user = await _userRepository.GetUserWithFollowersAsync(userId);
-    if (user == null)
-    {
-        _logger.LogWarning($"User not found for ID: {userId}");
-        return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
-        {
-            IsSuccessful = false,
-            ResponseCode = "404",
-            ResponseMessage = "User not found."
-        };
-    }
-
-    // Fetch the list of creator IDs the user is following
-    var followingIds = await _userRepository.GetFollowingCreatorIdsAsync(userId);
-
-    // Get filtered posts based on visibility and following status, applying pagination
-    var paginatedPosts = await _postRepository.GetPaginatedPostsAsync(followingIds, paginationFilter);
-
-    // Check if no posts were found
-    if (!paginatedPosts.PageItems!.Any())
-    {
-        _logger.LogInformation("No posts found for the user.");
-        return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
-        {
-            IsSuccessful = true, // Still return a successful response
+            IsSuccessful = true,
             ResponseCode = "00",
-            ResponseMessage = "No posts found for the user.",
+            ResponseMessage = "Posts retrieved successfully.",
             Data = new PaginatorDto<IEnumerable<GetPostDto>>
             {
                 CurrentPage = paginatedPosts.CurrentPage,
                 PageSize = paginatedPosts.PageSize,
                 NumberOfPages = paginatedPosts.NumberOfPages,
-                PageItems = new List<GetPostDto>() // Return an empty list
+                PageItems = postDtos
             }
         };
     }
 
-    // Fetch likes and comments in bulk for efficiency
-    var postIds = paginatedPosts.PageItems.Select(p => p.Id).ToList();
-    var userLikes = await _postRepository.GetLikesByUserAndPostsAsync(userId, postIds); // Method to fetch all likes by the user for the given posts
-    var userComments = await _postRepository.GetCommentsByUserAndPostsAsync(userId, postIds); // Method to fetch all comments by the user for the given posts
-
-    // Map posts to DTOs
-    var postDtos = paginatedPosts.PageItems!.Select(p => new GetPostDto
-    {
-        PostId = p.Id,
-        CreatorName = p.Creator.ApplicationUser?.FullName,
-        CreatorImage = p.Creator.ApplicationUser?.ImageUrl,
-        CreatorOccupation = p.Creator.ApplicationUser?.Occupation,
-        CreatorAppUserName = p.Creator.ApplicationUser?.AppUserName,
-        Caption = p.Caption,
-        Location = p.Location,
-        Visibility = p.Visibility.ToString(),
-        CreatedAt = p.CreatedAt,
-        MediaUrls = p.MediaFiles.Select(m => m.Url).ToList(),
-        IsLikedByUser = userLikes.Any(l => l.PostId == p.Id), // Check if the post is liked by the user
-        HasCommentedByUser = userComments.Any(c => c.PostId == p.Id) // Check if the user has commented on the post
-    }).ToList();
-
-    _logger.LogInformation("Retrieved {PostCount} posts for the user.", postDtos.Count);
-
-    // Return paginated response
-    return new ServerResponse<PaginatorDto<IEnumerable<GetPostDto>>>
-    {
-        IsSuccessful = true,
-        ResponseCode = "00",
-        ResponseMessage = "Posts retrieved successfully.",
-        Data = new PaginatorDto<IEnumerable<GetPostDto>>
-        {
-            CurrentPage = paginatedPosts.CurrentPage,
-            PageSize = paginatedPosts.PageSize,
-            NumberOfPages = paginatedPosts.NumberOfPages,
-            PageItems = postDtos
-        }
-    };
-}
-
+    //id of user who created post
 
     public async Task<ServerResponse<GetPostWithCommentsDto>> GetPostDetailsWithCommentsAsync(string postId)
     {

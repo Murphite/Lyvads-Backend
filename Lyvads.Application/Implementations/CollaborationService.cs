@@ -10,7 +10,6 @@ using Lyvads.Domain.Responses;
 using Microsoft.EntityFrameworkCore;
 using Lyvads.Application.Dtos.CreatorDtos;
 using Microsoft.AspNetCore.Http;
-using Lyvads.Infrastructure.Repositories;
 using Lyvads.Domain.Constants;
 
 
@@ -408,7 +407,7 @@ public class CollaborationService : ICollaborationService
             RequestId = request.Id,
             RegularUserFullName = $"{request.RegularUser?.ApplicationUser?.FirstName} {request.RegularUser?.ApplicationUser?.LastName}".Trim(),
             RegularUserProfilePic = request.RegularUser?.ApplicationUser?.ImageUrl!,
-            RegularUserAppUserName = request.Creator?.ApplicationUser?.AppUserName!,
+            RegularUserAppUserName = request.RegularUser?.ApplicationUser?.AppUserName!,
             CreatorFullName = $"{request.Creator?.ApplicationUser?.FirstName} {request.Creator?.ApplicationUser?.LastName}".Trim(),      
             CreatorProfilePic = request.Creator?.ApplicationUser?.ImageUrl!,
             CreatorAppUserName = request.Creator?.ApplicationUser?.AppUserName!,
@@ -1089,5 +1088,45 @@ public class CollaborationService : ICollaborationService
         };
     }
 
+    public async Task<ServerResponse<List<CreatorCollaborationDto>>> GetFirstFiveCompletedCollaborationsAsync()
+    {
+        var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+        if (user == null)
+        {
+            return new ServerResponse<List<CreatorCollaborationDto>>
+            {
+                IsSuccessful = false,
+                ResponseCode = "401",
+                ResponseMessage = "User not found.",
+                ErrorResponse = new ErrorResponse
+                {
+                    ResponseCode = "401",
+                    ResponseMessage = "User not found."
+                }
+            };
+        }
+
+        // Fetch completed collaborations with creators
+        var completedCollaborations = await _repository.GetAll<Request>()
+            .Where(r => r.RegularUserId == user.Id && r.Status == RequestStatus.Completed) // Use RegularUserId instead
+            .GroupBy(r => r.CreatorId)
+            .Select(g => new CreatorCollaborationDto
+            {
+                CreatorId = g.Key,
+                CreatorName = g.First().Creator.ApplicationUser.FullName,
+                CompletedJobsCount = g.Count()
+            })
+            .OrderByDescending(c => c.CompletedJobsCount)
+            .Take(5)
+            .ToListAsync();
+
+        return new ServerResponse<List<CreatorCollaborationDto>>
+        {
+            IsSuccessful = true,
+            ResponseCode = "200",
+            ResponseMessage = "Successfully retrieved completed collaborations.",
+            Data = completedCollaborations
+        };
+    }
 
 }

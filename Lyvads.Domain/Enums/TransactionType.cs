@@ -7,5 +7,6 @@ public enum TransactionType
     Funding,
     Withdrawal,
     Payment,
-    Refund
+    Refund,
+    PromotionSubscription
 }

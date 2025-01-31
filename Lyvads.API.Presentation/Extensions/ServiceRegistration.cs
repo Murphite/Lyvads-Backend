@@ -51,7 +51,7 @@ public static class ServiceRegistration
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-            .AddJwtBearer(options =>
+        .AddJwtBearer(options =>
         {
             //var key = Encoding.UTF8.GetBytes(configuration.GetSection("JWT:Key").Value);
             var jwtKey = configuration.GetSection("JWT:Key").Value;
@@ -117,6 +117,7 @@ public static class ServiceRegistration
         services.AddScoped<IDisputeService, AdminDisputeService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IPromotionService, AdminPromotionService>();
+        services.AddScoped<IPromotionPlanService, PromotionService>();
         services.AddScoped<IUserAdService, AdminUserAdService>();
         services.AddScoped<IEmailContext, EmailContext>();
         services.AddScoped<IAdminActivityLogService, AdminActivityLogService>();
@@ -132,6 +133,8 @@ public static class ServiceRegistration
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRegularUserRepository, RegularUserRepository>();
         services.AddScoped<ICreatorRepository, CreatorRepository>();
+        services.AddScoped<IPromotionSubRepository, PromotionSubRepository>();
+        services.AddScoped<IPromotionPlanRepository, PromotionPlanRepository>();
         services.AddScoped<IWalletRepository, WalletRepository>();
         services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IRequestRepository, RequestRepository>();

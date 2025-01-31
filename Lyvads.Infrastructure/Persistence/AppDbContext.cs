@@ -45,6 +45,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RegularUser> RegularUsers { get; set; }
     public DbSet<Media> Media { get; set; }
     public DbSet<Rate> Rates { get; set; }
+    public DbSet<PromotionSubscription> PromotionSubscriptions { get; set; }
+    public DbSet<PromotionPlan> PromotionPlans { get; set; }
     public DbSet<CardAuthorization> CardAuthorizations { get; set; }
 
 

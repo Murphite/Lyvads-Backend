@@ -11,7 +11,7 @@ namespace Lyvads.Application.Interfaces;
 public interface ICreatorService
 {
     Task<ServerResponse<bool>> DeleteMediaPostAsync(string postId, string userId, PostEditDto editDto);
-    Task<ServerResponse<IEnumerable<PostCommentResponseDto>>> GetCommentsByPostIdAsync(string postId);
+    Task<ServerResponse<PaginatorDto<IEnumerable<PostCommentResponseDto>>>> GetCommentsByPostIdAsync(string postId, PaginationFilter paginationFilter);
     Task<ServerResponse<bool>> IsCommentLikedByUserAsync(string commentId, string userId);
     Task<ServerResponse<bool>> IsPostLikedByUserAsync(string postId, string userId);
     Task<ServerResponse<CreatorRateResponseDto>> UpdateCreatorRatesAsync(UpdateCreatorRateDto dto, string userId);

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Lyvads.Domain.Entities;
+using Lyvads.Shared.DTOs;
 
 namespace Lyvads.Domain.Repositories;
 
@@ -22,4 +23,7 @@ public interface IRepository
     Task<bool> Exists<T>(Expression<Func<T, bool>> predicate) where T : class;
     Task<IEnumerable<T>> FindAllByCondition<T>(Expression<Func<T, bool>> predicate) where T : class;
     IQueryable<T> QueryFindByCondition<T>(Expression<Func<T, bool>> expression) where T : class;
+    Task<int> CountByCondition<T>(Expression<Func<T, bool>> expression) where T : class;
+    Task<IEnumerable<T>> FindPaginatedByCondition<T>(Expression<Func<T, bool>> expression, PaginationFilter paginationFilter) where T : class;
+
 }
